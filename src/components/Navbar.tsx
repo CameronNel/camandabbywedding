@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useWedding } from '../context/WeddingContext';
 import { CutePrintButton } from './PrintInvitationModal';
 import { Menu, X, Lock, CalendarCheck, Sparkles, Home, Clock, BookOpen, Gift } from 'lucide-react';
@@ -12,16 +12,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const { config, setIsAdminOpen } = useWedding();
-  const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const navTabs: Array<{ id: TabId; name: string; icon: React.FC<{ className?: string }> }> = [
     { id: 'home', name: 'Home', icon: Home },
@@ -45,18 +36,12 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   }).toUpperCase();
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-        isScrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-blush-100 py-3'
-          : 'bg-white/85 backdrop-blur-sm border-b border-blush-100/60 py-3.5'
-      }`}
-    >
+    <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-blush-100 py-3.5 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Monogram / Brand matching the exact uploaded emblem styling */}
         <button
           onClick={() => handleTabClick('home')}
-          className="group flex items-center gap-3 text-left"
+          className="group flex items-center gap-3 text-left shrink-0"
         >
           <div className="relative w-11 h-11 rounded-full bg-pink-100/70 border border-blush-200 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
             <span className="font-script text-2xl text-rosewood drop-shadow-sm font-normal">
@@ -98,41 +83,41 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           })}
         </nav>
 
-        {/* Right CTAs */}
-        <div className="hidden sm:flex items-center gap-2.5">
+        {/* Right CTAs - Identical and Fixed across all tabs */}
+        <div className="hidden sm:flex items-center gap-2.5 shrink-0">
           <CutePrintButton variant="outline" />
 
           <button
             onClick={() => setIsAdminOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-stone-600 hover:text-stone-900 hover:bg-blush-50 transition border border-stone-200"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs text-stone-600 hover:text-stone-900 hover:bg-blush-50 transition border border-stone-200 font-medium"
             title="Organizer Portal / Guest List & Settings"
           >
             <Lock className="w-3.5 h-3.5 text-stone-400" />
             <span>Admin</span>
           </button>
 
-          {activeTab !== 'rsvp' && (
-            <button
-              onClick={() => handleTabClick('rsvp')}
-              className="flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-wider bg-gradient-to-r from-blush-400 via-blush-500 to-rose-400 text-white shadow-md shadow-blush-500/20 hover:shadow-lg hover:shadow-blush-500/35 hover:scale-[1.02] active:scale-[0.98] transition-all"
-            >
-              <CalendarCheck className="w-3.5 h-3.5" />
-              <span>RSVP</span>
-              <Sparkles className="w-3 h-3 text-gold-light" />
-            </button>
-          )}
+          <button
+            onClick={() => handleTabClick('rsvp')}
+            className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-wider shadow-md transition-all ${
+              activeTab === 'rsvp'
+                ? 'bg-rosewood text-white shadow-rosewood/20 scale-[1.02]'
+                : 'bg-gradient-to-r from-blush-400 via-blush-500 to-rose-400 text-white shadow-blush-500/20 hover:shadow-lg hover:shadow-blush-500/35 hover:scale-[1.02] active:scale-[0.98]'
+            }`}
+          >
+            <CalendarCheck className="w-3.5 h-3.5" />
+            <span>RSVP</span>
+            <Sparkles className="w-3 h-3 text-gold-light" />
+          </button>
         </div>
 
         {/* Mobile Menu Button */}
         <div className="flex items-center gap-2 lg:hidden">
-          {activeTab !== 'rsvp' && (
-            <button
-              onClick={() => handleTabClick('rsvp')}
-              className="px-3 py-1.5 rounded-full text-xs font-medium bg-blush-500 text-white shadow-sm"
-            >
-              RSVP
-            </button>
-          )}
+          <button
+            onClick={() => handleTabClick('rsvp')}
+            className="px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-blush-500 text-white shadow-sm"
+          >
+            RSVP
+          </button>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-blush-50 transition"
