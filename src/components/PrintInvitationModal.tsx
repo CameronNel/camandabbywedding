@@ -395,7 +395,7 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
                 <div className="pt-1 border-t border-dashed border-[#E3B8C8] flex items-center justify-between max-w-[320px] mx-auto text-left">
                   <div>
                     <span className="text-[8px] uppercase tracking-wider text-stone-400 font-semibold block">
-                      Kindly RSVP Online by May 1st
+                      Kindly RSVP Online by December 1st
                     </span>
                     <span className="text-[9px] text-stone-700 font-mono font-medium">
                       cameronnel.github.io/camandabbywedding
