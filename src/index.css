@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    background-color: #fdfaf8;
+    color: #3b3335;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  h1, h2, h3, .font-serif {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+
+  .font-display {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+
+  .font-script {
+    font-family: 'Great Vibes', cursive;
+  }
+}
+
+/* Custom romantic floral embellishments */
+.bg-floral-pattern {
+  background-color: #fefbfc;
+  background-image: radial-gradient(#f7d8e2 0.75px, transparent 0.75px), radial-gradient(#f7d8e2 0.75px, #fefbfc 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #c49a45 0%, #e6c875 50%, #b38834 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.rose-gradient-text {
+  background: linear-gradient(135deg, #a63a56 0%, #db6182 50%, #87263e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(244, 215, 224, 0.6);
+  box-shadow: 0 10px 30px -5px rgba(219, 97, 130, 0.08);
+}
+
+.glass-card-hover {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px -4px rgba(219, 97, 130, 0.15);
+  border-color: rgba(237, 109, 147, 0.45);
+}
+
+.gold-border-card {
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 8px 30px -4px rgba(212, 175, 55, 0.08);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #fdf6f7;
+}
+::-webkit-scrollbar-thumb {
+  background: #f0b6c6;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #db7693;
+}
+
+/* Floating Petals Animation */
+@keyframes fallingPetal1 {
+  0% {
+    transform: translate(0, -10px) rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.85;
+  }
+  85% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(60px, 95vh) rotate(360deg) scale(1.1);
+    opacity: 0;
+  }
+}
+
+@keyframes fallingPetal2 {
+  0% {
+    transform: translate(0, -10px) rotate(45deg) scale(0.9);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-70px, 95vh) rotate(540deg) scale(0.7);
+    opacity: 0;
+  }
+}
+
+.petal-1 {
+  animation: fallingPetal1 14s linear infinite;
+}
+.petal-2 {
+  animation: fallingPetal2 18s linear infinite;
+}
+.petal-3 {
+  animation: fallingPetal1 12s linear infinite;
+}
+.petal-4 {
+  animation: fallingPetal2 16s linear infinite;
+}
+
+/* Print Stylesheet for Keepsake Invitation */
+@media print {
+  body {
+    background: white !important;
+    color: #1c1917 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  header, footer, main, .no-print, [aria-label="Music and ambiance controls"] {
+    display: none !important;
+  }
+
+  .no-print-backdrop {
+    background: white !important;
+    position: static !important;
+    padding: 0 !important;
+    inset: auto !important;
+  }
+
+  #printable-invitation-container {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+
+  #printable-invitation-card {
+    box-shadow: none !important;
+    border: 2px solid #D4AF37 !important;
+    page-break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    width: 90% !important;
+    max-width: 600px !important;
+    margin: 30px auto !important;
+    padding: 40px !important;
+  }
+}
