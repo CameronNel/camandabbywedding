@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useWedding } from '../context/WeddingContext';
 import type { Guest, RegistryItem } from '../types/wedding';
 import { exportGuestsToCsv } from '../utils/storage';
@@ -32,12 +33,12 @@ export const AdminDashboard: React.FC = () => {
   const {
     config,
     updateConfig,
-    guests,
+    guests = [],
     addGuest,
     updateGuest,
     deleteGuest,
     bulkAddGuests,
-    registryItems,
+    registryItems = [],
     addRegistryItem,
     updateRegistryItem,
     deleteRegistryItem,
@@ -97,62 +98,85 @@ export const AdminDashboard: React.FC = () => {
   // Copy Feedback
   const [copiedLinkFor, setCopiedLinkFor] = useState<string | null>(null);
 
-  // Settings form state
-  const [brideName, setBrideName] = useState(config.brideName);
-  const [brideShortName, setBrideShortName] = useState(config.brideShortName);
-  const [groomName, setGroomName] = useState(config.groomName);
-  const [groomShortName, setGroomShortName] = useState(config.groomShortName);
-  const [weddingDate, setWeddingDate] = useState(config.weddingDate);
-  const [tagline, setTagline] = useState(config.tagline);
-  const [hashtag, setHashtag] = useState(config.hashtag);
-  const [adminPin, setAdminPin] = useState(config.adminPin);
+  // Settings form state (safely populated from config)
+  const [brideName, setBrideName] = useState('');
+  const [brideShortName, setBrideShortName] = useState('');
+  const [groomName, setGroomName] = useState('');
+  const [groomShortName, setGroomShortName] = useState('');
+  const [weddingDate, setWeddingDate] = useState('');
+  const [tagline, setTagline] = useState('');
+  const [hashtag, setHashtag] = useState('');
+  const [adminPin, setAdminPin] = useState('');
   const [settingsSaved, setSettingsSaved] = useState(false);
 
-  if (!isAdminOpen) return null;
-
-  // Handle Login PIN
-  const handlePinSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (authenticateAdmin(pinInput)) {
-      setPinError(false);
-      setPinInput('');
-    } else {
-      setPinError(true);
+  // Keep settings form synced with config
+  useEffect(() => {
+    if (config) {
+      setBrideName(config.brideName || 'Abby');
+      setBrideShortName(config.brideShortName || 'Abby');
+      setGroomName(config.groomName || 'Cameron Liam Nel');
+      setGroomShortName(config.groomShortName || 'Cam');
+      setWeddingDate(config.weddingDate || '2027-01-04T15:30:00');
+      setTagline(config.tagline || '');
+      setHashtag(config.hashtag || '#CamAndAbbyWedding');
+      setAdminPin(config.adminPin || '1234');
     }
-  };
+  }, [config, isAdminOpen]);
 
-  // Analytics Stats Calculation
+  // Lock body scroll and handle ESC key when open
+  useEffect(() => {
+    if (!isAdminOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsAdminOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isAdminOpen, setIsAdminOpen]);
+
+  // Analytics Stats Calculation (Safe with null-guards)
+  const safeGuests = Array.isArray(guests) ? guests.filter(Boolean) : [];
+
   const stats = useMemo(() => {
-    const totalGuestsOnList = guests.length;
-    const totalAllocatedSeats = guests.reduce((acc, g) => acc + g.partySize, 0);
+    const totalGuestsOnList = safeGuests.length;
+    const totalAllocatedSeats = safeGuests.reduce((acc, g) => acc + (g?.partySize || 1), 0);
 
-    const attendingGuests = guests.filter(g => g.rsvpStatus === 'attending');
-    const confirmedHeads = attendingGuests.reduce((acc, g) => acc + g.attendingCount, 0);
+    const attendingGuests = safeGuests.filter(g => g?.rsvpStatus === 'attending');
+    const confirmedHeads = attendingGuests.reduce((acc, g) => acc + (g?.attendingCount || 1), 0);
 
-    const declinedGuests = guests.filter(g => g.rsvpStatus === 'declined');
-    const pendingGuests = guests.filter(g => g.rsvpStatus === 'pending');
+    const declinedGuests = safeGuests.filter(g => g?.rsvpStatus === 'declined');
+    const pendingGuests = safeGuests.filter(g => g?.rsvpStatus === 'pending');
 
     // Meal counts
     const mealCounts: Record<string, number> = {};
     attendingGuests.forEach(g => {
-      if (g.mealSelection) {
+      if (g?.mealSelection) {
         mealCounts[g.mealSelection] = (mealCounts[g.mealSelection] || 0) + (g.attendingCount || 1);
       }
     });
 
     // Dietary requirements list
     const dietaryList = attendingGuests
-      .filter(g => (g.dietaryRestrictions && g.dietaryRestrictions.length > 0) || g.dietaryDetails)
+      .filter(g => g && ((g.dietaryRestrictions && g.dietaryRestrictions.length > 0) || g.dietaryDetails))
       .map(g => ({
-        name: g.name,
+        name: g.name || 'Guest',
         restrictions: g.dietaryRestrictions || [],
         details: g.dietaryDetails || ''
       }));
 
     // Song requests
     const songRequests = attendingGuests
-      .filter(g => g.songRequest && g.songRequest.trim().length > 0)
-      .map(g => ({ guest: g.name, song: g.songRequest }));
+      .filter(g => g && g.songRequest && g.songRequest.trim().length > 0)
+      .map(g => ({ guest: g.name || 'Guest', song: g.songRequest }));
 
     return {
       totalGuestsOnList,
@@ -165,24 +189,38 @@ export const AdminDashboard: React.FC = () => {
       dietaryList,
       songRequests
     };
-  }, [guests]);
+  }, [safeGuests]);
 
   // Filtered guest list
   const filteredGuests = useMemo(() => {
-    return guests.filter(g => {
+    return safeGuests.filter(g => {
+      if (!g) return false;
       const matchesStatus = statusFilter === 'all' || g.rsvpStatus === statusFilter;
-      const q = guestSearch.toLowerCase();
+      const q = (guestSearch || '').toLowerCase().trim();
       const matchesQuery =
         !q ||
-        g.name.toLowerCase().includes(q) ||
-        g.inviteCode.toLowerCase().includes(q) ||
+        (g.name && g.name.toLowerCase().includes(q)) ||
+        (g.inviteCode && g.inviteCode.toLowerCase().includes(q)) ||
         (g.email && g.email.toLowerCase().includes(q)) ||
         (g.phone && g.phone.includes(q)) ||
         (g.tableNumber && g.tableNumber.toLowerCase().includes(q));
 
-      return matchesStatus && matchesQuery;
+      return matchesStatus && Boolean(matchesQuery);
     });
-  }, [guests, guestSearch, statusFilter]);
+  }, [safeGuests, guestSearch, statusFilter]);
+
+  if (!isAdminOpen) return null;
+
+  // Handle Login PIN
+  const handlePinSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (authenticateAdmin(pinInput.trim())) {
+      setPinError(false);
+      setPinInput('');
+    } else {
+      setPinError(true);
+    }
+  };
 
   // Handle single guest creation
   const handleAddGuest = (e: React.FormEvent) => {
@@ -266,10 +304,10 @@ export const AdminDashboard: React.FC = () => {
 
   const openEditWishlist = (item: RegistryItem) => {
     setEditingWishlistItem(item);
-    setWishlistTitle(item.title);
-    setWishlistDescription(item.description);
-    setWishlistType(item.type);
-    setWishlistIcon(item.icon);
+    setWishlistTitle(item.title || '');
+    setWishlistDescription(item.description || '');
+    setWishlistType(item.type || 'registry');
+    setWishlistIcon(item.icon || 'Gift');
     setWishlistGoal(item.goalAmount);
     setWishlistCurrent(item.currentAmount);
     setWishlistLink(item.link || '');
@@ -293,7 +331,7 @@ export const AdminDashboard: React.FC = () => {
 
   const getPersonalizedInviteText = (guest: Guest) => {
     const url = `${window.location.origin}${window.location.pathname}?code=${guest.inviteCode}#rsvp`;
-    const formattedDate = new Date(config.weddingDate).toLocaleDateString('en-US', {
+    const formattedDate = new Date(config?.weddingDate || '2027-01-04T15:30:00').toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
@@ -304,7 +342,7 @@ export const AdminDashboard: React.FC = () => {
       `We are thrilled to invite you to celebrate our wedding at ArendsRus Country Lodge in George on ${formattedDate}!\n\n` +
       `Your personal invite code is: ${guest.inviteCode}\n\n` +
       `Please view the schedule and RSVP online here:\n${url}\n\n` +
-      `With all our love,\n${config.brideShortName} & ${config.groomShortName} 💕`;
+      `With all our love,\n${config?.groomShortName || 'Cam'} & ${config?.brideShortName || 'Abby'} 💕`;
   };
 
   // Save Settings
@@ -324,9 +362,15 @@ export const AdminDashboard: React.FC = () => {
     setTimeout(() => setSettingsSaved(false), 3000);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-fadeIn">
-      <div className="bg-stone-50 rounded-3xl shadow-2xl border border-blush-200 w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden">
+  const modalNode = (
+    <div
+      className="fixed inset-0 z-[99999] bg-stone-950/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-fadeIn"
+      onClick={() => setIsAdminOpen(false)}
+    >
+      <div
+        className="bg-stone-50 rounded-3xl shadow-2xl border border-blush-200 w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden my-auto"
+        onClick={e => e.stopPropagation()}
+      >
         {/* Top Header */}
         <div className="px-6 py-4 border-b border-blush-100 bg-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -409,7 +453,7 @@ export const AdminDashboard: React.FC = () => {
               <div className="flex items-center gap-1.5 overflow-x-auto py-1">
                 {[
                   { id: 'overview', name: 'Overview & RSVP Stats', icon: Grid },
-                  { id: 'guests', name: `Guest List (${guests.length})`, icon: Users },
+                  { id: 'guests', name: `Guest List (${safeGuests.length})`, icon: Users },
                   { id: 'seating', name: 'Seating Arrangement', icon: Users },
                   { id: 'wishlist', name: `Wishlist & Registry (${registryItems.length})`, icon: Gift },
                   { id: 'settings', name: 'Website Settings', icon: Settings },
@@ -435,7 +479,7 @@ export const AdminDashboard: React.FC = () => {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => exportGuestsToCsv(guests)}
+                  onClick={() => exportGuestsToCsv(safeGuests)}
                   className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-medium transition"
                   title="Export guest list to Excel CSV"
                 >
@@ -475,7 +519,7 @@ export const AdminDashboard: React.FC = () => {
                       </div>
                       <div className="text-[11px] text-emerald-600 mt-1 flex items-center gap-1 font-medium">
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>{stats.attendingCount} invitation party(ies)</span>
+                        <span>{stats.attendingCount} party(ies)</span>
                       </div>
                     </div>
 
@@ -649,7 +693,7 @@ export const AdminDashboard: React.FC = () => {
                           {filteredGuests.length === 0 ? (
                             <tr>
                               <td colSpan={8} className="py-8 text-center text-stone-400 italic">
-                                No guests found matching your filter.
+                                No guests found matching your search.
                               </td>
                             </tr>
                           ) : (
@@ -790,8 +834,8 @@ export const AdminDashboard: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {['Table 1 (Family VIP)', 'Table 2 (Family Nel)', 'Table 3 (Friends)', 'Table 4 (Friends)', 'Table 5', 'Unassigned'].map(tableName => {
-                      const tableGuests = guests.filter(g => (g.tableNumber || 'Unassigned') === tableName);
+                    {['Table 1 (Bridal Party & VIP)', 'Table 2 (Family Nel)', 'Table 3 (Friends)', 'Table 4 (Friends)', 'Table 5', 'Unassigned'].map(tableName => {
+                      const tableGuests = safeGuests.filter(g => (g.tableNumber || 'Unassigned') === tableName);
                       const tableHeads = tableGuests.reduce((acc, g) => acc + (g.rsvpStatus === 'attending' ? g.attendingCount : g.partySize), 0);
 
                       return (
@@ -982,7 +1026,7 @@ export const AdminDashboard: React.FC = () => {
                       <label className="block text-stone-600 font-semibold mb-1">Wedding Date &amp; Time</label>
                       <input
                         type="datetime-local"
-                        value={weddingDate.slice(0, 16)}
+                        value={weddingDate ? weddingDate.slice(0, 16) : '2027-01-04T15:30'}
                         onChange={e => setWeddingDate(e.target.value)}
                         className="w-full px-3 py-2 rounded-xl border border-stone-200 font-mono"
                       />
@@ -1630,4 +1674,6 @@ Michael Smith, michael@example.com, 1, Table 4"
       )}
     </div>
   );
+
+  return createPortal(modalNode, document.body);
 };
