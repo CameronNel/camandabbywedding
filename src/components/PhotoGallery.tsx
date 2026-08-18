@@ -14,15 +14,15 @@ const galleryItems: GalleryItem[] = [
     id: 1,
     src: `${import.meta.env.BASE_URL}images/couple.jpg`,
     category: 'couple',
-    title: 'Cameron & Abby in the Outeniqua Foothills',
-    subtitle: 'Golden afternoon sunlight with blush pink King Proteas and eucalyptus'
+    title: 'Cam & Abby on the Golf Course at Sunset',
+    subtitle: 'Golden hour stroll along the fairway under the Outeniqua Mountain peaks'
   },
   {
     id: 2,
     src: `${import.meta.env.BASE_URL}images/hero-arendsrus.jpg`,
     category: 'venue',
-    title: 'ArendsRus Sunset & Fairy Lights',
-    subtitle: 'Celebrations under the fairy light canopy with the Outeniqua mountain backdrop'
+    title: 'ArendsRus Country Lodge & Wooden Deck',
+    subtitle: 'Rustic wooden chalets and swimming pool surrounded by fynbos and Outeniqua Mountains'
   },
   {
     id: 3,

@@ -1,17 +1,25 @@
 import type { WeddingConfig, Guest, GuestWish, RegistryItem, ScheduleEvent, Accommodation } from '../types/wedding';
 import { initialConfig, initialGuests, initialWishes, initialRegistry, initialSchedule, initialAccommodations } from '../data/initialData';
 
-const CONFIG_KEY = 'wedding_app_config_v3_camabby';
-const GUESTS_KEY = 'wedding_app_guests_v3_camabby';
-const WISHES_KEY = 'wedding_app_wishes_v3_camabby';
-const REGISTRY_KEY = 'wedding_app_registry_v3_camabby';
-const SCHEDULE_KEY = 'wedding_app_schedule_v3_camabby';
-const ACCOMMODATIONS_KEY = 'wedding_app_accommodations_v3_camabby';
+const CONFIG_KEY = 'wedding_app_config_v5_camabby_real';
+const GUESTS_KEY = 'wedding_app_guests_v5_camabby_real';
+const WISHES_KEY = 'wedding_app_wishes_v5_camabby_real';
+const REGISTRY_KEY = 'wedding_app_registry_v5_camabby_real';
+const SCHEDULE_KEY = 'wedding_app_schedule_v5_camabby_real';
+const ACCOMMODATIONS_KEY = 'wedding_app_accommodations_v5_camabby_real';
 
 export function loadConfig(): WeddingConfig {
   try {
     const saved = localStorage.getItem(CONFIG_KEY);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Auto-migrate old date if cached
+      if (parsed.weddingDate && parsed.weddingDate.includes('2027-06-19')) {
+        parsed.weddingDate = '2027-01-04T15:30:00';
+        saveConfig(parsed);
+      }
+      return parsed;
+    }
   } catch (e) {
     console.error('Failed to load config from storage', e);
   }
@@ -119,19 +127,27 @@ export function saveAccommodations(accommodations: Accommodation[]): void {
 // Reset everything to factory defaults
 export function resetAppToFactoryDefaults(): void {
   try {
-    localStorage.removeItem(CONFIG_KEY);
-    localStorage.removeItem(GUESTS_KEY);
-    localStorage.removeItem(WISHES_KEY);
-    localStorage.removeItem(REGISTRY_KEY);
-    localStorage.removeItem(SCHEDULE_KEY);
-    localStorage.removeItem(ACCOMMODATIONS_KEY);
-    // Also remove any older storage versions
-    localStorage.removeItem('wedding_app_config_v1');
-    localStorage.removeItem('wedding_app_guests_v1');
-    localStorage.removeItem('wedding_app_wishes_v1');
-    localStorage.removeItem('wedding_app_config_v2_arendsrus');
-    localStorage.removeItem('wedding_app_guests_v2_arendsrus');
-    localStorage.removeItem('wedding_app_wishes_v2_arendsrus');
+    const keysToRemove = [
+      CONFIG_KEY,
+      GUESTS_KEY,
+      WISHES_KEY,
+      REGISTRY_KEY,
+      SCHEDULE_KEY,
+      ACCOMMODATIONS_KEY,
+      'wedding_app_config_v1',
+      'wedding_app_guests_v1',
+      'wedding_app_wishes_v1',
+      'wedding_app_config_v2_arendsrus',
+      'wedding_app_guests_v2_arendsrus',
+      'wedding_app_wishes_v2_arendsrus',
+      'wedding_app_config_v3_camabby',
+      'wedding_app_guests_v3_camabby',
+      'wedding_app_wishes_v3_camabby',
+      'wedding_app_registry_v3_camabby',
+      'wedding_app_schedule_v3_camabby',
+      'wedding_app_accommodations_v3_camabby'
+    ];
+    keysToRemove.forEach(k => localStorage.removeItem(k));
     window.location.reload();
   } catch (e) {
     console.error('Failed to reset app', e);

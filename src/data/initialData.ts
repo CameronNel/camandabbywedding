@@ -6,7 +6,7 @@ export const initialConfig: WeddingConfig = {
   groomName: 'Cameron Liam Nel',
   groomShortName: 'Cam',
   weddingDate: '2027-01-04T15:30:00',
-  tagline: 'Under the Outeniqua Mountains, two souls begin forever.',
+  tagline: 'From late-night gaming lobbies to forever under the Outeniqua Mountains.',
   hashtag: '#CamAndAbbyWedding',
   quote: 'Whatever our souls are made of, his and mine are the same.',
   quoteAuthor: 'Emily Brontë',
@@ -67,84 +67,104 @@ export const initialConfig: WeddingConfig = {
 export const initialGuests: Guest[] = [
   {
     id: 'g-1',
-    name: 'Eleanor Vance',
-    email: 'eleanor.v@example.com',
-    phone: '+27 (82) 234-5678',
-    inviteCode: 'CA-VIP01',
+    name: 'Brumilda',
+    email: 'brumilda@example.com',
+    phone: '+27 (82) 111-2222',
+    inviteCode: 'CA-BRUMILDA',
     rsvpStatus: 'attending',
     partySize: 2,
     attendingCount: 2,
-    dietaryRestrictions: ['Vegetarian'],
-    dietaryDetails: 'No meat, dairy is fine',
-    mealSelection: 'Wild Mushroom & Fynbos Truffle Risotto',
-    songRequest: 'Can\'t Help Falling in Love - Elvis Presley',
-    message: 'Cannot wait to celebrate with Cam and Abby at ArendsRus! 💕',
-    tableNumber: 'Table 1 (Family VIP)',
+    dietaryRestrictions: [],
+    mealSelection: 'Karoo Lamb Cutlet & Prime Beef Fillet',
+    songRequest: 'Dancing Queen - ABBA',
+    message: 'Cannot wait for the biggest celebration of the year! So happy for you Cam & Abby! 💕',
+    tableNumber: 'Table 1 (Bridal Party & VIP)',
     isPlusOneAllowed: true,
-    companionNames: ['Marcus Vance'],
+    companionNames: ['Plus One'],
     respondedAt: '2026-08-10T14:20:00Z',
     checkedIn: false
   },
   {
     id: 'g-2',
-    name: 'Julian Nel',
-    email: 'julian.nel@example.com',
-    phone: '+27 (83) 345-6789',
-    inviteCode: 'CA-VIP02',
+    name: 'Roy',
+    email: 'roy@example.com',
+    phone: '+27 (83) 333-4444',
+    inviteCode: 'CA-ROY',
     rsvpStatus: 'attending',
     partySize: 2,
     attendingCount: 2,
     dietaryRestrictions: [],
     mealSelection: 'Karoo Lamb Cutlet & Prime Beef Fillet',
     songRequest: 'September - Earth, Wind & Fire',
-    message: 'Proudest brother in the world! Ready to toast to Cam & Abby at the foot of the mountains.',
-    tableNumber: 'Table 1 (Family VIP)',
+    message: 'Best man speech is ready! Ready to raise a glass to Cam and Abby at ArendsRus.',
+    tableNumber: 'Table 1 (Bridal Party & VIP)',
     isPlusOneAllowed: true,
-    companionNames: ['Clara Nel'],
+    companionNames: ['Plus One'],
     respondedAt: '2026-08-12T09:45:00Z',
     checkedIn: false
   },
   {
     id: 'g-3',
-    name: 'Charlotte & David Hayes',
-    email: 'charlotte.hayes@example.com',
-    phone: '+27 (71) 456-7890',
-    inviteCode: 'CA-HAYES',
-    rsvpStatus: 'pending',
+    name: 'Janke',
+    email: 'janke@example.com',
+    phone: '+27 (71) 555-6666',
+    inviteCode: 'CA-JANKE',
+    rsvpStatus: 'attending',
     partySize: 2,
-    attendingCount: 0,
-    dietaryRestrictions: ['Gluten-Free'],
-    dietaryDetails: 'Severe celiac for Charlotte',
-    tableNumber: 'Table 3 (Friends)',
+    attendingCount: 2,
+    dietaryRestrictions: ['Vegetarian'],
+    mealSelection: 'Wild Mushroom & Fynbos Truffle Risotto',
+    tableNumber: 'Table 1 (Bridal Party & VIP)',
     isPlusOneAllowed: true,
-    companionNames: ['David Hayes']
+    companionNames: ['Plus One']
+  },
+  {
+    id: 'g-4',
+    name: 'Ethan',
+    email: 'ethan@example.com',
+    phone: '+27 (72) 777-8888',
+    inviteCode: 'CA-ETHAN',
+    rsvpStatus: 'attending',
+    partySize: 2,
+    attendingCount: 2,
+    dietaryRestrictions: [],
+    mealSelection: 'Pan-Seared Garden Route Kingklip',
+    tableNumber: 'Table 1 (Bridal Party & VIP)',
+    isPlusOneAllowed: true,
+    companionNames: ['Plus One']
   }
 ];
 
 export const initialStory: StoryMilestone[] = [
   {
-    year: 'Spring 2021',
-    title: 'The Serendipitous Encounter',
-    description: 'A shared table at a quaint coffee roastery in the Garden Route. What began as a brief chat over flat whites turned into hours of captivating conversation and laughter.',
-    location: 'Wilderness, Western Cape'
+    year: '2021',
+    title: 'GG to Real Life — How We Met',
+    description: 'What started as late-night gaming sessions and teaming up in Discord voice chats quickly became the absolute highlight of every day. Shared victories and constant banter laid the foundation for something extraordinary.',
+    location: 'Online Gaming & Discord'
   },
   {
-    year: 'Summer 2023',
-    title: 'Exploring the Garden Route & Coast',
-    description: 'From hiking through the Outeniqua mountain passes to sunset beach walks along Victoria Bay, every adventure drew us closer together.',
-    location: 'George & Knysna'
+    year: '2022',
+    title: 'From Avatars to In-Person Chemistry',
+    description: 'We finally met face-to-face at a work event. The instant spark, natural ease, and contagious laughter proved that what we had built online was even more magical in the real world.',
+    location: 'Work Event'
   },
   {
-    year: 'Winter 2024',
-    title: 'Building Our Sanctuary',
-    description: 'We made our cozy home together, adopting our golden retriever Biscuit, nurturing our garden, and hosting unforgettable braais with dear friends and family.',
+    year: '2023',
+    title: 'The Coffee Date That Lasted All Day',
+    description: 'Our first dedicated coffee shop date quickly turned into hours of captivating conversation and endless smiles over flat whites. Leaving that café, we both knew we had found our person.',
+    location: 'Coffee Roastery'
+  },
+  {
+    year: '2024',
+    title: 'Building Our Sanctuary with Anne & Sage',
+    description: 'We made our cozy home together and welcomed our two precious cats, Anne and Sage. Our home became filled with love, playful antics, purrs, and hosting unforgettable braais.',
     location: 'Western Cape'
   },
   {
-    year: 'Spring 2025',
-    title: 'The Proposal Under The Mountain Stars',
-    description: 'Overlooking the rolling foothills at sunset with a King Protea bouquet, Cam asked Abby to be his wife. With tears of pure happiness, she said forever.',
-    location: 'Outeniqua Foothills'
+    year: '2025',
+    title: 'The Proposal on the Golf Course',
+    description: 'Against the peaceful scenic greens of the golf course, Cam dropped down on one knee and asked Abby to be his wife. Through joyful tears and laughter, she said forever!',
+    location: 'Golf Course Fairway'
   }
 ];
 
@@ -295,47 +315,47 @@ export const initialRegistry: RegistryItem[] = [
 export const initialBridalParty: BridalPartyMember[] = [
   {
     id: 'bp-1',
-    name: 'Eleanor Vance',
+    name: 'Brumilda',
     role: 'Maid of Honor',
-    relation: 'Sister of the Bride',
-    bio: 'Abby\'s lifelong confidante, sister, and the architect of unforgettable memories.'
+    relation: 'Best Friend of the Bride',
+    bio: 'Abby\'s dearest confidante, sister-at-heart, and the architect of unforgettable memories.'
   },
   {
     id: 'bp-2',
-    name: 'Julian Nel',
+    name: 'Roy',
     role: 'Best Man',
-    relation: 'Brother of the Groom',
-    bio: 'Cam\'s older brother, mentor, and fellow adventurer who has supported him through every chapter of life.'
+    relation: 'Best Friend & Brother of the Groom',
+    bio: 'Cam\'s trusted right-hand man, gaming duo partner, and fellow adventurer through all of life\'s chapters.'
   },
   {
     id: 'bp-3',
-    name: 'Camilla Thorne',
+    name: 'Janke',
     role: 'Bridesmaid',
-    relation: 'Close Friend',
-    bio: 'Art director and curator who was there the night Abby first shared that Cam was the one.'
+    relation: 'Close Friend of the Bride',
+    bio: 'Brings boundless positive energy, warmth, and laughter to every single celebration.'
   },
   {
     id: 'bp-4',
-    name: 'Harrison Wells',
+    name: 'Ethan',
     role: 'Groomsman',
-    relation: 'Childhood Friend',
-    bio: 'High school soccer teammate and master of speeches guaranteed to bring both tears and roaring laughter.'
+    relation: 'Close Friend of the Groom',
+    bio: 'Longtime friend and raid teammate who is always ready with great banter, loyalty, and support.'
   }
 ];
 
 export const initialWishes: GuestWish[] = [
   {
     id: 'w-1',
-    name: 'Aunt Beatrice & Uncle Robert',
-    message: 'Watching you two grow into such a beautiful, inspiring couple brings so much joy to our hearts. ArendsRus is going to be pure magic! 🌸',
+    name: 'Brumilda & Roy',
+    message: 'To the absolute dream couple! We cannot wait to celebrate under the Outeniqua mountains with you both in George. Cheers to forever! 🥂',
     date: '2026-08-10',
-    likes: 18
+    likes: 24
   },
   {
     id: 'w-2',
-    name: 'Liam & Maya Sterling',
-    message: 'To the absolute dream couple! We cannot wait to celebrate under the Outeniqua mountains with you both in George. Cheers to forever! 🥂',
+    name: 'Janke & Ethan',
+    message: 'From gaming lobbies to wedding bells! So proud and excited to stand by you two at ArendsRus. 💕',
     date: '2026-08-12',
-    likes: 14
+    likes: 19
   }
 ];
