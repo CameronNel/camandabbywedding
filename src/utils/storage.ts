@@ -1,9 +1,9 @@
 import type { WeddingConfig, Guest, GuestWish } from '../types/wedding';
 import { initialConfig, initialGuests, initialWishes } from '../data/initialData';
 
-const CONFIG_KEY = 'wedding_app_config_v1';
-const GUESTS_KEY = 'wedding_app_guests_v1';
-const WISHES_KEY = 'wedding_app_wishes_v1';
+const CONFIG_KEY = 'wedding_app_config_v2_arendsrus';
+const GUESTS_KEY = 'wedding_app_guests_v2_arendsrus';
+const WISHES_KEY = 'wedding_app_wishes_v2_arendsrus';
 
 export function loadConfig(): WeddingConfig {
   try {
