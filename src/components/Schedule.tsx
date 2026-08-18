@@ -1,6 +1,5 @@
 import React from 'react';
 import { useWedding } from '../context/WeddingContext';
-import { initialSchedule } from '../data/initialData';
 import { Clock, MapPin, Sparkles, HeartHandshake, Wine, Utensils, Music, Flame, Shirt } from 'lucide-react';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -13,7 +12,14 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export const Schedule: React.FC = () => {
-  const { config } = useWedding();
+  const { config, scheduleEvents } = useWedding();
+
+  const formattedDate = new Date(config.weddingDate).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
 
   return (
     <section id="schedule" className="py-24 relative bg-gradient-to-b from-[#FFFDFB] via-[#FFF8FA] to-white">
@@ -29,13 +35,13 @@ export const Schedule: React.FC = () => {
           </h2>
           <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-blush-400 to-transparent mx-auto mb-4"></div>
           <p className="font-display italic text-lg text-stone-600">
-            Saturday, June 19, 2027 • An unforgettable celebration from sunset to starlight.
+            {formattedDate} • An unforgettable celebration under the Outeniqua Mountains.
           </p>
         </div>
 
         {/* Schedule Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          {initialSchedule.map((event, idx) => (
+          {scheduleEvents.map((event, idx) => (
             <div
               key={idx}
               className="glass-card rounded-3xl p-7 border border-blush-200/90 shadow-sm glass-card-hover flex flex-col justify-between"
@@ -58,19 +64,19 @@ export const Schedule: React.FC = () => {
 
                 {/* Location */}
                 <div className="flex items-center gap-1.5 text-stone-500 text-xs font-medium mb-3">
-                  <MapPin className="w-3.5 h-3.5 text-blush-500" />
+                  <MapPin className="w-3.5 h-3.5 text-blush-500 shrink-0" />
                   <span>{event.location}</span>
                 </div>
 
                 {/* Description */}
-                <p className="text-stone-600 text-sm leading-relaxed">
+                <p className="text-stone-600 text-xs sm:text-sm leading-relaxed">
                   {event.description}
                 </p>
               </div>
 
               {event.dressCode && (
-                <div className="mt-4 pt-3 border-t border-blush-100 flex items-center gap-2 text-xs text-rosewood font-medium">
-                  <Shirt className="w-3.5 h-3.5 text-blush-500" />
+                <div className="mt-4 pt-3 border-t border-blush-100/60 flex items-center gap-1.5 text-[11px] text-blush-700 font-medium">
+                  <Shirt className="w-3.5 h-3.5" />
                   <span>{event.dressCode}</span>
                 </div>
               )}
@@ -78,41 +84,31 @@ export const Schedule: React.FC = () => {
           ))}
         </div>
 
-        {/* Dress Code & Color Palette Guide */}
-        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-8 sm:p-10 border border-blush-200 shadow-sm">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="max-w-md text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-                <Shirt className="w-4 h-4 text-blush-500" />
-                <span className="text-xs font-semibold uppercase tracking-widest text-rosewood">
-                  Dress Code &amp; Palette
-                </span>
-              </div>
-              <h3 className="text-2xl font-serif text-stone-800 mb-2">
-                {config.dressCode.title}
-              </h3>
-              <p className="text-stone-600 text-sm leading-relaxed">
-                {config.dressCode.description}
-              </p>
-            </div>
+        {/* Dress Code Palette Card */}
+        <div className="max-w-2xl mx-auto rounded-3xl bg-white border border-blush-200 p-8 shadow-sm text-center">
+          <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest font-semibold text-blush-600 mb-2">
+            <Shirt className="w-4 h-4" />
+            <span>Dress Code &amp; Palette</span>
+          </div>
+          <h4 className="text-xl font-serif font-medium text-stone-800 mb-3">
+            {config.dressCode.title}
+          </h4>
+          <p className="text-stone-600 text-xs sm:text-sm leading-relaxed mb-6">
+            {config.dressCode.description}
+          </p>
 
-            {/* Color Swatches */}
-            <div className="flex flex-col items-center gap-3">
-              <span className="text-[11px] uppercase tracking-wider text-stone-400 font-medium">
-                Inspirational Tones
-              </span>
-              <div className="flex items-center gap-2.5">
-                {config.dressCode.palette.map((color, index) => (
-                  <div key={index} className="flex flex-col items-center gap-1 group">
-                    <div
-                      className="w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 border-white shadow-md group-hover:scale-110 transition-transform cursor-pointer"
-                      style={{ backgroundColor: color }}
-                      title={color}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <span className="text-[10px] uppercase tracking-wider text-stone-400 font-semibold w-full sm:w-auto">
+              Inspirational Tones:
+            </span>
+            {config.dressCode.palette.map((color, idx) => (
+              <div
+                key={idx}
+                className="w-7 h-7 rounded-full border border-stone-200 shadow-sm transition hover:scale-125"
+                style={{ backgroundColor: color }}
+                title={`Color Swatch ${idx + 1}`}
+              />
+            ))}
           </div>
         </div>
       </div>

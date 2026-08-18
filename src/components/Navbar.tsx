@@ -28,7 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
     { id: 'rsvp', name: 'RSVP', icon: CalendarCheck },
     { id: 'details', name: 'Schedule & Venue', icon: Clock },
     { id: 'story', name: 'Our Story & Gallery', icon: BookOpen },
-    { id: 'registry', name: 'Registry & Wishes', icon: Gift },
+    { id: 'registry', name: 'Wishlist & Wishes', icon: Gift },
   ];
 
   const handleTabClick = (tab: TabId) => {
@@ -38,31 +38,37 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
     window.history.pushState(null, '', `#${tab}`);
   };
 
+  const formattedDate = new Date(config.weddingDate).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  }).toUpperCase();
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         isScrolled
           ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-blush-100 py-3'
-          : 'bg-white/80 backdrop-blur-sm border-b border-blush-100/60 py-4'
+          : 'bg-white/85 backdrop-blur-sm border-b border-blush-100/60 py-3.5'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* Monogram / Brand */}
+        {/* Monogram / Brand matching the exact uploaded emblem styling */}
         <button
           onClick={() => handleTabClick('home')}
-          className="group flex items-center gap-2.5 text-left"
+          className="group flex items-center gap-3 text-left"
         >
-          <div className="w-10 h-10 rounded-full border border-blush-300 flex items-center justify-center bg-blush-50 group-hover:border-blush-500 transition-colors shadow-inner">
-            <span className="font-script text-2xl text-rosewood group-hover:scale-110 transition-transform">
-              {config.brideShortName[0]} &amp; {config.groomShortName[0]}
+          <div className="relative w-11 h-11 rounded-full bg-pink-100/70 border border-blush-200 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
+            <span className="font-script text-2xl text-rosewood drop-shadow-sm font-normal">
+              A &amp; C
             </span>
           </div>
           <div className="flex flex-col">
-            <span className="font-serif tracking-widest text-sm uppercase text-stone-800 font-semibold group-hover:text-blush-700 transition-colors">
+            <span className="font-serif tracking-[0.15em] text-xs sm:text-sm uppercase text-stone-900 font-semibold group-hover:text-blush-700 transition-colors">
               {config.brideShortName} &amp; {config.groomShortName}
             </span>
-            <span className="text-[10px] tracking-[0.2em] uppercase text-stone-400">
-              June 19, 2027
+            <span className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-stone-400 font-medium">
+              {formattedDate}
             </span>
           </div>
         </button>
@@ -98,8 +104,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
 
           <button
             onClick={() => setIsAdminOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition border border-stone-200"
-            title="Organizer / Admin Management"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-stone-600 hover:text-stone-900 hover:bg-blush-50 transition border border-stone-200"
+            title="Organizer Portal / Guest List & Settings"
           >
             <Lock className="w-3.5 h-3.5 text-stone-400" />
             <span>Admin</span>

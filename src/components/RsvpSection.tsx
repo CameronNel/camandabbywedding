@@ -604,7 +604,7 @@ export const RsvpSection: React.FC = () => {
 
             <p className="text-stone-600 text-sm max-w-md mx-auto mb-8 font-display italic">
               {activeGuest.rsvpStatus === 'attending'
-                ? `Your response has been confirmed for ${activeGuest.attendingCount} guest${activeGuest.attendingCount > 1 ? 's' : ''}. We look forward to seeing you in Napa Valley on June 19, 2027!`
+                ? `Your response has been confirmed for ${activeGuest.attendingCount} guest${activeGuest.attendingCount > 1 ? 's' : ''}. We look forward to celebrating with you at ${config.ceremonyVenue.name}, ${config.ceremonyVenue.city} on ${new Date(config.weddingDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}!`
                 : `We received your response and are so grateful for your warm thoughts and blessings.`}
             </p>
 

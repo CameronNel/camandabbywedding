@@ -1,12 +1,29 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import type { WeddingConfig, Guest, GuestWish } from '../types/wedding';
-import { loadConfig, saveConfig, loadGuests, saveGuests, loadWishes, saveWishes } from '../utils/storage';
+import type { WeddingConfig, Guest, GuestWish, RegistryItem, ScheduleEvent, Accommodation } from '../types/wedding';
+import {
+  loadConfig,
+  saveConfig,
+  loadGuests,
+  saveGuests,
+  loadWishes,
+  saveWishes,
+  loadRegistry,
+  saveRegistry,
+  loadSchedule,
+  saveSchedule,
+  loadAccommodations,
+  saveAccommodations,
+  resetAppToFactoryDefaults
+} from '../utils/storage';
 
 interface WeddingContextType {
   config: WeddingConfig;
   updateConfig: (newConfig: Partial<WeddingConfig>) => void;
   guests: Guest[];
   wishes: GuestWish[];
+  registryItems: RegistryItem[];
+  scheduleEvents: ScheduleEvent[];
+  accommodations: Accommodation[];
   activeGuest: Guest | null;
   setActiveGuest: (guest: Guest | null) => void;
   submitRsvp: (guestId: string, rsvpData: Partial<Guest>) => boolean;
@@ -31,6 +48,12 @@ interface WeddingContextType {
   toggleCheckIn: (id: string) => void;
   addWish: (name: string, message: string) => void;
   likeWish: (id: string) => void;
+  addRegistryItem: (item: Omit<RegistryItem, 'id'>) => void;
+  updateRegistryItem: (id: string, item: Partial<RegistryItem>) => void;
+  deleteRegistryItem: (id: string) => void;
+  updateScheduleEvent: (index: number, event: Partial<ScheduleEvent>) => void;
+  updateAccommodation: (index: number, acc: Partial<Accommodation>) => void;
+  resetAllData: () => void;
   isAdminOpen: boolean;
   setIsAdminOpen: (open: boolean) => void;
   isAdminAuthenticated: boolean;
@@ -45,12 +68,17 @@ export const WeddingProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [config, setConfigState] = useState<WeddingConfig>(loadConfig);
   const [guests, setGuestsState] = useState<Guest[]>(loadGuests);
   const [wishes, setWishesState] = useState<GuestWish[]>(loadWishes);
+  const [registryItems, setRegistryItemsState] = useState<RegistryItem[]>(loadRegistry);
+  const [scheduleEvents, setScheduleEventsState] = useState<ScheduleEvent[]>(loadSchedule);
+  const [accommodations, setAccommodationsState] = useState<Accommodation[]>(loadAccommodations);
+
   const [activeGuest, setActiveGuest] = useState<Guest | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     return sessionStorage.getItem('wedding_admin_auth') === 'true';
   });
 
+  // Persistent synchronizers
   useEffect(() => {
     saveConfig(config);
   }, [config]);
@@ -63,14 +91,26 @@ export const WeddingProvider: React.FC<{ children: ReactNode }> = ({ children })
     saveWishes(wishes);
   }, [wishes]);
 
-  // Check URL query parameters for invitation code on initial load (e.g. ?code=SA-VIP01 or ?guest=Eleanor)
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const codeParam = urlParams.get('code') || urlParams.get('c');
-    const guestParam = urlParams.get('guest') || urlParams.get('g');
+    saveRegistry(registryItems);
+  }, [registryItems]);
 
-    if (codeParam) {
-      const match = guests.find(g => g.inviteCode.toUpperCase() === codeParam.trim().toUpperCase());
+  useEffect(() => {
+    saveSchedule(scheduleEvents);
+  }, [scheduleEvents]);
+
+  useEffect(() => {
+    saveAccommodations(accommodations);
+  }, [accommodations]);
+
+  // URL query parameter invite lookup (e.g. ?code=CA-VIP01 or ?guest=Eleanor)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code') || params.get('c');
+    const guestParam = params.get('guest') || params.get('g');
+
+    if (code) {
+      const match = guests.find(g => g.inviteCode.toUpperCase() === code.trim().toUpperCase());
       if (match) setActiveGuest(match);
     } else if (guestParam) {
       const match = guests.find(g => g.name.toLowerCase().includes(guestParam.trim().toLowerCase()));
@@ -82,56 +122,112 @@ export const WeddingProvider: React.FC<{ children: ReactNode }> = ({ children })
     setConfigState(prev => ({ ...prev, ...newConfig }));
   };
 
-  const generateUniqueCode = (name: string): string => {
-    const clean = name.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4) || 'VIP';
-    const rand = Math.floor(100 + Math.random() * 900);
-    return `SA-${clean}${rand}`;
+  const addGuest = (guestData: Partial<Guest>): Guest => {
+    const id = `g-${Date.now()}`;
+    const initials = (guestData.name || 'G')
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+    const randomDigits = Math.floor(1000 + Math.random() * 9000);
+    const inviteCode = `CA-${initials}${randomDigits}`;
+
+    const newGuest: Guest = {
+      id,
+      name: guestData.name || 'Guest',
+      email: guestData.email || '',
+      phone: guestData.phone || '',
+      inviteCode,
+      rsvpStatus: (guestData.rsvpStatus as 'attending' | 'declined' | 'pending') || 'pending',
+      partySize: guestData.partySize || 2,
+      attendingCount: guestData.attendingCount || 0,
+      dietaryRestrictions: guestData.dietaryRestrictions || [],
+      dietaryDetails: guestData.dietaryDetails || '',
+      mealSelection: guestData.mealSelection || '',
+      songRequest: guestData.songRequest || '',
+      message: guestData.message || '',
+      tableNumber: guestData.tableNumber || 'Unassigned',
+      isPlusOneAllowed: guestData.isPlusOneAllowed ?? true,
+      companionNames: guestData.companionNames || [],
+      checkedIn: false
+    };
+
+    setGuestsState(prev => [newGuest, ...prev]);
+    return newGuest;
   };
 
-  const searchGuest = (query: string): Guest | null => {
-    if (!query || !query.trim()) return null;
-    const cleanQuery = query.trim().toLowerCase();
-    
-    // Search exact invite code first
-    const codeMatch = guests.find(g => g.inviteCode.toLowerCase() === cleanQuery);
-    if (codeMatch) return codeMatch;
+  const updateGuest = (id: string, updates: Partial<Guest>) => {
+    setGuestsState(prev =>
+      prev.map(g => (g.id === id ? { ...g, ...updates } : g))
+    );
+    if (activeGuest && activeGuest.id === id) {
+      setActiveGuest(prev => (prev ? { ...prev, ...updates } : null));
+    }
+  };
 
-    // Search by exact name
-    const exactName = guests.find(g => g.name.toLowerCase() === cleanQuery);
-    if (exactName) return exactName;
+  const deleteGuest = (id: string) => {
+    setGuestsState(prev => prev.filter(g => g.id !== id));
+    if (activeGuest && activeGuest.id === id) {
+      setActiveGuest(null);
+    }
+  };
 
-    // Search by partial name
-    const partialName = guests.find(g => g.name.toLowerCase().includes(cleanQuery) || cleanQuery.includes(g.name.toLowerCase()));
-    if (partialName) return partialName;
+  const bulkAddGuests = (guestList: Array<Partial<Guest>>) => {
+    const created = guestList.map((g, idx) => {
+      const id = `g-${Date.now()}-${idx}`;
+      const initials = (g.name || 'G')
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+      const inviteCode = `CA-${initials}${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // Search by email
-    const emailMatch = guests.find(g => g.email && g.email.toLowerCase() === cleanQuery);
-    if (emailMatch) return emailMatch;
+      return {
+        id,
+        name: g.name || 'Guest',
+        email: g.email || '',
+        phone: g.phone || '',
+        inviteCode,
+        rsvpStatus: 'pending' as const,
+        partySize: g.partySize || 2,
+        attendingCount: 0,
+        dietaryRestrictions: [],
+        tableNumber: g.tableNumber || 'Unassigned',
+        isPlusOneAllowed: g.isPlusOneAllowed ?? true,
+        companionNames: []
+      };
+    });
 
-    return null;
+    setGuestsState(prev => [...created, ...prev]);
+  };
+
+  const toggleCheckIn = (id: string) => {
+    setGuestsState(prev =>
+      prev.map(g => (g.id === id ? { ...g, checkedIn: !g.checkedIn } : g))
+    );
   };
 
   const submitRsvp = (guestId: string, rsvpData: Partial<Guest>): boolean => {
-    let success = false;
-    setGuestsState(prev => prev.map(g => {
-      if (g.id === guestId) {
-        success = true;
-        const updated: Guest = {
-          ...g,
-          ...rsvpData,
-          respondedAt: new Date().toISOString()
-        };
-        setActiveGuest(updated);
+    const target = guests.find(g => g.id === guestId);
+    if (!target) return false;
 
-        if (rsvpData.message && rsvpData.message.trim().length > 2) {
-          addWish(updated.name, rsvpData.message.trim());
-        }
+    const updated: Guest = {
+      ...target,
+      ...rsvpData,
+      respondedAt: new Date().toISOString()
+    };
 
-        return updated;
-      }
-      return g;
-    }));
-    return success;
+    setGuestsState(prev => prev.map(g => (g.id === guestId ? updated : g)));
+    setActiveGuest(updated);
+
+    // If guest left a blessing note, append to wishes wall
+    if (rsvpData.message && rsvpData.message.trim().length > 3) {
+      addWish(target.name, rsvpData.message.trim());
+    }
+
+    return true;
   };
 
   const registerAndRsvp = (newGuestData: {
@@ -148,106 +244,45 @@ export const WeddingProvider: React.FC<{ children: ReactNode }> = ({ children })
     message?: string;
     companionNames?: string[];
   }): Guest => {
-    const newId = `g-${Date.now()}`;
-    const newGuest: Guest = {
-      id: newId,
-      name: newGuestData.name,
-      email: newGuestData.email || '',
-      phone: newGuestData.phone || '',
-      inviteCode: generateUniqueCode(newGuestData.name),
-      rsvpStatus: newGuestData.rsvpStatus,
-      partySize: newGuestData.partySize || 1,
-      attendingCount: newGuestData.attendingCount || 1,
-      dietaryRestrictions: newGuestData.dietaryRestrictions || [],
-      dietaryDetails: newGuestData.dietaryDetails || '',
-      mealSelection: newGuestData.mealSelection || '',
-      songRequest: newGuestData.songRequest || '',
-      message: newGuestData.message || '',
-      companionNames: newGuestData.companionNames || [],
-      isPlusOneAllowed: (newGuestData.partySize || 1) > 1,
-      respondedAt: new Date().toISOString(),
-      checkedIn: false
+    const created = addGuest(newGuestData);
+    const finalGuest: Guest = {
+      ...created,
+      ...newGuestData,
+      respondedAt: new Date().toISOString()
     };
+    updateGuest(created.id, finalGuest);
+    setActiveGuest(finalGuest);
 
-    setGuestsState(prev => [newGuest, ...prev]);
-    setActiveGuest(newGuest);
-
-    if (newGuest.message && newGuest.message.trim().length > 2) {
-      addWish(newGuest.name, newGuest.message.trim());
+    if (newGuestData.message && newGuestData.message.trim().length > 3) {
+      addWish(newGuestData.name, newGuestData.message.trim());
     }
 
-    return newGuest;
+    return finalGuest;
   };
 
-  const addGuest = (guest: Partial<Guest>): Guest => {
-    const name = guest.name || 'Honored Guest';
-    const newGuest: Guest = {
-      id: `g-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-      name: name,
-      email: guest.email || '',
-      phone: guest.phone || '',
-      inviteCode: guest.inviteCode || generateUniqueCode(name),
-      rsvpStatus: guest.rsvpStatus || 'pending',
-      partySize: guest.partySize || 1,
-      attendingCount: guest.attendingCount || 0,
-      dietaryRestrictions: guest.dietaryRestrictions || [],
-      dietaryDetails: guest.dietaryDetails || '',
-      mealSelection: guest.mealSelection || '',
-      songRequest: guest.songRequest || '',
-      message: guest.message || '',
-      tableNumber: guest.tableNumber || 'Unassigned',
-      isPlusOneAllowed: guest.isPlusOneAllowed ?? true,
-      companionNames: guest.companionNames || [],
-      checkedIn: false
-    };
+  const searchGuest = (query: string): Guest | null => {
+    if (!query || !query.trim()) return null;
+    const clean = query.trim().toLowerCase();
 
-    setGuestsState(prev => [newGuest, ...prev]);
-    return newGuest;
-  };
+    // Match exact code first
+    const codeMatch = guests.find(g => g.inviteCode.toLowerCase() === clean);
+    if (codeMatch) return codeMatch;
 
-  const updateGuest = (id: string, updates: Partial<Guest>) => {
-    setGuestsState(prev => prev.map(g => (g.id === id ? { ...g, ...updates } : g)));
-    if (activeGuest && activeGuest.id === id) {
-      setActiveGuest(prev => prev ? { ...prev, ...updates } : null);
-    }
-  };
+    // Match full name
+    const exactNameMatch = guests.find(g => g.name.toLowerCase() === clean);
+    if (exactNameMatch) return exactNameMatch;
 
-  const deleteGuest = (id: string) => {
-    setGuestsState(prev => prev.filter(g => g.id !== id));
-    if (activeGuest && activeGuest.id === id) {
-      setActiveGuest(null);
-    }
-  };
+    // Match partial name
+    const partialMatch = guests.find(g => g.name.toLowerCase().includes(clean));
+    if (partialMatch) return partialMatch;
 
-  const bulkAddGuests = (guestList: Array<Partial<Guest>>) => {
-    const newItems: Guest[] = guestList.map((item, idx) => {
-      const name = item.name || `Guest ${idx + 1}`;
-      return {
-        id: `g-${Date.now()}-${idx}`,
-        name: name,
-        email: item.email || '',
-        phone: item.phone || '',
-        inviteCode: item.inviteCode || generateUniqueCode(name),
-        rsvpStatus: item.rsvpStatus || 'pending',
-        partySize: item.partySize || 1,
-        attendingCount: item.attendingCount || 0,
-        dietaryRestrictions: item.dietaryRestrictions || [],
-        dietaryDetails: item.dietaryDetails || '',
-        mealSelection: item.mealSelection || '',
-        songRequest: item.songRequest || '',
-        message: item.message || '',
-        tableNumber: item.tableNumber || 'Unassigned',
-        isPlusOneAllowed: item.isPlusOneAllowed ?? true,
-        companionNames: item.companionNames || [],
-        checkedIn: false
-      };
-    });
+    // Match email or phone
+    const contactMatch = guests.find(
+      g => (g.email && g.email.toLowerCase() === clean) || (g.phone && g.phone.includes(clean))
+    );
+    if (contactMatch) return contactMatch;
 
-    setGuestsState(prev => [...newItems, ...prev]);
-  };
-
-  const toggleCheckIn = (id: string) => {
-    setGuestsState(prev => prev.map(g => (g.id === id ? { ...g, checkedIn: !g.checkedIn } : g)));
+    return null;
   };
 
   const addWish = (name: string, message: string) => {
@@ -255,18 +290,62 @@ export const WeddingProvider: React.FC<{ children: ReactNode }> = ({ children })
       id: `w-${Date.now()}`,
       name,
       message,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().slice(0, 10),
       likes: 1
     };
     setWishesState(prev => [newWish, ...prev]);
   };
 
   const likeWish = (id: string) => {
-    setWishesState(prev => prev.map(w => (w.id === id ? { ...w, likes: (w.likes || 0) + 1 } : w)));
+    setWishesState(prev =>
+      prev.map(w => (w.id === id ? { ...w, likes: (w.likes || 0) + 1 } : w))
+    );
+  };
+
+  const addRegistryItem = (item: Omit<RegistryItem, 'id'>) => {
+    const newItem: RegistryItem = {
+      ...item,
+      id: `reg-${Date.now()}`
+    };
+    setRegistryItemsState(prev => [...prev, newItem]);
+  };
+
+  const updateRegistryItem = (id: string, item: Partial<RegistryItem>) => {
+    setRegistryItemsState(prev =>
+      prev.map(r => (r.id === id ? { ...r, ...item } : r))
+    );
+  };
+
+  const deleteRegistryItem = (id: string) => {
+    setRegistryItemsState(prev => prev.filter(r => r.id !== id));
+  };
+
+  const updateScheduleEvent = (index: number, event: Partial<ScheduleEvent>) => {
+    setScheduleEventsState(prev => {
+      const next = [...prev];
+      if (next[index]) {
+        next[index] = { ...next[index], ...event };
+      }
+      return next;
+    });
+  };
+
+  const updateAccommodation = (index: number, acc: Partial<Accommodation>) => {
+    setAccommodationsState(prev => {
+      const next = [...prev];
+      if (next[index]) {
+        next[index] = { ...next[index], ...acc };
+      }
+      return next;
+    });
+  };
+
+  const resetAllData = () => {
+    resetAppToFactoryDefaults();
   };
 
   const authenticateAdmin = (pin: string): boolean => {
-    if (pin === config.adminPin || pin === '1234') {
+    if (pin === config.adminPin) {
       setIsAdminAuthenticated(true);
       sessionStorage.setItem('wedding_admin_auth', 'true');
       return true;
@@ -286,6 +365,9 @@ export const WeddingProvider: React.FC<{ children: ReactNode }> = ({ children })
         updateConfig,
         guests,
         wishes,
+        registryItems,
+        scheduleEvents,
+        accommodations,
         activeGuest,
         setActiveGuest,
         submitRsvp,
@@ -297,6 +379,12 @@ export const WeddingProvider: React.FC<{ children: ReactNode }> = ({ children })
         toggleCheckIn,
         addWish,
         likeWish,
+        addRegistryItem,
+        updateRegistryItem,
+        deleteRegistryItem,
+        updateScheduleEvent,
+        updateAccommodation,
+        resetAllData,
         isAdminOpen,
         setIsAdminOpen,
         isAdminAuthenticated,

@@ -1,11 +1,11 @@
 import type { WeddingConfig, Guest, StoryMilestone, ScheduleEvent, Accommodation, FAQ, RegistryItem, BridalPartyMember, GuestWish } from '../types/wedding';
 
 export const initialConfig: WeddingConfig = {
-  brideName: 'Abigail Rose Vance',
+  brideName: 'Abby',
   brideShortName: 'Abby',
   groomName: 'Cameron Liam Nel',
-  groomShortName: 'Cameron',
-  weddingDate: '2027-06-19T15:30:00',
+  groomShortName: 'Cam',
+  weddingDate: '2027-01-04T15:30:00',
   tagline: 'Under the Outeniqua Mountains, two souls begin forever.',
   hashtag: '#CamAndAbbyWedding',
   quote: 'Whatever our souls are made of, his and mine are the same.',
@@ -78,7 +78,7 @@ export const initialGuests: Guest[] = [
     dietaryDetails: 'No meat, dairy is fine',
     mealSelection: 'Wild Mushroom & Fynbos Truffle Risotto',
     songRequest: 'Can\'t Help Falling in Love - Elvis Presley',
-    message: 'Cannot wait to see my sweet sister walk down the aisle at ArendsRus! So deeply happy for Cam and Abby 💕',
+    message: 'Cannot wait to celebrate with Cam and Abby at ArendsRus! 💕',
     tableNumber: 'Table 1 (Family VIP)',
     isPlusOneAllowed: true,
     companionNames: ['Marcus Vance'],
@@ -97,7 +97,7 @@ export const initialGuests: Guest[] = [
     dietaryRestrictions: [],
     mealSelection: 'Karoo Lamb Cutlet & Prime Beef Fillet',
     songRequest: 'September - Earth, Wind & Fire',
-    message: 'Proudest brother in the world! Ready to toast under the Outeniqua mountains to the best couple ever.',
+    message: 'Proudest brother in the world! Ready to toast to Cam & Abby at the foot of the mountains.',
     tableNumber: 'Table 1 (Family VIP)',
     isPlusOneAllowed: true,
     companionNames: ['Clara Nel'],
@@ -110,61 +110,14 @@ export const initialGuests: Guest[] = [
     email: 'charlotte.hayes@example.com',
     phone: '+27 (71) 456-7890',
     inviteCode: 'CA-HAYES',
-    rsvpStatus: 'attending',
+    rsvpStatus: 'pending',
     partySize: 2,
-    attendingCount: 2,
+    attendingCount: 0,
     dietaryRestrictions: ['Gluten-Free'],
     dietaryDetails: 'Severe celiac for Charlotte',
-    mealSelection: 'Pan-Seared Garden Route Kingklip',
-    songRequest: 'L-O-V-E - Nat King Cole',
-    message: 'Counting down the days! Looking forward to celebrating with you at ArendsRus.',
-    tableNumber: 'Table 3 (Bridal Friends)',
+    tableNumber: 'Table 3 (Friends)',
     isPlusOneAllowed: true,
-    companionNames: ['David Hayes'],
-    respondedAt: '2026-08-14T18:10:00Z',
-    checkedIn: false
-  },
-  {
-    id: 'g-4',
-    name: 'Oliver Sterling',
-    email: 'oliver.sterling@example.com',
-    phone: '+27 (82) 567-8901',
-    inviteCode: 'CA-STERLING',
-    rsvpStatus: 'pending',
-    partySize: 2,
-    attendingCount: 0,
-    dietaryRestrictions: [],
-    tableNumber: 'Table 4 (Groom Friends)',
-    isPlusOneAllowed: true,
-    companionNames: []
-  },
-  {
-    id: 'g-5',
-    name: 'Isabella & Thomas Laurent',
-    email: 'isabella.laurent@example.com',
-    phone: '+27 (84) 678-9012',
-    inviteCode: 'CA-LAURENT',
-    rsvpStatus: 'declined',
-    partySize: 2,
-    attendingCount: 0,
-    dietaryRestrictions: [],
-    message: 'Sending you both all our love and blessings from Cape Town! Have the most magical day at ArendsRus!',
-    tableNumber: 'Unassigned',
-    isPlusOneAllowed: true,
-    companionNames: [],
-    respondedAt: '2026-08-15T11:30:00Z'
-  },
-  {
-    id: 'g-6',
-    name: 'Genevieve Dupont',
-    email: 'genevieve@example.com',
-    inviteCode: 'CA-DUPONT',
-    rsvpStatus: 'pending',
-    partySize: 1,
-    attendingCount: 0,
-    dietaryRestrictions: [],
-    isPlusOneAllowed: false,
-    tableNumber: 'Table 5'
+    companionNames: ['David Hayes']
   }
 ];
 
@@ -190,7 +143,7 @@ export const initialStory: StoryMilestone[] = [
   {
     year: 'Spring 2025',
     title: 'The Proposal Under The Mountain Stars',
-    description: 'Overlooking the rolling foothills at sunset with a King Protea bouquet, Cameron asked Abby to be his wife. With tears of pure happiness, she said forever.',
+    description: 'Overlooking the rolling foothills at sunset with a King Protea bouquet, Cam asked Abby to be his wife. With tears of pure happiness, she said forever.',
     location: 'Outeniqua Foothills'
   }
 ];
@@ -236,7 +189,7 @@ export const initialSchedule: ScheduleEvent[] = [
     time: '11:30 PM',
     title: 'Midnight Sparkler Send-Off',
     location: 'Lodge Pine Walkway',
-    description: 'Surround Cameron and Abby with golden sparklers as they head off into the night!',
+    description: 'Surround Cam and Abby with golden sparklers as they head off into the night!',
     icon: 'Flame'
   }
 ];
@@ -288,7 +241,7 @@ export const initialFaqs: FAQ[] = [
     id: 'faq-3',
     category: 'Ceremony & Reception',
     question: 'When should I RSVP by?',
-    answer: 'Please submit your RSVP through this website by May 1st, 2027 so we can finalize our catering numbers and seating arrangements with ArendsRus.'
+    answer: 'Please submit your RSVP through this website by December 1st, 2026 so we can finalize our catering numbers and seating arrangements with ArendsRus.'
   },
   {
     id: 'faq-4',
@@ -306,7 +259,7 @@ export const initialFaqs: FAQ[] = [
     id: 'faq-6',
     category: 'Gifts',
     question: 'Where are you registered?',
-    answer: 'Your presence at our wedding is the greatest gift of all! If you wish to honor us with a gift, we have created a Honeymoon Adventure Fund and a curated home registry linked on this site.'
+    answer: 'Your presence at our wedding is the greatest gift of all! If you wish to honor us with a gift, our wishlist and Honeymoon Adventure Fund are available on this site.'
   }
 ];
 
@@ -352,14 +305,14 @@ export const initialBridalParty: BridalPartyMember[] = [
     name: 'Julian Nel',
     role: 'Best Man',
     relation: 'Brother of the Groom',
-    bio: 'Cameron\'s older brother, mentor, and fellow adventurer who has supported him through every chapter of life.'
+    bio: 'Cam\'s older brother, mentor, and fellow adventurer who has supported him through every chapter of life.'
   },
   {
     id: 'bp-3',
     name: 'Camilla Thorne',
     role: 'Bridesmaid',
     relation: 'Close Friend',
-    bio: 'Art director and curator who was there the night Abby first shared that Cameron was the one.'
+    bio: 'Art director and curator who was there the night Abby first shared that Cam was the one.'
   },
   {
     id: 'bp-4',
@@ -384,12 +337,5 @@ export const initialWishes: GuestWish[] = [
     message: 'To the absolute dream couple! We cannot wait to celebrate under the Outeniqua mountains with you both in George. Cheers to forever! 🥂',
     date: '2026-08-12',
     likes: 14
-  },
-  {
-    id: 'w-3',
-    name: 'Dr. Evelyn Ward',
-    message: 'Congratulations Abby & Cameron! May your marriage be blessed with endless joy, deep laughter, and breathtaking adventures.',
-    date: '2026-08-14',
-    likes: 12
   }
 ];
