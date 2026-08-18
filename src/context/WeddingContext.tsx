@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
 import type { WeddingConfig, Guest, GuestWish, RegistryItem, ScheduleEvent, Accommodation } from '../types/wedding';
 import {
   loadConfig,
@@ -73,10 +73,39 @@ export const WeddingProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [accommodations, setAccommodationsState] = useState<Accommodation[]>(loadAccommodations);
 
   const [activeGuest, setActiveGuest] = useState<Guest | null>(null);
-  const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
+  const [isAdminOpen, setIsAdminOpenState] = useState<boolean>(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     return sessionStorage.getItem('wedding_admin_auth') === 'true';
   });
+
+  // Track the actual DOM target of the current interaction. This lets the admin
+  // close handler distinguish a click inside one of its nested dialogs from a
+  // genuine click on the main admin backdrop. This is needed because the admin
+  // itself is rendered through a React portal, so events still bubble through
+  // the React tree even though the DOM nodes live under document.body.
+  const lastInteractionTarget = useRef<EventTarget | null>(null);
+
+  useEffect(() => {
+    const rememberInteractionTarget = (event: MouseEvent) => {
+      lastInteractionTarget.current = event.target;
+    };
+
+    document.addEventListener('click', rememberInteractionTarget, true);
+    return () => document.removeEventListener('click', rememberInteractionTarget, true);
+  }, []);
+
+  const setIsAdminOpen = (open: boolean) => {
+    if (!open) {
+      const target = lastInteractionTarget.current;
+      if (target instanceof Element && target.closest('.z-50')) {
+        // A nested admin dialog owns this interaction. Do not let the parent
+        // admin backdrop close itself underneath it.
+        return;
+      }
+    }
+
+    setIsAdminOpenState(open);
+  };
 
   // Persistent synchronizers
   useEffect(() => {
