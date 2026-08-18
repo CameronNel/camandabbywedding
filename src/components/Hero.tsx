@@ -141,7 +141,7 @@ export const Hero: React.FC<HeroProps> = ({ onNavigateTab }) => {
               </div>
               <div className="text-left">
                 <div className="text-[11px] uppercase tracking-wider text-stone-400 font-medium">The Setting</div>
-                <div className="text-sm font-serif font-semibold text-stone-800">Napa Valley, California</div>
+                <div className="text-sm font-serif font-semibold text-stone-800">ArendsRus, George, South Africa</div>
               </div>
             </div>
           </div>
