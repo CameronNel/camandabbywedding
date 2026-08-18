@@ -325,8 +325,8 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
             <div className="relative z-10 pt-1">
               {/* 3D Wax Seal Monogram */}
               <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-[#A63A56] via-[#ED3B72] to-[#F86D93] mx-auto flex items-center justify-center shadow-md shadow-blush-900/20 border-2 border-white ring-2 ring-[#D4AF37]/50 mb-1.5">
-                <span className="font-script text-xl sm:text-2xl text-white drop-shadow-sm font-normal">
-                  {config.brideShortName[0]} &amp; {config.groomShortName[0]}
+                <span className="font-serif font-bold text-xs sm:text-sm text-white tracking-widest uppercase drop-shadow-sm">
+                  C &amp; A
                 </span>
               </div>
 

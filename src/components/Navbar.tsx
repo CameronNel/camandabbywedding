@@ -38,21 +38,21 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-blush-100 py-3.5 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* Monogram / Brand matching the exact uploaded emblem styling */}
+        {/* Monogram / Brand: Clear, Crisp & Legible C & A */}
         <button
           onClick={() => handleTabClick('home')}
           className="group flex items-center gap-3 text-left shrink-0"
         >
-          <div className="relative w-11 h-11 rounded-full bg-pink-100/70 border border-blush-200 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-            <span className="font-script text-2xl text-rosewood drop-shadow-sm font-normal">
-              A &amp; C
+          <div className="relative w-11 h-11 rounded-full bg-gradient-to-tr from-pink-100 via-white to-pink-100 border-2 border-blush-300 flex items-center justify-center shadow-sm group-hover:border-blush-500 group-hover:scale-105 transition-all">
+            <span className="font-serif font-bold text-sm tracking-wider text-rosewood">
+              C &amp; A
             </span>
           </div>
           <div className="flex flex-col">
-            <span className="font-serif tracking-[0.15em] text-xs sm:text-sm uppercase text-stone-900 font-semibold group-hover:text-blush-700 transition-colors">
-              {config.brideShortName} &amp; {config.groomShortName}
+            <span className="font-serif tracking-[0.15em] text-xs sm:text-sm uppercase text-stone-900 font-bold group-hover:text-blush-700 transition-colors">
+              {config.groomShortName} &amp; {config.brideShortName}
             </span>
-            <span className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-stone-400 font-medium">
+            <span className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-stone-500 font-medium">
               {formattedDate}
             </span>
           </div>
