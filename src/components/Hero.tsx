@@ -257,7 +257,7 @@ export const Hero: React.FC<HeroProps> = ({ onNavigateTab }) => {
               <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Enter your name (e.g. Eleanor)"
+                placeholder="Enter your name (e.g. Brumilda or Roy)"
                 value={quickSearch}
                 onChange={e => setQuickSearch(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-blush-400"

@@ -59,7 +59,7 @@ export const Wishes: React.FC = () => {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Grandma Rose &amp; Uncle Leo"
+                      placeholder="e.g. Your Name(s)"
                       value={author}
                       onChange={e => setAuthor(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl bg-white border border-blush-200 text-xs focus:ring-2 focus:ring-blush-200 outline-none"

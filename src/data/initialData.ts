@@ -3,7 +3,7 @@ import type { WeddingConfig, Guest, StoryMilestone, ScheduleEvent, Accommodation
 export const initialConfig: WeddingConfig = {
   brideName: 'Abby',
   brideShortName: 'Abby',
-  groomName: 'Cameron Liam Nel',
+  groomName: 'Cameron Nel',
   groomShortName: 'Cam',
   weddingDate: '2027-01-04T15:30:00',
   tagline: 'From late-night gaming lobbies to forever under the Outeniqua Mountains.',
@@ -228,7 +228,7 @@ export const initialAccommodations: Accommodation[] = [
     name: 'Fancourt Luxury Estate & Golf Resort',
     address: 'Montagu Street, Blanco, George',
     phone: '+27 (0)44 804 0000',
-    bookingCode: 'NEL-VANCE-2027',
+    bookingCode: 'CAM-ABBY-2027',
     distance: '10 mins from ArendsRus',
     link: 'https://fancourt.co.za',
     rate: '5-Star Luxury Room Block: from R2,450/night'
@@ -237,7 +237,7 @@ export const initialAccommodations: Accommodation[] = [
     name: 'Protea Hotel by Marriott King George',
     address: 'King George Drive, King George Park, George',
     phone: '+27 (0)44 874 7664',
-    bookingCode: 'WEDDING2027',
+    bookingCode: 'CAM-ABBY-2027',
     distance: '15 mins from ArendsRus',
     link: 'https://marriott.com',
     rate: 'Discounted Group Rate: from R1,250/night'

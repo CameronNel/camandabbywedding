@@ -1,12 +1,12 @@
 import type { WeddingConfig, Guest, GuestWish, RegistryItem, ScheduleEvent, Accommodation } from '../types/wedding';
 import { initialConfig, initialGuests, initialWishes, initialRegistry, initialSchedule, initialAccommodations } from '../data/initialData';
 
-const CONFIG_KEY = 'wedding_app_config_v5_camabby_real';
-const GUESTS_KEY = 'wedding_app_guests_v5_camabby_real';
-const WISHES_KEY = 'wedding_app_wishes_v5_camabby_real';
-const REGISTRY_KEY = 'wedding_app_registry_v5_camabby_real';
-const SCHEDULE_KEY = 'wedding_app_schedule_v5_camabby_real';
-const ACCOMMODATIONS_KEY = 'wedding_app_accommodations_v5_camabby_real';
+const CONFIG_KEY = 'wedding_app_config_v6_camabby_clean';
+const GUESTS_KEY = 'wedding_app_guests_v6_camabby_clean';
+const WISHES_KEY = 'wedding_app_wishes_v6_camabby_clean';
+const REGISTRY_KEY = 'wedding_app_registry_v6_camabby_clean';
+const SCHEDULE_KEY = 'wedding_app_schedule_v6_camabby_clean';
+const ACCOMMODATIONS_KEY = 'wedding_app_accommodations_v6_camabby_clean';
 
 export function loadConfig(): WeddingConfig {
   try {
@@ -16,8 +16,15 @@ export function loadConfig(): WeddingConfig {
       // Auto-migrate old date if cached
       if (parsed.weddingDate && parsed.weddingDate.includes('2027-06-19')) {
         parsed.weddingDate = '2027-01-04T15:30:00';
-        saveConfig(parsed);
       }
+      // Ensure names are clean
+      if (parsed.groomName && parsed.groomName.includes('Liam')) {
+        parsed.groomName = 'Cameron Nel';
+      }
+      if (parsed.brideName && (parsed.brideName.includes('Vance') || parsed.brideName.includes('Daniel') || parsed.brideName.includes('Abigail'))) {
+        parsed.brideName = 'Abby';
+      }
+      saveConfig(parsed);
       return parsed;
     }
   } catch (e) {
@@ -145,7 +152,13 @@ export function resetAppToFactoryDefaults(): void {
       'wedding_app_wishes_v3_camabby',
       'wedding_app_registry_v3_camabby',
       'wedding_app_schedule_v3_camabby',
-      'wedding_app_accommodations_v3_camabby'
+      'wedding_app_accommodations_v3_camabby',
+      'wedding_app_config_v5_camabby_real',
+      'wedding_app_guests_v5_camabby_real',
+      'wedding_app_wishes_v5_camabby_real',
+      'wedding_app_registry_v5_camabby_real',
+      'wedding_app_schedule_v5_camabby_real',
+      'wedding_app_accommodations_v5_camabby_real'
     ];
     keysToRemove.forEach(k => localStorage.removeItem(k));
     window.location.reload();

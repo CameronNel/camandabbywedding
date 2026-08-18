@@ -211,7 +211,7 @@ export const RsvpSection: React.FC = () => {
                 <Search className="w-5 h-5 text-stone-400 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="e.g. Eleanor Montgomery or SA-VIP01"
+                  placeholder="Enter your name or invite code (e.g. Brumilda or CA-BRUMILDA)"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-blush-200 focus:border-blush-500 focus:ring-2 focus:ring-blush-200 outline-none text-stone-800 placeholder:text-stone-400 text-sm shadow-sm transition"
@@ -237,24 +237,42 @@ export const RsvpSection: React.FC = () => {
             {/* Quick Demo Helpers & Open Registration Button */}
             <div className="mt-8 pt-6 border-t border-blush-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
               <div className="flex items-center gap-2 flex-wrap justify-center">
-                <span className="text-[11px] uppercase tracking-wider text-stone-400">Try demo names:</span>
+                <span className="text-[11px] uppercase tracking-wider text-stone-400">Quick lookup:</span>
                 <button
                   onClick={() => {
-                    const g = searchGuest('Eleanor Montgomery');
+                    const g = searchGuest('Brumilda');
                     if (g) setActiveGuest(g);
                   }}
                   className="px-2.5 py-1 rounded-full bg-blush-50 hover:bg-blush-100 text-rosewood border border-blush-200 transition font-medium text-[11px]"
                 >
-                  Eleanor (VIP)
+                  Brumilda
                 </button>
                 <button
                   onClick={() => {
-                    const g = searchGuest('Oliver Sterling');
+                    const g = searchGuest('Roy');
                     if (g) setActiveGuest(g);
                   }}
                   className="px-2.5 py-1 rounded-full bg-blush-50 hover:bg-blush-100 text-rosewood border border-blush-200 transition font-medium text-[11px]"
                 >
-                  Oliver (Pending)
+                  Roy
+                </button>
+                <button
+                  onClick={() => {
+                    const g = searchGuest('Janke');
+                    if (g) setActiveGuest(g);
+                  }}
+                  className="px-2.5 py-1 rounded-full bg-blush-50 hover:bg-blush-100 text-rosewood border border-blush-200 transition font-medium text-[11px]"
+                >
+                  Janke
+                </button>
+                <button
+                  onClick={() => {
+                    const g = searchGuest('Ethan');
+                    if (g) setActiveGuest(g);
+                  }}
+                  className="px-2.5 py-1 rounded-full bg-blush-50 hover:bg-blush-100 text-rosewood border border-blush-200 transition font-medium text-[11px]"
+                >
+                  Ethan
                 </button>
               </div>
 
@@ -316,7 +334,7 @@ export const RsvpSection: React.FC = () => {
                       required
                       value={fullName}
                       onChange={e => setFullName(e.target.value)}
-                      placeholder="e.g. Lady Genevieve Vance"
+                      placeholder="Enter your full name"
                       className="w-full px-4 py-3 rounded-xl bg-white border border-blush-200 focus:border-blush-500 focus:ring-2 focus:ring-blush-200 outline-none text-sm"
                     />
                   </div>

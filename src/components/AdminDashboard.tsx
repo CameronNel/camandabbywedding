@@ -114,7 +114,7 @@ export const AdminDashboard: React.FC = () => {
     if (config) {
       setBrideName(config.brideName || 'Abby');
       setBrideShortName(config.brideShortName || 'Abby');
-      setGroomName(config.groomName || 'Cameron Liam Nel');
+      setGroomName(config.groomName || 'Cameron Nel');
       setGroomShortName(config.groomShortName || 'Cam');
       setWeddingDate(config.weddingDate || '2027-01-04T15:30:00');
       setTagline(config.tagline || '');
@@ -1093,7 +1093,7 @@ export const AdminDashboard: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. John Doe"
+                  placeholder="e.g. Guest Name"
                   value={newGuestName}
                   onChange={e => setNewGuestName(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-stone-200 outline-none focus:ring-1 focus:ring-blush-400"
@@ -1196,9 +1196,7 @@ export const AdminDashboard: React.FC = () => {
                 rows={6}
                 value={bulkText}
                 onChange={e => setBulkText(e.target.value)}
-                placeholder="Uncle James, james@example.com, 2, Table 2
-Aunt Sarah, sarah@example.com, 2, Table 2
-Michael Smith, michael@example.com, 1, Table 4"
+                placeholder="Guest Name, guest@example.com, 2, Table 1"
                 className="w-full p-3 rounded-xl border border-stone-200 text-xs font-mono outline-none focus:ring-1 focus:ring-blush-400"
               />
 

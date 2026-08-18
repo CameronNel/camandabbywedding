@@ -103,7 +103,7 @@ export const WeddingProvider: React.FC<{ children: ReactNode }> = ({ children })
     saveAccommodations(accommodations);
   }, [accommodations]);
 
-  // URL query parameter invite lookup (e.g. ?code=CA-VIP01 or ?guest=Eleanor)
+  // URL query parameter invite lookup (e.g. ?code=CA-BRUMILDA or ?guest=Brumilda)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code') || params.get('c');

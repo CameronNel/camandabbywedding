@@ -201,7 +201,7 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
               <div className="flex items-center gap-1">
                 <input
                   type="text"
-                  placeholder="e.g. Eleanor Vance"
+                  placeholder="e.g. Brumilda or Guest Name"
                   value={customGuestName}
                   onChange={e => setCustomGuestName(e.target.value)}
                   className="px-2.5 py-0.5 rounded-lg border border-blush-300 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blush-400"

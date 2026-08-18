@@ -287,9 +287,9 @@ export const VenueTravel: React.FC = () => {
                   <span className="font-semibold text-stone-800">From R2,450 / night</span>
                 </div>
                 <div className="flex items-center justify-between pt-2">
-                  <span className="text-stone-400 font-mono text-[11px]">Code: NEL-VANCE</span>
+                  <span className="text-stone-400 font-mono text-[11px]">Code: CAM-ABBY-2027</span>
                   <button
-                    onClick={() => copyToClipboard('NEL-VANCE', 1)}
+                    onClick={() => copyToClipboard('CAM-ABBY-2027', 1)}
                     className="inline-flex items-center gap-1 text-[11px] font-semibold text-blush-600 hover:text-blush-800"
                   >
                     {copiedIndex === 1 ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
