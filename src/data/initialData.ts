@@ -286,8 +286,8 @@ export const initialFaqs: FAQ[] = [
 export const initialRegistry: RegistryItem[] = [
   {
     id: 'reg-1',
-    title: 'Honeymoon Safari & Coastal Getaway Fund',
-    description: 'Help us create unforgettable honeymoon memories—from luxury bushveld safari game drives to private seaside dinners along the Garden Route.',
+    title: 'Honeymoon in Europe Fund',
+    description: 'Help us create unforgettable honeymoon memories across Europe—from quaint Parisian bistros and Italian gelaterias to scenic alpine trains and romantic sunsets.',
     type: 'honeymoon',
     icon: 'Plane',
     goalAmount: 50000,
@@ -296,8 +296,8 @@ export const initialRegistry: RegistryItem[] = [
   },
   {
     id: 'reg-2',
-    title: '@home Living & Dining Luxury Registry',
-    description: 'Artisanal cookware, crystal wine glasses, and French linen tableware for our home entertaining.',
+    title: 'Small Gifts & Home Registry',
+    description: 'Specialty coffee roasters, cozy home accents, crystal glassware, and luxury French linen for our home entertaining.',
     type: 'registry',
     icon: 'Gift',
     link: 'https://www.home.co.za'
@@ -305,7 +305,7 @@ export const initialRegistry: RegistryItem[] = [
   {
     id: 'reg-3',
     title: 'Yuppiechef Gourmet Kitchen & Braai',
-    description: 'Cast iron cookware, craft braai equipment, and specialty coffee accessories for our weekend culinary adventures.',
+    description: 'Cast iron cookware, craft braai equipment, artisanal spices, and specialty kitchen accessories for our weekend culinary adventures.',
     type: 'registry',
     icon: 'Wine',
     link: 'https://www.yuppiechef.com'

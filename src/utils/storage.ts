@@ -1,12 +1,12 @@
 import type { WeddingConfig, Guest, GuestWish, RegistryItem, ScheduleEvent, Accommodation } from '../types/wedding';
 import { initialConfig, initialGuests, initialWishes, initialRegistry, initialSchedule, initialAccommodations } from '../data/initialData';
 
-const CONFIG_KEY = 'wedding_app_config_v6_camabby_clean';
-const GUESTS_KEY = 'wedding_app_guests_v6_camabby_clean';
-const WISHES_KEY = 'wedding_app_wishes_v6_camabby_clean';
-const REGISTRY_KEY = 'wedding_app_registry_v6_camabby_clean';
-const SCHEDULE_KEY = 'wedding_app_schedule_v6_camabby_clean';
-const ACCOMMODATIONS_KEY = 'wedding_app_accommodations_v6_camabby_clean';
+const CONFIG_KEY = 'wedding_app_config_v7_camabby_europe';
+const GUESTS_KEY = 'wedding_app_guests_v7_camabby_europe';
+const WISHES_KEY = 'wedding_app_wishes_v7_camabby_europe';
+const REGISTRY_KEY = 'wedding_app_registry_v7_camabby_europe';
+const SCHEDULE_KEY = 'wedding_app_schedule_v7_camabby_europe';
+const ACCOMMODATIONS_KEY = 'wedding_app_accommodations_v7_camabby_europe';
 
 export function loadConfig(): WeddingConfig {
   try {
@@ -80,7 +80,13 @@ export function saveWishes(wishes: GuestWish[]): void {
 export function loadRegistry(): RegistryItem[] {
   try {
     const saved = localStorage.getItem(REGISTRY_KEY);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const hasSafari = Array.isArray(parsed) && parsed.some((item: any) => item?.title && item.title.includes('Safari'));
+      if (!hasSafari) {
+        return parsed;
+      }
+    }
   } catch (e) {
     console.error('Failed to load registry from storage', e);
   }
