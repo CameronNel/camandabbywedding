@@ -36,29 +36,29 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   }).toUpperCase();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-blush-100 py-3.5 transition-all">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-blush-100 py-3.5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* Monogram / Brand: Clear, Crisp & Legible C & A */}
+        {/* Monogram / Brand: Perfectly Centered, Single-Line C&A Emblem */}
         <button
           onClick={() => handleTabClick('home')}
-          className="group flex items-center gap-3 text-left shrink-0"
+          className="group flex items-center gap-3 text-left shrink-0 min-w-[190px]"
         >
-          <div className="relative w-11 h-11 rounded-full bg-gradient-to-tr from-pink-100 via-white to-pink-100 border-2 border-blush-300 flex items-center justify-center shadow-sm group-hover:border-blush-500 group-hover:scale-105 transition-all">
-            <span className="font-serif font-bold text-sm tracking-wider text-rosewood">
-              C &amp; A
+          <div className="relative w-11 h-11 rounded-full bg-gradient-to-br from-[#FFF4F7] via-white to-[#FFE6EE] border-2 border-blush-300 flex items-center justify-center shrink-0 shadow-sm group-hover:border-blush-500 transition-colors">
+            <span className="font-serif font-bold text-xs uppercase tracking-widest text-rosewood whitespace-nowrap select-none leading-none">
+              C&amp;A
             </span>
           </div>
           <div className="flex flex-col">
-            <span className="font-serif tracking-[0.15em] text-xs sm:text-sm uppercase text-stone-900 font-bold group-hover:text-blush-700 transition-colors">
+            <span className="font-serif tracking-[0.15em] text-xs sm:text-sm uppercase text-stone-900 font-bold group-hover:text-blush-700 transition-colors whitespace-nowrap">
               {config.groomShortName} &amp; {config.brideShortName}
             </span>
-            <span className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-stone-500 font-medium">
+            <span className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-stone-500 font-medium whitespace-nowrap">
               {formattedDate}
             </span>
           </div>
         </button>
 
-        {/* Desktop Tab Navigation */}
+        {/* Desktop Tab Navigation - Fixed Width & Zero Layout Shifting */}
         <nav className="hidden lg:flex items-center gap-1.5 bg-blush-50/60 p-1.5 rounded-full border border-blush-200/80 shadow-inner">
           {navTabs.map(tab => {
             const isActive = activeTab === tab.id;
@@ -67,24 +67,21 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
               <button
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs uppercase tracking-wider font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs uppercase tracking-wider font-medium transition-colors ${
                   isActive
-                    ? 'bg-gradient-to-r from-blush-500 to-rose-500 text-white shadow-md shadow-blush-500/25 scale-[1.02]'
+                    ? 'bg-gradient-to-r from-blush-500 to-rose-500 text-white shadow-md shadow-blush-500/25'
                     : 'text-stone-600 hover:text-blush-700 hover:bg-white/80'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{tab.name}</span>
-                {tab.id === 'rsvp' && !isActive && (
-                  <span className="w-2 h-2 rounded-full bg-blush-400 animate-pulse"></span>
-                )}
               </button>
             );
           })}
         </nav>
 
-        {/* Right CTAs - Identical and Fixed across all tabs */}
-        <div className="hidden sm:flex items-center gap-2.5 shrink-0">
+        {/* Right CTAs - Rock Solid Fixed Dimensions, Never Shifts */}
+        <div className="hidden sm:flex items-center justify-end gap-2.5 shrink-0 min-w-[270px]">
           <CutePrintButton variant="outline" />
 
           <button
@@ -98,10 +95,10 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
 
           <button
             onClick={() => handleTabClick('rsvp')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-wider shadow-md transition-all ${
+            className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-wider shadow-md transition-colors ${
               activeTab === 'rsvp'
-                ? 'bg-rosewood text-white shadow-rosewood/20 scale-[1.02]'
-                : 'bg-gradient-to-r from-blush-400 via-blush-500 to-rose-400 text-white shadow-blush-500/20 hover:shadow-lg hover:shadow-blush-500/35 hover:scale-[1.02] active:scale-[0.98]'
+                ? 'bg-rosewood text-white shadow-rosewood/25'
+                : 'bg-gradient-to-r from-blush-400 via-blush-500 to-rose-400 text-white shadow-blush-500/20 hover:shadow-lg hover:shadow-blush-500/35 active:opacity-90'
             }`}
           >
             <CalendarCheck className="w-3.5 h-3.5" />
