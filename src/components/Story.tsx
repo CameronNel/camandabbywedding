@@ -24,7 +24,7 @@ export const Story: React.FC = () => {
           </h2>
           <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-blush-400 to-transparent mx-auto mb-4"></div>
           <p className="font-display italic text-lg text-stone-600">
-            From a chance encounter in Italy to promising each other forever in Napa Valley.
+            From a chance encounter in Wilderness to promising each other forever under the Outeniqua Mountains at ArendsRus.
           </p>
         </div>
 
@@ -49,7 +49,7 @@ export const Story: React.FC = () => {
                   <div className="flex items-center gap-2 mb-1">
                     <Sparkles className="w-4 h-4 text-gold" />
                     <span className="text-xs uppercase tracking-widest font-semibold text-rosewood font-serif">
-                      Engaged in Santorini
+                      Engaged in the Outeniqua Foothills
                     </span>
                   </div>
                   <p className="text-xs text-stone-600 font-display italic">

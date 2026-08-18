@@ -67,8 +67,8 @@ export const FaqSection: React.FC = () => {
             Have additional questions or special needs?
           </span>
           <span>Please feel free to reach out to our wedding coordinators at </span>
-          <a href="mailto:wedding.planning@example.com" className="text-blush-600 font-medium underline">
-            sophia.alex.wedding@example.com
+          <a href="mailto:cam.abby.wedding@example.com" className="text-blush-600 font-medium underline">
+            cam.abby.wedding@example.com
           </a>
         </div>
       </div>
