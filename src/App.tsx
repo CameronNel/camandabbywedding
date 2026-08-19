@@ -27,9 +27,20 @@ export function AppContent() {
   });
 
   const navigate = useCallback((section: SectionId, behavior: ScrollBehavior = 'smooth') => {
-    const target = document.getElementById(section);
-    if (!target) return;
-    target.scrollIntoView({ behavior, block: 'start' });
+    if (section === 'home') {
+      window.scrollTo({ top: 0, behavior });
+    } else {
+      const target = document.getElementById(section);
+      if (!target) return;
+      const nav = document.querySelector('.site-nav') as HTMLElement | null;
+      const navHeight = nav ? nav.offsetHeight : 76;
+      const elementPosition = target.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.scrollY - navHeight;
+      window.scrollTo({
+        top: Math.max(0, Math.round(offsetPosition)),
+        behavior,
+      });
+    }
     setActiveSection(section);
     const nextUrl = `${window.location.pathname}${window.location.search}#${section}`;
     window.history.replaceState(null, '', nextUrl);
