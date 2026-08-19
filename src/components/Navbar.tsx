@@ -48,8 +48,12 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
           className="group flex min-w-0 items-center gap-3 rounded-full text-left focus-visible:outline-none"
           aria-label={`${site.groomName} and ${site.brideName} wedding home`}
         >
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[#84614e]/25 bg-white font-display text-lg font-semibold tracking-[0.08em] text-[#704b3d] shadow-[0_6px_20px_rgba(89,61,48,0.08)] transition-transform duration-300 group-hover:-rotate-3">
-            {site.groomName.charAt(0)}<span className="mx-[-1px] text-[11px] text-[#ad7a64]">&amp;</span>{site.brideName.charAt(0)}
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#84614e]/25 bg-white font-display text-base font-semibold leading-none text-[#704b3d] shadow-[0_6px_20px_rgba(89,61,48,0.08)] transition-transform duration-300 select-none group-hover:-rotate-3">
+            <span className="inline-flex items-center justify-center whitespace-nowrap leading-none">
+              <span>{site.groomName.charAt(0)}</span>
+              <span className="mx-0.5 text-[10px] font-normal text-[#ad7a64]">&amp;</span>
+              <span>{site.brideName.charAt(0)}</span>
+            </span>
           </span>
           <span className="hidden min-w-0 sm:block">
             <span className="block truncate font-display text-[17px] font-semibold tracking-[0.08em] text-stone-800">{site.groomName} &amp; {site.brideName}</span>
