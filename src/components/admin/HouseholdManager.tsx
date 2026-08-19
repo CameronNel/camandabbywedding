@@ -219,7 +219,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
       notify({ tone: 'error', message: 'Add at least one invited person before saving this household.' });
       return;
     }
-    const partySize = Math.max(form.partySize, namedMembers.length);
+    const partySize = Math.max(form.partySize, namedMembers.length + (form.isPlusOneAllowed ? 1 : 0));
     const attendingCount = Math.min(Math.max(0, form.attendingCount), partySize);
     setSaving(true);
     try {

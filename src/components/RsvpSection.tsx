@@ -42,6 +42,10 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   const [lookupError, setLookupError] = useState('');
   const [response, setResponse] = useState<'attending' | 'declined'>('attending');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [plusOneAttending, setPlusOneAttending] = useState(false);
+  const [plusOneName, setPlusOneName] = useState('');
+  const [dietaryDetails, setDietaryDetails] = useState('');
+  const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -58,6 +62,17 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     setResponse(household.status === 'declined' ? 'declined' : 'attending');
     setEmail(household.email);
     setPhone(household.phone);
+
+    // Initialize plus-one state
+    const companionName = household.companionNames?.[0] || household.members.find(m => !m.isPrimary)?.name || '';
+    const hasCompanion = Boolean(
+      (household.companionNames && household.companionNames.length > 0) ||
+      household.members.some(m => !m.isPrimary && m.attending)
+    );
+    setPlusOneAttending(hasCompanion);
+    setPlusOneName(companionName);
+    setDietaryDetails(household.dietaryDetails || '');
+    setMessage(household.message || '');
     setSaved(false);
   }, [household]);
 
@@ -97,7 +112,9 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     void findInvitation(code);
   }, [code, findInvitation, household]);
 
-  const attendingCount = response === 'attending' ? selectedMembers.length : 0;
+  const attendingCount = response === 'attending'
+    ? selectedMembers.length + (household?.isPlusOneAllowed && plusOneAttending ? 1 : 0)
+    : 0;
   const selectedMemberSet = useMemo(() => new Set(selectedMembers), [selectedMembers]);
 
   const toggleMember = (id: string) => {
@@ -117,17 +134,30 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     setSubmitting(true);
     setSubmitError('');
     try {
+      const submittedMembers: Array<{ id?: string; memberId?: string; name: string; attending: boolean; dietaryDetails?: string }> = household.members.map(member => ({
+        id: member.id,
+        memberId: member.id,
+        name: member.name,
+        attending: response === 'attending' && selectedMemberSet.has(member.id),
+        dietaryDetails: dietaryDetails.trim() || undefined,
+      }));
+
+      if (household.isPlusOneAllowed && plusOneAttending && response === 'attending') {
+        submittedMembers.push({
+          name: plusOneName.trim() || `${household.name}'s Guest (+1)`,
+          attending: true,
+          dietaryDetails: dietaryDetails.trim() || undefined,
+        });
+      }
+
       const result = await submitHouseholdRsvp(household.id, {
         rsvpStatus: response,
         attendingCount,
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
-        members: household.members.map(member => ({
-          id: member.id,
-          memberId: member.id,
-          name: member.name,
-          attending: response === 'attending' && selectedMemberSet.has(member.id),
-        })),
+        dietaryDetails: dietaryDetails.trim() || undefined,
+        message: message.trim() || undefined,
+        members: submittedMembers,
       });
       if (result === false) throw new Error('RSVP was not saved');
       setSaved(true);
@@ -296,7 +326,9 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
               </span>
               <h3 className="mt-5 font-display text-3xl leading-tight text-stone-800">{household.name}</h3>
               <p className="mt-3 text-sm leading-6 text-stone-600">
-                {household.members.length} {household.members.length === 1 ? 'guest' : 'guests'} included in this invitation.
+                {household.isPlusOneAllowed
+                  ? `${household.members.length} ${household.members.length === 1 ? 'guest' : 'guests'} + 1 companion included in this invitation.`
+                  : `${household.members.length} ${household.members.length === 1 ? 'guest' : 'guests'} included in this invitation.`}
               </p>
               {household.status !== 'pending' && (
                 <p className="mt-5 rounded-2xl border border-[#c9bba8] bg-white/70 px-4 py-3 text-xs leading-5 text-stone-600">
@@ -353,6 +385,44 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                       );
                     })}
                   </div>
+
+                  {household.isPlusOneAllowed && (
+                    <div className="mt-3 rounded-2xl border border-[#d9cebe] bg-[#fbf9f6] p-4 transition-all">
+                      <label className="flex cursor-pointer items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={plusOneAttending}
+                          onChange={e => setPlusOneAttending(e.target.checked)}
+                          className="h-4 w-4 rounded border-stone-300 text-[#596651] focus:ring-[#7a8870]"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-stone-800">Bring a Guest (+1 Companion)</span>
+                            <span className="rounded bg-[#eedecf] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#704b3d]">+1 Included</span>
+                          </div>
+                          <p className="text-[11px] text-stone-500">Your invitation allows an accompanying guest.</p>
+                        </div>
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">
+                          {plusOneAttending ? 'Attending' : 'Not attending'}
+                        </span>
+                      </label>
+
+                      {plusOneAttending && (
+                        <div className="mt-3 border-t border-[#ebd8c8] pt-3">
+                          <label className="block text-xs font-semibold text-stone-700">
+                            Companion Full Name <span className="font-normal text-stone-400">(optional)</span>
+                            <input
+                              type="text"
+                              value={plusOneName}
+                              onChange={e => setPlusOneName(e.target.value)}
+                              placeholder="e.g. Partner or Guest Name"
+                              className="form-field mt-1 text-xs"
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </fieldset>
               )}
 
@@ -372,6 +442,32 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   </span>
                 </label>
               </div>
+
+              {response === 'attending' && (
+                <div className="mt-6 space-y-4">
+                  <label className="block text-xs font-semibold text-stone-700">
+                    Dietary requirements or allergies <span className="font-normal text-stone-400">(optional)</span>
+                    <input
+                      type="text"
+                      value={dietaryDetails}
+                      onChange={e => setDietaryDetails(e.target.value)}
+                      placeholder="e.g. Vegetarian, Gluten-free, Nut allergy, Halal, None"
+                      className="form-field mt-1.5 text-xs"
+                    />
+                  </label>
+
+                  <label className="block text-xs font-semibold text-stone-700">
+                    Message or song request for Cam &amp; Abby <span className="font-normal text-stone-400">(optional)</span>
+                    <textarea
+                      rows={2}
+                      value={message}
+                      onChange={e => setMessage(e.target.value)}
+                      placeholder="Share a wish or suggest a song to dance to…"
+                      className="form-field mt-1.5 text-xs"
+                    />
+                  </label>
+                </div>
+              )}
 
               {submitError && <p role="alert" className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{submitError}</p>}
 

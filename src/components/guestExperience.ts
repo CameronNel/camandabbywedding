@@ -13,6 +13,9 @@ export interface HouseholdMemberView {
   id: string;
   name: string;
   attending: boolean;
+  isPrimary?: boolean;
+  dietaryRestrictions?: string[];
+  dietaryDetails?: string;
 }
 
 export interface HouseholdView {
@@ -27,6 +30,12 @@ export interface HouseholdView {
   tags: string[];
   complimentaryVenueStay: boolean;
   presenceIsOurGift: boolean;
+  isPlusOneAllowed: boolean;
+  companionNames?: string[];
+  dietaryRestrictions?: string[];
+  dietaryDetails?: string;
+  songRequest?: string;
+  message?: string;
 }
 
 export interface ListingView {
@@ -68,8 +77,14 @@ function normalizeHousehold(household: HouseholdInvitation | null): HouseholdVie
         id: member.id,
         name: member.name,
         attending: member.attending === true,
+        isPrimary: member.isPrimary,
+        dietaryRestrictions: member.dietaryRestrictions || [],
+        dietaryDetails: member.dietaryDetails || '',
       }))
-    : [{ id: household.id, name: household.name, attending: household.rsvpStatus === 'attending' }];
+    : [{ id: household.id, name: household.name, attending: household.rsvpStatus === 'attending', isPrimary: true, dietaryRestrictions: [], dietaryDetails: '' }];
+
+  const isPlusOneAllowed = Boolean(household.isPlusOneAllowed);
+  const companionNames = household.companionNames || [];
 
   return {
     id: household.id,
@@ -77,12 +92,18 @@ function normalizeHousehold(household: HouseholdInvitation | null): HouseholdVie
     inviteCode: household.inviteCode,
     status: household.rsvpStatus,
     members,
-    maxGuests: Math.max(household.partySize, members.length, 1),
+    maxGuests: Math.max(household.partySize, members.length + (isPlusOneAllowed ? 1 : 0), 1),
     email: household.email || '',
     phone: household.phone || '',
     tags: household.tags,
     complimentaryVenueStay: household.tags.includes('free_venue_housing'),
     presenceIsOurGift: household.tags.includes('presence_is_our_gift'),
+    isPlusOneAllowed,
+    companionNames,
+    dietaryRestrictions: household.dietaryRestrictions || [],
+    dietaryDetails: household.dietaryDetails || '',
+    songRequest: household.songRequest || '',
+    message: household.message || '',
   };
 }
 

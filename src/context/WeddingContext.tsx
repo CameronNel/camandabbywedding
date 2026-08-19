@@ -16,6 +16,7 @@ import type {
   GuestWish,
   HouseholdDraft,
   HouseholdInvitation,
+  HouseholdMember,
   HouseholdRsvpInput,
   InvitationDelivery,
   InvitationTemplate,
@@ -386,22 +387,46 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         setRegistryItems(bundle.registryItems);
         return true;
       }
+      const additionalMembers: HouseholdMember[] = [];
+      if (input.members) {
+        input.members.forEach((item) => {
+          if (!item.id && item.attending) {
+            additionalMembers.push({
+              id: crypto.randomUUID(),
+              householdId: activeHousehold.id,
+              name: item.name.trim(),
+              isPrimary: false,
+              isInvited: true,
+              attending: true,
+              dietaryRestrictions: item.dietaryRestrictions ?? [],
+              dietaryDetails: item.dietaryDetails,
+            });
+          }
+        });
+      }
+
+      const existingMembers = activeHousehold.members.map((member) => {
+        const response = input.members.find((item) => item.id === member.id)
+          ?? input.members.find((item) => item.name.trim().toLowerCase() === member.name.trim().toLowerCase());
+        return response ? {
+          ...member,
+          ...response,
+          dietaryRestrictions: response.dietaryRestrictions ?? member.dietaryRestrictions ?? [],
+        } : member;
+      });
+
+      const allMembers = [...existingMembers, ...additionalMembers];
+
       const updated: HouseholdInvitation = {
         ...activeHousehold,
         email: input.email,
         phone: input.phone,
         rsvpStatus: input.rsvpStatus,
         attendingCount: input.rsvpStatus === 'attending' ? input.attendingCount : 0,
-        members: activeHousehold.members.map((member) => {
-          const response = input.members.find((item) => item.id === member.id)
-            ?? input.members.find((item) => item.name.trim().toLowerCase() === member.name.trim().toLowerCase());
-          return response ? {
-            ...member,
-            ...response,
-            dietaryRestrictions: response.dietaryRestrictions ?? [],
-          } : member;
-        }),
-        dietaryRestrictions: input.dietaryRestrictions ?? [],
+        partySize: Math.max(activeHousehold.partySize, allMembers.length),
+        companionNames: allMembers.filter(m => !m.isPrimary).map(m => m.name),
+        members: allMembers,
+        dietaryRestrictions: input.dietaryRestrictions ?? activeHousehold.dietaryRestrictions ?? [],
         dietaryDetails: input.dietaryDetails,
         mealSelection: input.mealSelection,
         songRequest: input.songRequest,
