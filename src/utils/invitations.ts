@@ -1,5 +1,6 @@
 import QRCode from 'qrcode';
 import { jsPDF } from 'jspdf';
+import JSZip from 'jszip';
 import { formatWeddingDate } from './dates';
 
 export type InvitationVariant = 'save-the-date' | 'official';
@@ -346,37 +347,73 @@ export const downloadInvitationPdf = (
     pdf.save(invitationFilename(config, recipient, variant));
   });
 
-export const shareInvitationPdf = async (
+export const downloadAllInvitationsZip = async (
+  config: InvitationConfig,
+  recipients: InvitationRecipient[],
+  variant: InvitationVariant = 'official',
+): Promise<void> => {
+  const zip = new JSZip();
+  const folder = zip.folder(variant === 'save-the-date' ? 'Save_The_Date_PDFs' : 'Wedding_Invitation_PDFs') || zip;
+
+  for (const recipient of recipients) {
+    const blob = await createInvitationPdfBlob(config, recipient, variant);
+    const filename = invitationFilename(config, recipient, variant);
+    folder.file(filename, blob);
+  }
+
+  const zipBlob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(zipBlob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  const couple = `${config.groomShortName || config.groomName}_${config.brideShortName || config.brideName}`;
+  anchor.download = `${couple}_${variant === 'save-the-date' ? 'Save_the_Dates' : 'Invitations'}_PDFs.zip`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+};
+
+export const sendOrShareWhatsAppWithPdf = async (
   config: InvitationConfig,
   recipient: InvitationRecipient,
   variant: InvitationVariant = 'official',
-): Promise<boolean> => {
-  if (typeof navigator === 'undefined' || !navigator.share) return false;
-  try {
-    const blob = await createInvitationPdfBlob(config, recipient, variant);
-    const filename = invitationFilename(config, recipient, variant);
-    const file = new File([blob], filename, { type: 'application/pdf' });
-    const { message, subject } = buildInvitationMessage(config, recipient, variant);
+): Promise<{ method: 'native-share' | 'download-and-open' }> => {
+  const blob = await createInvitationPdfBlob(config, recipient, variant);
+  const filename = invitationFilename(config, recipient, variant);
+  const file = new File([blob], filename, { type: 'application/pdf' });
+  const { message, subject } = buildInvitationMessage(config, recipient, variant);
 
-    if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+  // Try native mobile share if supported
+  if (typeof navigator !== 'undefined' && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+    try {
       await navigator.share({
         title: subject,
         text: message,
         files: [file],
       });
-      return true;
-    } else {
-      await navigator.share({
-        title: subject,
-        text: message,
-        url: buildInvitationUrl(recipient, config.websiteUrl || config.siteUrl),
-      });
-      return true;
+      return { method: 'native-share' };
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return { method: 'native-share' };
+      }
     }
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') return true;
-    return false;
   }
+
+  // Desktop / standard browser: auto-download PDF & open WhatsApp
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+  // Open WhatsApp in new tab
+  const waUrl = buildWhatsAppInvitationUrl(config, recipient, variant);
+  window.open(waUrl, '_blank', 'noopener,noreferrer');
+
+  return { method: 'download-and-open' };
 };
 
 export const buildInvitationMessage = (

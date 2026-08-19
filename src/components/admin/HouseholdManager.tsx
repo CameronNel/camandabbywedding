@@ -23,7 +23,7 @@ import type {
   RsvpStatus,
   WeddingConfig,
 } from '../../types/wedding';
-import { buildWhatsAppInvitationUrl, type InvitationVariant } from '../../utils/invitations';
+import { sendOrShareWhatsAppWithPdf, type InvitationVariant } from '../../utils/invitations';
 import { exportGuestsToCsv } from '../../utils/storage';
 import { Button, EmptyState, Field, Modal, Toggle, inputClass } from './AdminPrimitives';
 import type { ToastState } from './contracts';
@@ -365,22 +365,32 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                 </div>
                 <div className="flex flex-wrap items-center justify-start gap-1.5 lg:justify-end">
                   {config && (
-                    <a
-                      href={buildWhatsAppInvitationUrl(config, {
-                        id: household.id,
-                        name: household.name,
-                        inviteCode: household.inviteCode,
-                        phone: household.phone,
-                        email: household.email,
-                      }, 'official')}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const res = await sendOrShareWhatsAppWithPdf(config, {
+                            id: household.id,
+                            name: household.name,
+                            inviteCode: household.inviteCode,
+                            phone: household.phone,
+                            email: household.email,
+                          }, 'official');
+                          if (res.method === 'native-share') {
+                            notify({ tone: 'success', message: `Shared invitation & PDF for ${household.name}!` });
+                          } else {
+                            notify({ tone: 'success', message: `Generated ${household.name}'s 5×7 PDF & opened WhatsApp!` });
+                          }
+                        } catch (err) {
+                          notify({ tone: 'error', message: 'PDF generation failed.' });
+                        }
+                      }}
                       className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-100"
-                      title={`Send official wedding invitation to ${household.name} on WhatsApp`}
+                      title={`Generate PDF and send invitation to ${household.name} on WhatsApp`}
                     >
                       <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
                       <span>WhatsApp</span>
-                    </a>
+                    </button>
                   )}
                   <Button size="sm" onClick={() => copyInvitation(household)} title="Copy private invitation link"><Copy className="h-3.5 w-3.5" /></Button>
                   <Button size="sm" onClick={() => onPreview(household, 'official')} title="Preview official invitation"><CalendarHeart className="h-3.5 w-3.5" /></Button>

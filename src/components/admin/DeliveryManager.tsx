@@ -20,8 +20,9 @@ import type {
 } from '../../types/wedding';
 import {
   buildInvitationMessage,
-  buildWhatsAppInvitationUrl,
+  downloadAllInvitationsZip,
   downloadInvitationPdf,
+  sendOrShareWhatsAppWithPdf,
   type InvitationVariant,
 } from '../../utils/invitations';
 import { Button, EmptyState, Field, inputClass } from './AdminPrimitives';
@@ -176,16 +177,60 @@ export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
     return base.message;
   };
 
-  const handleSendWhatsApp = (household: HouseholdInvitation) => {
-    const url = buildWhatsAppInvitationUrl(
-      { ...config, websiteUrl: household.invitationUrl || config.siteUrl },
-      { id: household.id, name: household.name, inviteCode: household.inviteCode, phone: household.phone, email: household.email },
-      variant,
-    );
-    window.open(url, '_blank', 'noopener,noreferrer');
-    const updated = saveWhatsAppSent(household.id);
-    setWhatsappSentMap(updated);
-    notify({ tone: 'success', message: `Opened WhatsApp for ${household.name}.` });
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [zipping, setZipping] = useState(false);
+
+  const handleSendWhatsApp = async (household: HouseholdInvitation) => {
+    setSendingId(household.id);
+    try {
+      const recipient = {
+        id: household.id,
+        name: household.name,
+        inviteCode: household.inviteCode,
+        phone: household.phone,
+        email: household.email,
+      };
+      const res = await sendOrShareWhatsAppWithPdf(
+        { ...config, websiteUrl: household.invitationUrl || config.siteUrl },
+        recipient,
+        variant,
+      );
+      const updated = saveWhatsAppSent(household.id);
+      setWhatsappSentMap(updated);
+      if (res.method === 'native-share') {
+        notify({ tone: 'success', message: `Shared invitation & PDF for ${household.name}!` });
+      } else {
+        notify({ tone: 'success', message: `Generated ${household.name}'s 5×7 PDF & opened WhatsApp chat!` });
+      }
+    } catch (error) {
+      notify({ tone: 'error', message: error instanceof Error ? error.message : 'Could not generate PDF.' });
+    } finally {
+      setSendingId(null);
+    }
+  };
+
+  const handleDownloadZip = async () => {
+    const targetHouseholds = households.filter(h => selectedIds.has(h.id));
+    if (!targetHouseholds.length) {
+      notify({ tone: 'error', message: 'Select at least one household to download PDFs.' });
+      return;
+    }
+    setZipping(true);
+    try {
+      const recipients = targetHouseholds.map(h => ({
+        id: h.id,
+        name: h.name,
+        inviteCode: h.inviteCode,
+        phone: h.phone,
+        email: h.email,
+      }));
+      await downloadAllInvitationsZip(config, recipients, variant);
+      notify({ tone: 'success', message: `Downloaded ${recipients.length} personalized 5×7 invitation PDFs in ZIP!` });
+    } catch (error) {
+      notify({ tone: 'error', message: error instanceof Error ? error.message : 'ZIP generation failed.' });
+    } finally {
+      setZipping(false);
+    }
   };
 
   const handleCopyMessage = async (household: HouseholdInvitation) => {
@@ -356,12 +401,20 @@ export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
                 <Copy className="h-4 w-4" /> Copy All Selected WhatsApp Messages
               </Button>
 
+              <Button
+                className="w-full justify-center min-h-11 border-stone-300 text-stone-700 hover:bg-stone-50"
+                onClick={() => void handleDownloadZip()}
+                disabled={!selectedCount || zipping}
+              >
+                <Download className="h-4 w-4 text-emerald-600" /> {zipping ? 'Packaging PDFs into ZIP…' : `Download All Selected 5×7 PDFs (ZIP)`}
+              </Button>
+
               <div className="rounded-2xl border border-stone-200/80 bg-stone-50/60 p-4 text-[11px] leading-relaxed text-stone-600">
-                <p className="font-semibold text-stone-800 mb-1">💡 How WhatsApp Dispatch Works:</p>
+                <p className="font-semibold text-stone-800 mb-1">💡 Automated PDF &amp; WhatsApp Dispatch:</p>
                 <ul className="list-disc pl-4 space-y-1 text-stone-500">
-                  <li>Clicking <strong>Send on WhatsApp</strong> opens WhatsApp directly with that guest's pre-filled personalized message.</li>
-                  <li>South African phone numbers (e.g. <code className="text-stone-700 font-mono">082 123 4567</code>) are automatically formatted to international standard (<code className="text-stone-700 font-mono">2782...</code>).</li>
-                  <li>Once opened, the guest is marked as <strong>Sent on WhatsApp</strong> so you can track your progress.</li>
+                  <li>Clicking <strong>Send on WhatsApp</strong> instantly generates the guest's personalized 5×7 printable PDF card with their unique QR code and opens WhatsApp with their private link.</li>
+                  <li>On mobile phones, both the PDF and text are attached directly into WhatsApp. On desktop, the PDF is saved to your downloads and WhatsApp opens in 1 click.</li>
+                  <li>Click <strong>Download All Selected PDFs (ZIP)</strong> to download every guest's individual PDF all at once in a neat zip archive!</li>
                 </ul>
               </div>
             </div>
@@ -469,12 +522,13 @@ export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
                   <div className="flex flex-wrap items-center gap-1.5 self-end sm:self-auto">
                     <button
                       type="button"
-                      onClick={() => handleSendWhatsApp(household)}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400 bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-                      title="Open WhatsApp chat with pre-filled message"
+                      disabled={sendingId === household.id}
+                      onClick={() => void handleSendWhatsApp(household)}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400 bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                      title="Generates personalized PDF and opens WhatsApp"
                     >
                       <MessageCircle className="h-3.5 w-3.5" />
-                      <span>Send on WhatsApp</span>
+                      <span>{sendingId === household.id ? 'Generating PDF…' : 'Send on WhatsApp'}</span>
                     </button>
 
                     <Button
