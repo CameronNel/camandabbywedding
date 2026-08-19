@@ -1,0 +1,4 @@
+project_id = "cam-and-abby-wedding"
+
+[functions.send-invitation]
+verify_jwt = true

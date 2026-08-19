@@ -1,112 +1,84 @@
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { WeddingProvider } from './context/WeddingContext';
-import { Navbar, type TabId } from './components/Navbar';
+import { Navbar, type SectionId } from './components/Navbar';
 import { Hero } from './components/Hero';
-import { Story } from './components/Story';
-import { Schedule } from './components/Schedule';
-import { VenueTravel } from './components/VenueTravel';
-import { BridalParty } from './components/BridalParty';
-import { PhotoGallery } from './components/PhotoGallery';
 import { RsvpSection } from './components/RsvpSection';
-import { Wishes } from './components/Wishes';
+import { VenueTravel } from './components/VenueTravel';
+import { PhotoGallery } from './components/PhotoGallery';
 import { Registry } from './components/Registry';
-import { FaqSection } from './components/FaqSection';
 import { Footer } from './components/Footer';
-import { MusicPlayer } from './components/MusicPlayer';
-import { PetalAnimation } from './components/PetalAnimation';
-import { AdminDashboard } from './components/AdminDashboard';
+import { useGuestExperience } from './components/guestExperience';
+
+const AdminDashboard = lazy(() =>
+  import('./components/AdminDashboard').then(module => ({ default: module.AdminDashboard })),
+);
+
+const sectionIds: SectionId[] = ['home', 'rsvp', 'details', 'gallery', 'gifts'];
+
+function isSectionId(value: string): value is SectionId {
+  return sectionIds.includes(value as SectionId);
+}
 
 export function AppContent() {
-  const [activeTab, setActiveTab] = useState<TabId>(() => {
-    const hash = window.location.hash.replace('#', '').toLowerCase();
-    if (hash === 'rsvp' || hash === 'details' || hash === 'story' || hash === 'registry') {
-      return hash as TabId;
-    }
-    // If URL has ?code= or ?guest=, default directly to RSVP tab
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('code') || urlParams.get('c') || urlParams.get('guest') || urlParams.get('g')) {
-      return 'rsvp';
-    }
-    return 'home';
+  const { adminOpen } = useGuestExperience();
+  const [activeSection, setActiveSection] = useState<SectionId>(() => {
+    const initial = window.location.hash.slice(1).toLowerCase();
+    return isSectionId(initial) ? initial : 'home';
   });
 
-  // Handle URL hash changes
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (hash === 'home' || hash === 'rsvp' || hash === 'details' || hash === 'story' || hash === 'registry') {
-        setActiveTab(hash as TabId);
-      }
-    };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+  const navigate = useCallback((section: SectionId, behavior: ScrollBehavior = 'smooth') => {
+    const target = document.getElementById(section);
+    if (!target) return;
+    target.scrollIntoView({ behavior, block: 'start' });
+    setActiveSection(section);
+    const nextUrl = `${window.location.pathname}${window.location.search}#${section}`;
+    window.history.replaceState(null, '', nextUrl);
   }, []);
 
-  const handleTabChange = (tab: TabId) => {
-    setActiveTab(tab);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    window.history.pushState(null, '', `#${tab}`);
-  };
+  useEffect(() => {
+    const hash = window.location.hash.slice(1).toLowerCase();
+    if (!isSectionId(hash) || hash === 'home') return;
+    const timer = window.setTimeout(() => navigate(hash, 'auto'), 80);
+    return () => window.clearTimeout(timer);
+  }, [navigate]);
+
+  useEffect(() => {
+    const sections = sectionIds
+      .map(id => document.getElementById(id))
+      .filter((element): element is HTMLElement => Boolean(element));
+    if (!sections.length) return;
+
+    const observer = new IntersectionObserver(
+      entries => {
+        const visible = entries
+          .filter(entry => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible && isSectionId(visible.target.id)) setActiveSection(visible.target.id);
+      },
+      { rootMargin: '-22% 0px -60% 0px', threshold: [0.05, 0.25, 0.5] },
+    );
+
+    sections.forEach(section => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#FFFDFB] text-stone-800 font-sans selection:bg-blush-200 selection:text-rosewood flex flex-col justify-between">
-      {/* Floating Rose Petals Ambiance */}
-      <PetalAnimation />
-
-      {/* Ambient Romantic Music Synthesizer & Controller */}
-      <MusicPlayer />
-
-      {/* Main Tab Navigation Header */}
-      <Navbar activeTab={activeTab} setActiveTab={handleTabChange} />
-
-      {/* Clean Tabbed Page Views (Zero Infinite Scrolling Clutter) */}
-      <main className="flex-1">
-        {/* TAB 1: HOME */}
-        {activeTab === 'home' && (
-          <div className="animate-fadeIn">
-            <Hero onNavigateTab={handleTabChange} />
-          </div>
-        )}
-
-        {/* TAB 2: RSVP */}
-        {activeTab === 'rsvp' && (
-          <div className="pt-20 animate-fadeIn">
-            <RsvpSection />
-          </div>
-        )}
-
-        {/* TAB 3: SCHEDULE & VENUE DETAILS */}
-        {activeTab === 'details' && (
-          <div className="pt-20 animate-fadeIn">
-            <Schedule />
-            <VenueTravel />
-            <FaqSection />
-          </div>
-        )}
-
-        {/* TAB 4: OUR STORY & GALLERY */}
-        {activeTab === 'story' && (
-          <div className="pt-20 animate-fadeIn">
-            <Story />
-            <PhotoGallery />
-            <BridalParty />
-          </div>
-        )}
-
-        {/* TAB 5: REGISTRY & WISHES */}
-        {activeTab === 'registry' && (
-          <div className="pt-20 animate-fadeIn">
-            <Registry />
-            <Wishes />
-          </div>
-        )}
+    <div className="min-h-screen overflow-x-clip bg-[#f8f5ef] text-stone-800">
+      <a className="skip-link" href="#main-content">Skip to content</a>
+      <Navbar activeSection={activeSection} onNavigate={navigate} />
+      <main id="main-content">
+        <Hero onNavigate={navigate} />
+        <RsvpSection onNavigate={navigate} />
+        <VenueTravel onNavigate={navigate} />
+        <PhotoGallery />
+        <Registry onNavigate={navigate} />
       </main>
-
-      {/* Footer */}
-      <Footer />
-
-      {/* Organizer / Admin Modal */}
-      <AdminDashboard />
+      <Footer onNavigate={navigate} />
+      {adminOpen && (
+        <Suspense fallback={<div className="fixed inset-0 z-[90] grid place-items-center bg-stone-950/60 text-sm font-semibold text-white backdrop-blur-sm">Opening organizer portal…</div>}>
+          <AdminDashboard />
+        </Suspense>
+      )}
     </div>
   );
 }

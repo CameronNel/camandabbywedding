@@ -1,250 +1,232 @@
-import type { WeddingConfig, Guest, GuestWish, RegistryItem, ScheduleEvent, Accommodation } from '../types/wedding';
-import { initialConfig, initialGuests, initialWishes, initialRegistry, initialSchedule, initialAccommodations } from '../data/initialData';
+import type {
+  Accommodation,
+  GalleryItem,
+  Guest,
+  GuestWish,
+  InvitationDelivery,
+  InvitationTemplate,
+  RegistryItem,
+  ScheduleEvent,
+  WeddingConfig,
+  WeddingService,
+} from '../types/wedding';
+import {
+  initialAccommodations,
+  initialConfig,
+  initialGallery,
+  initialGuests,
+  initialInvitationDeliveries,
+  initialInvitationTemplates,
+  initialRegistry,
+  initialSchedule,
+  initialServices,
+  initialWishes,
+} from '../data/initialData';
 
-const CONFIG_KEY = 'wedding_app_config_v7_camabby_europe';
-const GUESTS_KEY = 'wedding_app_guests_v7_camabby_europe';
-const WISHES_KEY = 'wedding_app_wishes_v7_camabby_europe';
-const REGISTRY_KEY = 'wedding_app_registry_v7_camabby_europe';
-const SCHEDULE_KEY = 'wedding_app_schedule_v7_camabby_europe';
-const ACCOMMODATIONS_KEY = 'wedding_app_accommodations_v7_camabby_europe';
+const STORAGE_PREFIX = 'cam_abby_wedding_v8';
+
+const STORAGE_KEYS = {
+  config: `${STORAGE_PREFIX}_config`,
+  guests: `${STORAGE_PREFIX}_households`,
+  wishes: `${STORAGE_PREFIX}_wishes`,
+  registry: `${STORAGE_PREFIX}_registry`,
+  schedule: `${STORAGE_PREFIX}_schedule`,
+  accommodations: `${STORAGE_PREFIX}_accommodations`,
+  services: `${STORAGE_PREFIX}_services`,
+  gallery: `${STORAGE_PREFIX}_gallery`,
+  invitationTemplates: `${STORAGE_PREFIX}_invitation_templates`,
+  invitationDeliveries: `${STORAGE_PREFIX}_invitation_deliveries`,
+} as const;
+
+const LEGACY_PREFIXES = [
+  'wedding_app_',
+  'cam_abby_wedding_v7',
+];
+
+function clone<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function safeLoad<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return clone(fallback);
+  try {
+    const saved = window.localStorage.getItem(key);
+    return saved ? (JSON.parse(saved) as T) : clone(fallback);
+  } catch (error) {
+    console.error(`Failed to load ${key} from local storage`, error);
+    return clone(fallback);
+  }
+}
+
+function safeSave<T>(key: string, value: T): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`Failed to save ${key} to local storage`, error);
+  }
+}
 
 export function loadConfig(): WeddingConfig {
-  try {
-    const saved = localStorage.getItem(CONFIG_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Auto-migrate old date if cached
-      if (parsed.weddingDate && parsed.weddingDate.includes('2027-06-19')) {
-        parsed.weddingDate = '2027-01-04T15:30:00';
-      }
-      // Ensure names are clean
-      if (parsed.groomName && parsed.groomName.includes('Liam')) {
-        parsed.groomName = 'Cameron Nel';
-      }
-      if (parsed.brideName && (parsed.brideName.includes('Vance') || parsed.brideName.includes('Daniel') || parsed.brideName.includes('Abigail'))) {
-        parsed.brideName = 'Abby';
-      }
-      saveConfig(parsed);
-      return parsed;
-    }
-  } catch (e) {
-    console.error('Failed to load config from storage', e);
-  }
-  return initialConfig;
+  const saved = safeLoad<Partial<WeddingConfig>>(STORAGE_KEYS.config, {});
+  return {
+    ...initialConfig,
+    ...saved,
+    ceremonyVenue: { ...initialConfig.ceremonyVenue, ...saved.ceremonyVenue },
+    receptionVenue: { ...initialConfig.receptionVenue, ...saved.receptionVenue },
+    dressCode: { ...initialConfig.dressCode, ...saved.dressCode },
+    adminPin: '6385',
+  };
 }
 
 export function saveConfig(config: WeddingConfig): void {
-  try {
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-  } catch (e) {
-    console.error('Failed to save config', e);
-  }
+  safeSave(STORAGE_KEYS.config, { ...config, adminPin: '6385' });
 }
 
-export function loadGuests(): Guest[] {
-  try {
-    const saved = localStorage.getItem(GUESTS_KEY);
-    if (saved) return JSON.parse(saved);
-  } catch (e) {
-    console.error('Failed to load guests from storage', e);
-  }
-  return initialGuests;
-}
+export const loadGuests = (): Guest[] => safeLoad(STORAGE_KEYS.guests, initialGuests);
+export const saveGuests = (guests: Guest[]): void => safeSave(STORAGE_KEYS.guests, guests);
 
-export function saveGuests(guests: Guest[]): void {
-  try {
-    localStorage.setItem(GUESTS_KEY, JSON.stringify(guests));
-  } catch (e) {
-    console.error('Failed to save guests', e);
-  }
-}
+export const loadWishes = (): GuestWish[] => safeLoad(STORAGE_KEYS.wishes, initialWishes);
+export const saveWishes = (wishes: GuestWish[]): void => safeSave(STORAGE_KEYS.wishes, wishes);
 
-export function loadWishes(): GuestWish[] {
-  try {
-    const saved = localStorage.getItem(WISHES_KEY);
-    if (saved) return JSON.parse(saved);
-  } catch (e) {
-    console.error('Failed to load wishes from storage', e);
-  }
-  return initialWishes;
-}
+export const loadRegistry = (): RegistryItem[] => safeLoad(STORAGE_KEYS.registry, initialRegistry);
+export const saveRegistry = (items: RegistryItem[]): void => safeSave(STORAGE_KEYS.registry, items);
 
-export function saveWishes(wishes: GuestWish[]): void {
-  try {
-    localStorage.setItem(WISHES_KEY, JSON.stringify(wishes));
-  } catch (e) {
-    console.error('Failed to save wishes', e);
-  }
-}
+export const loadSchedule = (): ScheduleEvent[] => safeLoad(STORAGE_KEYS.schedule, initialSchedule);
+export const saveSchedule = (events: ScheduleEvent[]): void => safeSave(STORAGE_KEYS.schedule, events);
 
-export function loadRegistry(): RegistryItem[] {
+export const loadAccommodations = (): Accommodation[] => safeLoad(STORAGE_KEYS.accommodations, initialAccommodations);
+export const saveAccommodations = (items: Accommodation[]): void => safeSave(STORAGE_KEYS.accommodations, items);
+
+export const loadServices = (): WeddingService[] => safeLoad(STORAGE_KEYS.services, initialServices);
+export const saveServices = (items: WeddingService[]): void => safeSave(STORAGE_KEYS.services, items);
+
+export const loadGallery = (): GalleryItem[] => safeLoad(STORAGE_KEYS.gallery, initialGallery);
+export const saveGallery = (items: GalleryItem[]): void => safeSave(STORAGE_KEYS.gallery, items);
+
+export const loadInvitationTemplates = (): InvitationTemplate[] =>
+  safeLoad(STORAGE_KEYS.invitationTemplates, initialInvitationTemplates);
+export const saveInvitationTemplates = (items: InvitationTemplate[]): void =>
+  safeSave(STORAGE_KEYS.invitationTemplates, items);
+
+export const loadInvitationDeliveries = (): InvitationDelivery[] =>
+  safeLoad(STORAGE_KEYS.invitationDeliveries, initialInvitationDeliveries);
+export const saveInvitationDeliveries = (items: InvitationDelivery[]): void =>
+  safeSave(STORAGE_KEYS.invitationDeliveries, items);
+
+export function resetAppToFactoryDefaults(): void {
+  if (typeof window === 'undefined') return;
   try {
-    const saved = localStorage.getItem(REGISTRY_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      const hasSafari = Array.isArray(parsed) && parsed.some((item: any) => item?.title && item.title.includes('Safari'));
-      if (!hasSafari) {
-        return parsed;
+    for (const key of Object.values(STORAGE_KEYS)) window.localStorage.removeItem(key);
+    for (const key of Object.keys(window.localStorage)) {
+      if (LEGACY_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+        window.localStorage.removeItem(key);
       }
     }
-  } catch (e) {
-    console.error('Failed to load registry from storage', e);
-  }
-  return initialRegistry;
-}
-
-export function saveRegistry(items: RegistryItem[]): void {
-  try {
-    localStorage.setItem(REGISTRY_KEY, JSON.stringify(items));
-  } catch (e) {
-    console.error('Failed to save registry', e);
-  }
-}
-
-export function loadSchedule(): ScheduleEvent[] {
-  try {
-    const saved = localStorage.getItem(SCHEDULE_KEY);
-    if (saved) return JSON.parse(saved);
-  } catch (e) {
-    console.error('Failed to load schedule from storage', e);
-  }
-  return initialSchedule;
-}
-
-export function saveSchedule(events: ScheduleEvent[]): void {
-  try {
-    localStorage.setItem(SCHEDULE_KEY, JSON.stringify(events));
-  } catch (e) {
-    console.error('Failed to save schedule', e);
-  }
-}
-
-export function loadAccommodations(): Accommodation[] {
-  try {
-    const saved = localStorage.getItem(ACCOMMODATIONS_KEY);
-    if (saved) return JSON.parse(saved);
-  } catch (e) {
-    console.error('Failed to load accommodations from storage', e);
-  }
-  return initialAccommodations;
-}
-
-export function saveAccommodations(accommodations: Accommodation[]): void {
-  try {
-    localStorage.setItem(ACCOMMODATIONS_KEY, JSON.stringify(accommodations));
-  } catch (e) {
-    console.error('Failed to save accommodations', e);
-  }
-}
-
-// Reset everything to factory defaults
-export function resetAppToFactoryDefaults(): void {
-  try {
-    const keysToRemove = [
-      CONFIG_KEY,
-      GUESTS_KEY,
-      WISHES_KEY,
-      REGISTRY_KEY,
-      SCHEDULE_KEY,
-      ACCOMMODATIONS_KEY,
-      'wedding_app_config_v1',
-      'wedding_app_guests_v1',
-      'wedding_app_wishes_v1',
-      'wedding_app_config_v2_arendsrus',
-      'wedding_app_guests_v2_arendsrus',
-      'wedding_app_wishes_v2_arendsrus',
-      'wedding_app_config_v3_camabby',
-      'wedding_app_guests_v3_camabby',
-      'wedding_app_wishes_v3_camabby',
-      'wedding_app_registry_v3_camabby',
-      'wedding_app_schedule_v3_camabby',
-      'wedding_app_accommodations_v3_camabby',
-      'wedding_app_config_v5_camabby_real',
-      'wedding_app_guests_v5_camabby_real',
-      'wedding_app_wishes_v5_camabby_real',
-      'wedding_app_registry_v5_camabby_real',
-      'wedding_app_schedule_v5_camabby_real',
-      'wedding_app_accommodations_v5_camabby_real'
-    ];
-    keysToRemove.forEach(k => localStorage.removeItem(k));
+    window.sessionStorage.removeItem('wedding_admin_auth');
     window.location.reload();
-  } catch (e) {
-    console.error('Failed to reset app', e);
+  } catch (error) {
+    console.error('Failed to reset local wedding data', error);
   }
+}
+
+export function createSecureInviteCode(): string {
+  const bytes = new Uint8Array(12);
+  globalThis.crypto.getRandomValues(bytes);
+  const token = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
+  return `CA-${token}`;
+}
+
+export function buildInvitationUrl(config: WeddingConfig, inviteCode: string): string {
+  const fallback = typeof window === 'undefined' ? initialConfig.siteUrl : window.location.href;
+  const url = new URL(config.siteUrl || fallback);
+  url.search = '';
+  url.hash = 'rsvp';
+  url.searchParams.set('invite', inviteCode);
+  return url.toString();
 }
 
 export function exportGuestsToCsv(guests: Guest[]): void {
   const headers = [
-    'Name',
+    'Household',
     'Email',
     'Phone',
     'Invite Code',
+    'Tags',
     'RSVP Status',
     'Max Party Size',
     'Attending Count',
+    'Members',
     'Dietary Restrictions',
     'Dietary Details',
     'Meal Selection',
-    'Companion Names',
     'Song Request',
     'Table Number',
     'Message',
     'Checked In',
-    'Responded At'
+    'Responded At',
   ];
 
-  const rows = guests.map(g => [
-    `"${(g.name || '').replace(/"/g, '""')}"`,
-    `"${(g.email || '').replace(/"/g, '""')}"`,
-    `"${(g.phone || '').replace(/"/g, '""')}"`,
-    `"${(g.inviteCode || '').replace(/"/g, '""')}"`,
-    `"${(g.rsvpStatus || '').replace(/"/g, '""')}"`,
-    g.partySize || 1,
-    g.attendingCount || 0,
-    `"${(g.dietaryRestrictions || []).join('; ').replace(/"/g, '""')}"`,
-    `"${(g.dietaryDetails || '').replace(/"/g, '""')}"`,
-    `"${(g.mealSelection || '').replace(/"/g, '""')}"`,
-    `"${(g.companionNames || []).join('; ').replace(/"/g, '""')}"`,
-    `"${(g.songRequest || '').replace(/"/g, '""')}"`,
-    `"${(g.tableNumber || '').replace(/"/g, '""')}"`,
-    `"${(g.message || '').replace(/"/g, '""')}"`,
-    g.checkedIn ? 'Yes' : 'No',
-    g.respondedAt ? `"${g.respondedAt}"` : '""'
+  const escape = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+  const rows = guests.map((guest) => [
+    escape(guest.name),
+    escape(guest.email),
+    escape(guest.phone),
+    escape(guest.inviteCode),
+    escape(guest.tags?.join('; ')),
+    escape(guest.rsvpStatus),
+    guest.partySize || 1,
+    guest.attendingCount || 0,
+    escape(guest.members?.map((member) => member.name).join('; ') || guest.companionNames?.join('; ')),
+    escape(guest.dietaryRestrictions?.join('; ')),
+    escape(guest.dietaryDetails),
+    escape(guest.mealSelection),
+    escape(guest.songRequest),
+    escape(guest.tableNumber),
+    escape(guest.message),
+    guest.checkedIn ? 'Yes' : 'No',
+    escape(guest.respondedAt),
   ]);
 
-  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', `Cam_and_Abby_Wedding_Guest_List_${new Date().toISOString().slice(0, 10)}.csv`);
+  link.href = url;
+  link.download = `Cam_and_Abby_Wedding_Guest_List_${new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function dateOnly(value: string): string {
+  return value.slice(0, 10).replaceAll('-', '');
+}
+
+function nextDate(value: string): string {
+  const date = new Date(`${value.slice(0, 10)}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
 }
 
 export function getGoogleCalendarUrl(config: WeddingConfig): string {
-  const startDate = new Date(config.weddingDate);
-  const endDate = new Date(startDate.getTime() + 8 * 60 * 60 * 1000); // 8 hour event
-
-  const formatGCalDate = (d: Date) => d.toISOString().replace(/-|:|\.\d\d\d/g, '');
-
-  const title = encodeURIComponent(`${config.brideShortName} & ${config.groomShortName}'s Wedding`);
-  const details = encodeURIComponent(
-    `We can't wait to celebrate our wedding with you at ${config.ceremonyVenue.name}!\n\nDetails: https://cameronnel.github.io/camandabbywedding`
+  const title = encodeURIComponent(`${config.groomShortName} & ${config.brideShortName}'s Wedding`);
+  const details = encodeURIComponent(config.siteUrl ? `Details: ${config.siteUrl}` : '');
+  const location = encodeURIComponent(
+    [config.ceremonyVenue.name, config.ceremonyVenue.address, config.ceremonyVenue.city].filter(Boolean).join(', '),
   );
-  const location = encodeURIComponent(`${config.ceremonyVenue.name}, ${config.ceremonyVenue.address}, ${config.ceremonyVenue.city}`);
-  const dates = `${formatGCalDate(startDate)}/${formatGCalDate(endDate)}`;
-
+  const dates = `${dateOnly(config.weddingDate)}/${dateOnly(nextDate(config.weddingDate))}`;
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
 }
 
 export function generateIcsFile(config: WeddingConfig): void {
-  const startDate = new Date(config.weddingDate);
-  const endDate = new Date(startDate.getTime() + 8 * 60 * 60 * 1000);
-
-  const formatIcsDate = (d: Date) => d.toISOString().replace(/-|:|\.\d\d\d/g, '');
-
+  const weddingDay = dateOnly(config.weddingDate);
+  const followingDay = dateOnly(nextDate(config.weddingDate));
+  const escapeIcs = (value: string) => value.replaceAll('\\', '\\\\').replaceAll(',', '\\,').replaceAll(';', '\\;').replaceAll('\n', '\\n');
+  const location = [config.ceremonyVenue.name, config.ceremonyVenue.address, config.ceremonyVenue.city]
+    .filter(Boolean)
+    .join(', ');
   const icsString = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -252,24 +234,25 @@ export function generateIcsFile(config: WeddingConfig): void {
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
-    `DTSTART:${formatIcsDate(startDate)}`,
-    `DTEND:${formatIcsDate(endDate)}`,
-    `DTSTAMP:${formatIcsDate(new Date())}`,
-    `UID:wedding-${startDate.getTime()}@camandabbywedding`,
-    `SUMMARY:${config.brideShortName} & ${config.groomShortName}'s Wedding`,
-    `DESCRIPTION:Join us for the wedding of ${config.brideName} and ${config.groomName} at ${config.ceremonyVenue.name}.`,
-    `LOCATION:${config.ceremonyVenue.name}, ${config.ceremonyVenue.address}, ${config.ceremonyVenue.city}`,
+    `DTSTART;VALUE=DATE:${weddingDay}`,
+    `DTEND;VALUE=DATE:${followingDay}`,
+    `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}`,
+    `UID:wedding-${weddingDay}@camandabbywedding`,
+    `SUMMARY:${escapeIcs(`${config.groomShortName} & ${config.brideShortName}'s Wedding`)}`,
+    `DESCRIPTION:${escapeIcs(config.siteUrl ? `Details: ${config.siteUrl}` : '')}`,
+    `LOCATION:${escapeIcs(location)}`,
     'STATUS:CONFIRMED',
     'END:VEVENT',
-    'END:VCALENDAR'
+    'END:VCALENDAR',
   ].join('\r\n');
 
   const blob = new Blob([icsString], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.setAttribute('download', `${config.brideShortName}_and_${config.groomShortName}_Wedding.ics`);
+  link.download = `${config.brideShortName}_and_${config.groomShortName}_Wedding.ics`;
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
+  link.remove();
+  URL.revokeObjectURL(url);
 }

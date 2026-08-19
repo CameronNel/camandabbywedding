@@ -1,170 +1,134 @@
-import React, { useState } from 'react';
-import { Camera, X, ZoomIn, Heart, MapPin } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowLeft, ArrowRight, Expand, Images, X } from 'lucide-react';
+import { Reveal } from './Reveal';
+import { useGuestExperience } from './guestExperience';
 
-interface GalleryItem {
-  id: number;
-  src: string;
-  category: 'couple' | 'venue' | 'details';
-  title: string;
-  subtitle: string;
-}
+export function PhotoGallery() {
+  const { galleryItems } = useGuestExperience();
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const activeItem = activeIndex === null ? null : galleryItems[activeIndex];
 
-const galleryItems: GalleryItem[] = [
-  {
-    id: 1,
-    src: `${import.meta.env.BASE_URL}images/couple.jpg`,
-    category: 'couple',
-    title: 'Cam & Abby on the Golf Course at Sunset',
-    subtitle: 'Golden hour stroll along the fairway under the Outeniqua Mountain peaks'
-  },
-  {
-    id: 2,
-    src: `${import.meta.env.BASE_URL}images/hero-arendsrus.jpg`,
-    category: 'venue',
-    title: 'ArendsRus Country Lodge & Wooden Deck',
-    subtitle: 'Rustic wooden chalets and swimming pool surrounded by fynbos and Outeniqua Mountains'
-  },
-  {
-    id: 3,
-    src: `${import.meta.env.BASE_URL}images/venue.jpg`,
-    category: 'venue',
-    title: 'The ArendsRus Barn Yard Reception Hall',
-    subtitle: 'Exposed wooden trusses, cascading crystal chandeliers, and glowing candlelight'
-  },
-  {
-    id: 4,
-    src: `${import.meta.env.BASE_URL}images/chapel.jpg`,
-    category: 'venue',
-    title: 'The ArendsRus Country Chapel',
-    subtitle: 'Rustic wooden chapel framed by mountain peaks and rose-lined aisles'
-  }
-];
+  const open = (index: number) => {
+    returnFocusRef.current = document.activeElement as HTMLElement | null;
+    setActiveIndex(index);
+  };
 
-export const PhotoGallery: React.FC = () => {
-  const [filter, setFilter] = useState<'all' | 'couple' | 'venue'>('all');
-  const [activePhoto, setActivePhoto] = useState<GalleryItem | null>(null);
+  const close = useCallback(() => {
+    setActiveIndex(null);
+    window.setTimeout(() => returnFocusRef.current?.focus(), 0);
+  }, []);
 
-  const filteredPhotos = filter === 'all'
-    ? galleryItems
-    : galleryItems.filter(item => item.category === filter);
+  const move = useCallback((direction: -1 | 1) => {
+    setActiveIndex(current => {
+      if (current === null || !galleryItems.length) return null;
+      return (current + direction + galleryItems.length) % galleryItems.length;
+    });
+  }, [galleryItems.length]);
+
+  useEffect(() => {
+    if (activeIndex === null) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') close();
+      if (event.key === 'ArrowLeft') move(-1);
+      if (event.key === 'ArrowRight') move(1);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [activeIndex, close, move]);
 
   return (
-    <section id="gallery" className="py-20 bg-[#FFFDFB] relative">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-blush-600 mb-3 bg-blush-50 px-3 py-1 rounded-full border border-blush-100">
-            <Camera className="w-3.5 h-3.5" />
-            <span>Captured Moments</span>
+    <section id="gallery" className="anchor-section overflow-hidden bg-[#343832] px-5 py-24 text-white sm:px-8 sm:py-32">
+      <div className="mx-auto max-w-[1440px]">
+        <Reveal className="grid items-end gap-8 lg:grid-cols-[0.72fr_1.28fr]">
+          <div>
+            <p className="eyebrow text-[#d9c8b4]">A few glimpses</p>
+            <h2 className="section-title text-white">The place, and us</h2>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-serif font-normal text-stone-800 tracking-tight mb-4">
-            Photo Gallery
-          </h2>
-          <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-blush-400 to-transparent mx-auto mb-4"></div>
-          <p className="font-display italic text-lg sm:text-xl text-stone-600">
-            A glimpse into our love story and the magical grounds of ArendsRus Country Lodge.
+          <p className="max-w-2xl text-sm leading-7 text-white/[0.62] lg:pb-2">
+            A quiet preview of ArendsRus Country Lodge and a few moments from our life together. We’ll add more photographs as the celebration draws closer.
           </p>
-        </div>
+        </Reveal>
 
-        {/* Filter Buttons */}
-        <div className="flex items-center justify-center gap-2 mb-10">
-          {(['all', 'couple', 'venue'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition-all ${
-                filter === tab
-                  ? 'bg-blush-500 text-white shadow-md shadow-blush-500/25 scale-105'
-                  : 'bg-white text-stone-600 hover:bg-blush-50 border border-stone-200'
-              }`}
+        <div className="mt-14 grid auto-rows-[230px] gap-4 sm:auto-rows-[300px] sm:grid-cols-2 lg:grid-cols-12">
+          {galleryItems.map((item, index) => (
+            <Reveal
+              key={item.id}
+              delay={Math.min(index, 3) * 60}
+              className={index === 0 ? 'sm:col-span-2 lg:col-span-7 lg:row-span-2' : index === 1 ? 'lg:col-span-5' : 'lg:col-span-5'}
             >
-              {tab === 'all' ? 'All Photos' : tab === 'couple' ? 'The Couple' : 'ArendsRus Venue'}
-            </button>
+              <button
+                type="button"
+                onClick={() => open(index)}
+                className="gallery-card group relative h-full w-full overflow-hidden rounded-[1.5rem] bg-stone-800 text-left focus-visible:outline-none"
+                aria-label={`Open photo: ${item.title}`}
+              >
+                <img src={item.src} alt={item.alt} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" loading={index === 0 ? 'eager' : 'lazy'} />
+                <span className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 sm:p-7">
+                  <span>
+                    <span className="block font-display text-2xl font-semibold text-white">{item.title}</span>
+                    {item.caption && <span className="mt-1 block max-w-xl text-xs leading-5 text-white/[0.65]">{item.caption}</span>}
+                  </span>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/25 bg-black/20 text-white backdrop-blur-sm transition group-hover:bg-white group-hover:text-stone-800">
+                    <Expand className="h-4 w-4" />
+                  </span>
+                </span>
+              </button>
+            </Reveal>
           ))}
         </div>
 
-        {/* Gallery Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {filteredPhotos.map(photo => (
-            <div
-              key={photo.id}
-              onClick={() => setActivePhoto(photo)}
-              className="group relative rounded-3xl overflow-hidden shadow-lg border border-blush-100 cursor-pointer bg-stone-900 aspect-[16/10]"
-            >
-              <img
-                src={photo.src}
-                alt={photo.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-700 opacity-95 group-hover:opacity-100"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition duration-300"></div>
-
-              {/* Hover Zoom Icon */}
-              <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300">
-                <ZoomIn className="w-5 h-5" />
-              </div>
-
-              {/* Photo Caption */}
-              <div className="absolute bottom-6 left-6 right-6 text-white transform group-hover:-translate-y-1 transition duration-300">
-                <div className="flex items-center gap-1.5 text-blush-300 text-xs font-semibold uppercase tracking-wider mb-1">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>ArendsRus • George</span>
-                </div>
-                <h3 className="font-serif text-lg sm:text-xl font-medium text-white mb-1">
-                  {photo.title}
-                </h3>
-                <p className="text-stone-300 text-xs font-light line-clamp-2">
-                  {photo.subtitle}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+        {!galleryItems.length && (
+          <div className="mt-14 rounded-[2rem] border border-white/15 bg-white/5 p-10 text-center">
+            <Images className="mx-auto h-7 w-7 text-[#d9c8b4]" />
+            <p className="mt-4 text-sm text-white/65">The gallery is being prepared.</p>
+          </div>
+        )}
       </div>
 
-      {/* Lightbox Modal */}
-      {activePhoto && (
+      {activeItem && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-fadeIn"
-          onClick={() => setActivePhoto(null)}
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-[#161714]/95 p-3 backdrop-blur-md sm:p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Photo: ${activeItem.title}`}
+          onMouseDown={event => {
+            if (event.currentTarget === event.target) close();
+          }}
         >
-          <div
-            className="relative max-w-5xl max-h-[90vh] bg-stone-900 rounded-3xl overflow-hidden shadow-2xl border border-stone-800"
-            onClick={e => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setActivePhoto(null)}
-              className="absolute top-4 right-4 z-10 p-2.5 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm transition"
-              aria-label="Close"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <img
-              src={activePhoto.src}
-              alt={activePhoto.title}
-              className="max-w-full max-h-[75vh] w-auto h-auto object-contain mx-auto"
-            />
-
-            <div className="p-6 bg-stone-950 text-white">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <h4 className="font-serif text-xl sm:text-2xl font-normal text-white mb-1">
-                    {activePhoto.title}
-                  </h4>
-                  <p className="text-xs sm:text-sm text-stone-400 font-light">
-                    {activePhoto.subtitle}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-blush-300 text-xs font-medium shrink-0">
-                  <Heart className="w-3.5 h-3.5 fill-blush-300" />
-                  <span>ArendsRus</span>
-                </div>
+          <div className="relative flex max-h-[92svh] w-full max-w-6xl flex-col overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#272a26] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5">
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/[0.55]">{activeIndex! + 1} of {galleryItems.length}</span>
+              <button ref={closeButtonRef} type="button" onClick={close} className="grid h-11 w-11 place-items-center rounded-full text-white/75 transition hover:bg-white/10 hover:text-white" aria-label="Close photo">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 bg-black/20">
+              <img src={activeItem.src} alt={activeItem.alt} className="mx-auto max-h-[68svh] w-full object-contain" />
+            </div>
+            <div className="flex items-center justify-between gap-4 border-t border-white/10 px-4 py-4 sm:px-6">
+              <div className="min-w-0">
+                <h3 className="truncate font-display text-xl font-semibold text-white sm:text-2xl">{activeItem.title}</h3>
+                {activeItem.caption && <p className="mt-1 truncate text-xs text-white/[0.55]">{activeItem.caption}</p>}
               </div>
+              {galleryItems.length > 1 && (
+                <div className="flex shrink-0 gap-2">
+                  <button type="button" onClick={() => move(-1)} className="grid h-11 w-11 place-items-center rounded-full border border-white/15 text-white transition hover:bg-white hover:text-stone-900" aria-label="Previous photo"><ArrowLeft className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => move(1)} className="grid h-11 w-11 place-items-center rounded-full border border-white/15 text-white transition hover:bg-white hover:text-stone-900" aria-label="Next photo"><ArrowRight className="h-4 w-4" /></button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
     </section>
   );
-};
+}

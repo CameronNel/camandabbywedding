@@ -1,27 +1,809 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import type { WeddingConfig, Guest, GuestWish, RegistryItem, ScheduleEvent, Accommodation } from '../types/wedding';
-import { loadConfig, saveConfig, loadGuests, saveGuests, loadWishes, saveWishes, loadRegistry, saveRegistry, loadSchedule, saveSchedule, loadAccommodations, saveAccommodations, resetAppToFactoryDefaults } from '../utils/storage';
-interface WeddingContextType { config: WeddingConfig; updateConfig:(newConfig:Partial<WeddingConfig>)=>void; guests:Guest[]; wishes:GuestWish[]; registryItems:RegistryItem[]; scheduleEvents:ScheduleEvent[]; accommodations:Accommodation[]; activeGuest:Guest|null; setActiveGuest:(guest:Guest|null)=>void; submitRsvp:(guestId:string,rsvpData:Partial<Guest>)=>boolean; registerAndRsvp:(newGuest:{name:string;email?:string;phone?:string;rsvpStatus:'attending'|'declined';partySize:number;attendingCount:number;dietaryRestrictions:string[];dietaryDetails?:string;mealSelection?:string;songRequest?:string;message?:string;companionNames?:string[]})=>Guest; addGuest:(guest:Partial<Guest>)=>Guest; updateGuest:(id:string,updates:Partial<Guest>)=>void; deleteGuest:(id:string)=>void; bulkAddGuests:(guestList:Array<Partial<Guest>>)=>void; toggleCheckIn:(id:string)=>void; addWish:(name:string,message:string)=>void; likeWish:(id:string)=>void; addRegistryItem:(item:Omit<RegistryItem,'id'>)=>void; updateRegistryItem:(id:string,item:Partial<RegistryItem>)=>void; deleteRegistryItem:(id:string)=>void; updateScheduleEvent:(index:number,event:Partial<ScheduleEvent>)=>void; updateAccommodation:(index:number,acc:Partial<Accommodation>)=>void; resetAllData:()=>void; isAdminOpen:boolean; setIsAdminOpen:(open:boolean)=>void; isAdminAuthenticated:boolean; authenticateAdmin:(pin:string)=>boolean; logoutAdmin:()=>void; searchGuest:(query:string)=>Guest|null; }
-const WeddingContext=createContext<WeddingContextType|undefined>(undefined);
-export const WeddingProvider:React.FC<{children:ReactNode}>=({children})=>{
- const [config,setConfigState]=useState<WeddingConfig>(loadConfig),[guests,setGuestsState]=useState<Guest[]>(loadGuests),[wishes,setWishesState]=useState<GuestWish[]>(loadWishes),[registryItems,setRegistryItemsState]=useState<RegistryItem[]>(loadRegistry),[scheduleEvents,setScheduleEventsState]=useState<ScheduleEvent[]>(loadSchedule),[accommodations,setAccommodationsState]=useState<Accommodation[]>(loadAccommodations);
- const [activeGuest,setActiveGuest]=useState<Guest|null>(null),[isAdminOpen,setIsAdminOpen]=useState(false),[isAdminAuthenticated,setIsAdminAuthenticated]=useState(()=>sessionStorage.getItem('wedding_admin_auth')==='true');
- useEffect(()=>{saveConfig(config)},[config]); useEffect(()=>{saveGuests(guests)},[guests]); useEffect(()=>{saveWishes(wishes)},[wishes]); useEffect(()=>{saveRegistry(registryItems)},[registryItems]); useEffect(()=>{saveSchedule(scheduleEvents)},[scheduleEvents]); useEffect(()=>{saveAccommodations(accommodations)},[accommodations]);
- useEffect(()=>{const p=new URLSearchParams(window.location.search),code=p.get('code')||p.get('c'),guestParam=p.get('guest')||p.get('g');if(code){const m=guests.find(g=>g.inviteCode.toUpperCase()===code.trim().toUpperCase());if(m)setActiveGuest(m)}else if(guestParam){const m=guests.find(g=>g.name.toLowerCase().includes(guestParam.trim().toLowerCase()));if(m)setActiveGuest(m)}},[guests]);
- const updateConfig=(n:Partial<WeddingConfig>)=>setConfigState(p=>({...p,...n}));
- const addGuest=(d:Partial<Guest>):Guest=>{const id=`g-${Date.now()}`,initials=(d.name||'G').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2),inviteCode=`CA-${initials}${Math.floor(1000+Math.random()*9000)}`,g:Guest={id,name:d.name||'Guest',email:d.email||'',phone:d.phone||'',inviteCode,rsvpStatus:(d.rsvpStatus as any)||'pending',partySize:d.partySize||2,attendingCount:d.attendingCount||0,dietaryRestrictions:d.dietaryRestrictions||[],dietaryDetails:d.dietaryDetails||'',mealSelection:d.mealSelection||'',songRequest:d.songRequest||'',message:d.message||'',tableNumber:d.tableNumber||'Unassigned',isPlusOneAllowed:d.isPlusOneAllowed??true,companionNames:d.companionNames||[],checkedIn:false};setGuestsState(p=>[g,...p]);return g};
- const updateGuest=(id:string,u:Partial<Guest>)=>{setGuestsState(p=>p.map(g=>g.id===id?{...g,...u}:g));if(activeGuest?.id===id)setActiveGuest(p=>p?{...p,...u}:null)};
- const deleteGuest=(id:string)=>{setGuestsState(p=>p.filter(g=>g.id!==id));if(activeGuest?.id===id)setActiveGuest(null)};
- const bulkAddGuests=(list:Array<Partial<Guest>>)=>{const c=list.map((g,i)=>({id:`g-${Date.now()}-${i}`,name:g.name||'Guest',email:g.email||'',phone:g.phone||'',inviteCode:`CA-${(g.name||'G').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)}${Math.floor(1000+Math.random()*9000)}`,rsvpStatus:'pending' as const,partySize:g.partySize||2,attendingCount:0,dietaryRestrictions:[],tableNumber:g.tableNumber||'Unassigned',isPlusOneAllowed:g.isPlusOneAllowed??true,companionNames:[]}));setGuestsState(p=>[...c,...p])};
- const toggleCheckIn=(id:string)=>setGuestsState(p=>p.map(g=>g.id===id?{...g,checkedIn:!g.checkedIn}:g));
- const addWish=(name:string,message:string)=>setWishesState(p=>[{id:`w-${Date.now()}`,name,message,date:new Date().toISOString().slice(0,10),likes:1},...p]);
- const likeWish=(id:string)=>setWishesState(p=>p.map(w=>w.id===id?{...w,likes:(w.likes||0)+1}:w));
- const submitRsvp=(id:string,u:Partial<Guest>)=>{const t=guests.find(g=>g.id===id);if(!t)return false;const updated={...t,...u,respondedAt:new Date().toISOString()};setGuestsState(p=>p.map(g=>g.id===id?updated:g));setActiveGuest(updated);if(u.message&&u.message.trim().length>3)addWish(t.name,u.message.trim());return true};
- const registerAndRsvp=(d:any)=>{const c=addGuest(d),f={...c,...d,respondedAt:new Date().toISOString()};updateGuest(c.id,f);setActiveGuest(f);if(d.message&&d.message.trim().length>3)addWish(d.name,d.message.trim());return f};
- const addRegistryItem=(item:Omit<RegistryItem,'id'>)=>setRegistryItemsState(p=>[...p,{...item,id:`reg-${Date.now()}`}]);
- const updateRegistryItem=(id:string,u:Partial<RegistryItem>)=>setRegistryItemsState(p=>p.map(r=>r.id===id?{...r,...u}:r)); const deleteRegistryItem=(id:string)=>setRegistryItemsState(p=>p.filter(r=>r.id!==id));
- const updateScheduleEvent=(i:number,e:Partial<ScheduleEvent>)=>setScheduleEventsState(p=>{const n=[...p];if(n[i])n[i]={...n[i],...e};return n}); const updateAccommodation=(i:number,a:Partial<Accommodation>)=>setAccommodationsState(p=>{const n=[...p];if(n[i])n[i]={...n[i],...a};return n});
- const resetAllData=()=>resetAppToFactoryDefaults(); const authenticateAdmin=(pin:string)=>{if(pin===config.adminPin){setIsAdminAuthenticated(true);sessionStorage.setItem('wedding_admin_auth','true');return true}return false}; const logoutAdmin=()=>{setIsAdminAuthenticated(false);sessionStorage.removeItem('wedding_admin_auth')};
- const searchGuest=(q:string)=>{if(!q?.trim())return null;const c=q.trim().toLowerCase();return guests.find(g=>g.inviteCode.toLowerCase()===c)||guests.find(g=>g.name.toLowerCase()===c)||guests.find(g=>g.name.toLowerCase().includes(c))||guests.find(g=>(g.email&&g.email.toLowerCase()===c)||(g.phone&&g.phone.includes(c)))||null};
- return <WeddingContext.Provider value={{config,updateConfig,guests,wishes,registryItems,scheduleEvents,accommodations,activeGuest,setActiveGuest,submitRsvp,registerAndRsvp,addGuest,updateGuest,deleteGuest,bulkAddGuests,toggleCheckIn,addWish,likeWish,addRegistryItem,updateRegistryItem,deleteRegistryItem,updateScheduleEvent,updateAccommodation,resetAllData,isAdminOpen,setIsAdminOpen,isAdminAuthenticated,authenticateAdmin,logoutAdmin,searchGuest}}>{children}</WeddingContext.Provider>};
-export const useWedding=()=>{const c=useContext(WeddingContext);if(!c)throw new Error('useWedding must be used within a WeddingProvider');return c};
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import type {
+  Accommodation,
+  ActionResult,
+  AdminSession,
+  GalleryItem,
+  Guest,
+  GuestWish,
+  HouseholdDraft,
+  HouseholdInvitation,
+  HouseholdRsvpInput,
+  InvitationDelivery,
+  InvitationTemplate,
+  RegistryItem,
+  ScheduleEvent,
+  SendInvitationRequest,
+  SendInvitationResult,
+  WeddingConfig,
+  WeddingService,
+} from '../types/wedding';
+import {
+  buildInvitationUrl,
+  createSecureInviteCode,
+  loadAccommodations,
+  loadConfig,
+  loadGallery,
+  loadGuests,
+  loadInvitationDeliveries,
+  loadInvitationTemplates,
+  loadRegistry,
+  loadSchedule,
+  loadServices,
+  loadWishes,
+  resetAppToFactoryDefaults,
+  saveAccommodations,
+  saveConfig,
+  saveGallery,
+  saveGuests,
+  saveInvitationDeliveries,
+  saveInvitationTemplates,
+  saveRegistry,
+  saveSchedule,
+  saveServices,
+  saveWishes,
+} from '../utils/storage';
+import { isSupabaseConfigured } from '../lib/supabase';
+import * as repository from '../lib/weddingRepository';
+
+export interface WeddingContextType {
+  config: WeddingConfig;
+  siteConfig: WeddingConfig;
+  updateConfig: (updates: Partial<WeddingConfig>) => void;
+  updateSiteConfig: (updates: Partial<WeddingConfig>) => Promise<void>;
+  dataMode: 'supabase' | 'local';
+  isLoading: boolean;
+  dataError: string | null;
+  refreshData: () => Promise<void>;
+
+  households: HouseholdInvitation[];
+  guests: Guest[];
+  activeHousehold: HouseholdInvitation | null;
+  setActiveHousehold: (household: HouseholdInvitation | null) => void;
+  activeGuest: Guest | null;
+  setActiveGuest: (guest: Guest | null) => void;
+  lookupInvitation: (query: string) => Promise<HouseholdInvitation | null>;
+  submitHouseholdRsvp: (input: HouseholdRsvpInput) => Promise<boolean>;
+  createHousehold: (draft: HouseholdDraft) => Promise<HouseholdInvitation>;
+  updateHousehold: (id: string, updates: Partial<HouseholdInvitation>) => Promise<void>;
+  deleteHousehold: (id: string) => Promise<void>;
+
+  submitRsvp: (guestId: string, updates: Partial<Guest>) => boolean;
+  registerAndRsvp: (guest: RegisterGuestInput) => Guest;
+  addGuest: (guest: Partial<Guest>) => Guest;
+  updateGuest: (id: string, updates: Partial<Guest>) => void;
+  deleteGuest: (id: string) => void;
+  bulkAddGuests: (guests: Array<Partial<Guest>>) => void;
+  toggleCheckIn: (id: string) => void;
+  searchGuest: (query: string) => Guest | null;
+
+  wishes: GuestWish[];
+  addWish: (name: string, message: string) => void;
+  likeWish: (id: string) => void;
+  registryItems: RegistryItem[];
+  addRegistryItem: (item: Omit<RegistryItem, 'id'>) => Promise<RegistryItem>;
+  updateRegistryItem: (id: string, item: Partial<RegistryItem>) => Promise<void>;
+  deleteRegistryItem: (id: string) => Promise<void>;
+  scheduleEvents: ScheduleEvent[];
+  updateScheduleEvent: (index: number, event: Partial<ScheduleEvent>) => void;
+
+  accommodations: Accommodation[];
+  addAccommodation: (item: Omit<Accommodation, 'id'>) => Promise<Accommodation>;
+  updateAccommodation: (id: string | number, item: Partial<Accommodation>) => Promise<void>;
+  deleteAccommodation: (id: string) => Promise<void>;
+  services: WeddingService[];
+  addService: (item: Omit<WeddingService, 'id'>) => Promise<WeddingService>;
+  updateService: (id: string, item: Partial<WeddingService>) => Promise<void>;
+  deleteService: (id: string) => Promise<void>;
+  galleryItems: GalleryItem[];
+  addGalleryItem: (item: Omit<GalleryItem, 'id'>) => Promise<GalleryItem>;
+  uploadGalleryPhoto: (
+    file: File,
+    metadata: Pick<GalleryItem, 'title' | 'altText'> & Partial<GalleryItem>,
+  ) => Promise<GalleryItem>;
+  updateGalleryItem: (id: string, item: Partial<GalleryItem>) => Promise<void>;
+  deleteGalleryItem: (id: string) => Promise<void>;
+
+  invitationTemplates: InvitationTemplate[];
+  invitationDeliveries: InvitationDelivery[];
+  upsertInvitationTemplate: (template: InvitationTemplate) => Promise<InvitationTemplate>;
+  sendInvitations: (request: SendInvitationRequest) => Promise<SendInvitationResult>;
+
+  isAdminOpen: boolean;
+  setIsAdminOpen: (open: boolean) => void;
+  adminSession: AdminSession | null;
+  isAdminAuthenticated: boolean;
+  signInAdmin: (email: string, password: string) => Promise<ActionResult>;
+  sendAdminMagicLink: (email: string) => Promise<ActionResult>;
+  authenticateAdmin: (pin: string) => boolean;
+  logoutAdmin: () => Promise<void>;
+  resetAllData: () => void;
+}
+
+interface RegisterGuestInput {
+  name: string;
+  email?: string;
+  phone?: string;
+  rsvpStatus: 'attending' | 'declined';
+  partySize: number;
+  attendingCount: number;
+  dietaryRestrictions: string[];
+  dietaryDetails?: string;
+  mealSelection?: string;
+  songRequest?: string;
+  message?: string;
+  companionNames?: string[];
+}
+
+const WeddingContext = createContext<WeddingContextType | undefined>(undefined);
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+}
+
+function normalizeHousehold(guest: Guest, config: WeddingConfig): HouseholdInvitation {
+  return {
+    ...guest,
+    tags: guest.tags ?? [],
+    members: guest.members ?? [],
+    invitationUrl: guest.inviteCode ? buildInvitationUrl(config, guest.inviteCode) : undefined,
+  };
+}
+
+function createLocalHousehold(draft: HouseholdDraft, config: WeddingConfig): HouseholdInvitation {
+  const id = crypto.randomUUID();
+  const inviteCode = createSecureInviteCode();
+  const memberDrafts = draft.members?.length
+    ? draft.members
+    : [{ name: draft.name, email: draft.email, phone: draft.phone, isPrimary: true }];
+  const members = memberDrafts.map((member, index) => ({
+    id: crypto.randomUUID(),
+    householdId: id,
+    name: member.name.trim(),
+    email: member.email,
+    phone: member.phone,
+    isPrimary: member.isPrimary ?? index === 0,
+    isInvited: member.isInvited ?? true,
+    attending: member.attending ?? null,
+    mealSelection: member.mealSelection,
+    dietaryRestrictions: member.dietaryRestrictions ?? [],
+    dietaryDetails: member.dietaryDetails,
+  }));
+  return {
+    id,
+    name: draft.name.trim(),
+    email: draft.email?.trim(),
+    phone: draft.phone?.trim(),
+    inviteCode,
+    rsvpStatus: 'pending',
+    partySize: Math.max(1, draft.partySize ?? members.length),
+    attendingCount: 0,
+    dietaryRestrictions: [],
+    tableNumber: draft.tableNumber?.trim(),
+    isPlusOneAllowed: draft.isPlusOneAllowed ?? false,
+    companionNames: members.filter((member) => !member.isPrimary).map((member) => member.name),
+    checkedIn: false,
+    tags: draft.tags ?? [],
+    members,
+    invitationUrl: buildInvitationUrl(config, inviteCode),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function WeddingProvider({ children }: { children: ReactNode }) {
+  const dataMode = isSupabaseConfigured ? 'supabase' : 'local';
+  const [config, setConfig] = useState<WeddingConfig>(loadConfig);
+  const [households, setHouseholds] = useState<HouseholdInvitation[]>(() =>
+    loadGuests().map((guest) => normalizeHousehold(guest, loadConfig())),
+  );
+  const [wishes, setWishes] = useState<GuestWish[]>(loadWishes);
+  const [registryItems, setRegistryItems] = useState<RegistryItem[]>(loadRegistry);
+  const [scheduleEvents, setScheduleEvents] = useState<ScheduleEvent[]>(loadSchedule);
+  const [accommodations, setAccommodations] = useState<Accommodation[]>(loadAccommodations);
+  const [services, setServices] = useState<WeddingService[]>(loadServices);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(loadGallery);
+  const [invitationTemplates, setInvitationTemplates] = useState<InvitationTemplate[]>(loadInvitationTemplates);
+  const [invitationDeliveries, setInvitationDeliveries] = useState<InvitationDelivery[]>(loadInvitationDeliveries);
+  const [activeHousehold, setActiveHouseholdState] = useState<HouseholdInvitation | null>(null);
+  const [adminSession, setAdminSession] = useState<AdminSession | null>(() => {
+    if (dataMode === 'supabase' || typeof window === 'undefined') return null;
+    return window.sessionStorage.getItem('wedding_admin_auth') === 'true'
+      ? { userId: 'local-admin', email: 'local-fallback' }
+      : null;
+  });
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(dataMode === 'supabase');
+  const [dataError, setDataError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (dataMode !== 'local') return;
+    saveConfig(config);
+  }, [config, dataMode]);
+  useEffect(() => { if (dataMode === 'local') saveGuests(households); }, [households, dataMode]);
+  useEffect(() => { if (dataMode === 'local') saveWishes(wishes); }, [wishes, dataMode]);
+  useEffect(() => { if (dataMode === 'local') saveRegistry(registryItems); }, [registryItems, dataMode]);
+  useEffect(() => { if (dataMode === 'local') saveSchedule(scheduleEvents); }, [scheduleEvents, dataMode]);
+  useEffect(() => { if (dataMode === 'local') saveAccommodations(accommodations); }, [accommodations, dataMode]);
+  useEffect(() => { if (dataMode === 'local') saveServices(services); }, [services, dataMode]);
+  useEffect(() => { if (dataMode === 'local') saveGallery(galleryItems); }, [galleryItems, dataMode]);
+  useEffect(() => { if (dataMode === 'local') saveInvitationTemplates(invitationTemplates); }, [invitationTemplates, dataMode]);
+  useEffect(() => { if (dataMode === 'local') saveInvitationDeliveries(invitationDeliveries); }, [invitationDeliveries, dataMode]);
+
+  const applyPublicBundle = useCallback((bundle: repository.PublicDataBundle) => {
+    setConfig(bundle.config);
+    setGalleryItems(bundle.galleryItems);
+    setWishes(bundle.wishes);
+    if (!adminSession && !activeHousehold) {
+      setHouseholds([]);
+      setAccommodations([]);
+      setServices([]);
+      setRegistryItems([]);
+      setInvitationTemplates([]);
+      setInvitationDeliveries([]);
+    }
+  }, [activeHousehold, adminSession]);
+
+  const applyAdminBundle = useCallback((bundle: repository.AdminDataBundle) => {
+    setConfig(bundle.config);
+    setHouseholds(bundle.households);
+    setAccommodations(bundle.accommodations);
+    setServices(bundle.services);
+    setRegistryItems(bundle.registryItems);
+    setGalleryItems(bundle.galleryItems);
+    setWishes(bundle.wishes);
+    setInvitationTemplates(bundle.invitationTemplates);
+    setInvitationDeliveries(bundle.invitationDeliveries);
+  }, []);
+
+  const refreshData = useCallback(async () => {
+    if (dataMode === 'local') return;
+    setIsLoading(true);
+    setDataError(null);
+    try {
+      if (adminSession) applyAdminBundle(await repository.fetchAdminData());
+      else applyPublicBundle(await repository.fetchPublicData());
+    } catch (error) {
+      setDataError(errorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [adminSession, applyAdminBundle, applyPublicBundle, dataMode]);
+
+  useEffect(() => {
+    if (dataMode === 'local') return;
+    let mounted = true;
+    repository.getAdminSession().then((session) => {
+      if (!mounted) return;
+      setAdminSession(session);
+      setIsLoading(false);
+    }).catch((error) => {
+      if (mounted) setDataError(errorMessage(error));
+    });
+    const unsubscribe = repository.onAdminSessionChange((session) => {
+      if (mounted) setAdminSession(session);
+    });
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, [dataMode]);
+
+  useEffect(() => {
+    void refreshData();
+  }, [refreshData]);
+
+  const setActiveHousehold = useCallback((household: HouseholdInvitation | null) => {
+    setActiveHouseholdState(household);
+  }, []);
+
+  const setActiveGuest = useCallback((guest: Guest | null) => {
+    setActiveHouseholdState(guest ? normalizeHousehold(guest, config) : null);
+  }, [config]);
+
+  const lookupInvitation = useCallback(async (query: string): Promise<HouseholdInvitation | null> => {
+    const normalized = query.trim();
+    if (!normalized) return null;
+    setDataError(null);
+    try {
+      if (dataMode === 'supabase') {
+        const bundle = await repository.lookupInvitation(normalized, config);
+        if (!bundle) return null;
+        setActiveHouseholdState(bundle.household);
+        setAccommodations(bundle.accommodations);
+        setServices(bundle.services);
+        setRegistryItems(bundle.registryItems);
+        return bundle.household;
+      }
+      const match = households.find((household) =>
+        household.inviteCode.toLowerCase() === normalized.toLowerCase(),
+      ) ?? null;
+      setActiveHouseholdState(match);
+      return match;
+    } catch (error) {
+      setDataError(errorMessage(error));
+      return null;
+    }
+  }, [config, dataMode, households]);
+
+  const createHousehold = useCallback(async (draft: HouseholdDraft): Promise<HouseholdInvitation> => {
+    setDataError(null);
+    try {
+      const household = dataMode === 'supabase'
+        ? await repository.createHousehold(draft, config)
+        : createLocalHousehold(draft, config);
+      setHouseholds((current) => [household, ...current]);
+      return household;
+    } catch (error) {
+      setDataError(errorMessage(error));
+      throw error;
+    }
+  }, [config, dataMode]);
+
+  const updateHousehold = useCallback(async (
+    id: string,
+    updates: Partial<HouseholdInvitation>,
+  ): Promise<void> => {
+    const previous = households;
+    setHouseholds((current) => current.map((household) =>
+      household.id === id ? { ...household, ...updates, updatedAt: new Date().toISOString() } : household,
+    ));
+    setActiveHouseholdState((current) => current?.id === id ? { ...current, ...updates } : current);
+    if (dataMode === 'supabase') {
+      try {
+        await repository.updateHousehold(id, updates);
+      } catch (error) {
+        setHouseholds(previous);
+        setDataError(errorMessage(error));
+        throw error;
+      }
+    }
+  }, [dataMode, households]);
+
+  const deleteHousehold = useCallback(async (id: string): Promise<void> => {
+    if (dataMode === 'supabase') await repository.deleteHousehold(id);
+    setHouseholds((current) => current.filter((household) => household.id !== id));
+    setActiveHouseholdState((current) => current?.id === id ? null : current);
+  }, [dataMode]);
+
+  const submitHouseholdRsvp = useCallback(async (input: HouseholdRsvpInput): Promise<boolean> => {
+    if (!activeHousehold) return false;
+    setDataError(null);
+    try {
+      if (dataMode === 'supabase') {
+        const bundle = await repository.submitHouseholdRsvp(activeHousehold.inviteCode, input, config);
+        setActiveHouseholdState(bundle.household);
+        setAccommodations(bundle.accommodations);
+        setServices(bundle.services);
+        setRegistryItems(bundle.registryItems);
+        return true;
+      }
+      const updated: HouseholdInvitation = {
+        ...activeHousehold,
+        email: input.email,
+        phone: input.phone,
+        rsvpStatus: input.rsvpStatus,
+        attendingCount: input.rsvpStatus === 'attending' ? input.attendingCount : 0,
+        members: activeHousehold.members.map((member) => {
+          const response = input.members.find((item) => item.id === member.id)
+            ?? input.members.find((item) => item.name.trim().toLowerCase() === member.name.trim().toLowerCase());
+          return response ? {
+            ...member,
+            ...response,
+            dietaryRestrictions: response.dietaryRestrictions ?? [],
+          } : member;
+        }),
+        dietaryRestrictions: input.dietaryRestrictions ?? [],
+        dietaryDetails: input.dietaryDetails,
+        mealSelection: input.mealSelection,
+        songRequest: input.songRequest,
+        message: input.message,
+        respondedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setHouseholds((current) => current.map((household) => household.id === updated.id ? updated : household));
+      setActiveHouseholdState(updated);
+      if (input.message?.trim()) {
+        setWishes((current) => [{
+          id: crypto.randomUUID(),
+          name: updated.name,
+          message: input.message!.trim(),
+          date: new Date().toISOString().slice(0, 10),
+          likes: 0,
+          approved: true,
+        }, ...current]);
+      }
+      return true;
+    } catch (error) {
+      setDataError(errorMessage(error));
+      return false;
+    }
+  }, [activeHousehold, config, dataMode]);
+
+  const addGuest = useCallback((guest: Partial<Guest>): Guest => {
+    const local = createLocalHousehold({
+      name: guest.name || 'Guest',
+      email: guest.email,
+      phone: guest.phone,
+      partySize: guest.partySize,
+      tableNumber: guest.tableNumber,
+      isPlusOneAllowed: guest.isPlusOneAllowed,
+      tags: guest.tags,
+      members: guest.members,
+    }, config);
+    const optimistic: HouseholdInvitation = { ...local, ...guest, tags: guest.tags ?? [], members: guest.members ?? local.members };
+    setHouseholds((current) => [optimistic, ...current]);
+    if (dataMode === 'supabase') {
+      void repository.createHousehold({
+        name: optimistic.name,
+        email: optimistic.email,
+        phone: optimistic.phone,
+        partySize: optimistic.partySize,
+        tableNumber: optimistic.tableNumber,
+        isPlusOneAllowed: optimistic.isPlusOneAllowed,
+        tags: optimistic.tags,
+        members: optimistic.members,
+      }, config).then((saved) => {
+        setHouseholds((current) => current.map((item) => item.id === optimistic.id ? saved : item));
+      }).catch((error) => {
+        setHouseholds((current) => current.filter((item) => item.id !== optimistic.id));
+        setDataError(errorMessage(error));
+      });
+    }
+    return optimistic;
+  }, [config, dataMode]);
+
+  const updateGuest = useCallback((id: string, updates: Partial<Guest>) => {
+    void updateHousehold(id, updates as Partial<HouseholdInvitation>);
+  }, [updateHousehold]);
+
+  const deleteGuest = useCallback((id: string) => {
+    void deleteHousehold(id).catch((error) => setDataError(errorMessage(error)));
+  }, [deleteHousehold]);
+
+  const bulkAddGuests = useCallback((guestList: Array<Partial<Guest>>) => {
+    for (const guest of guestList) addGuest(guest);
+  }, [addGuest]);
+
+  const toggleCheckIn = useCallback((id: string) => {
+    const current = households.find((household) => household.id === id);
+    if (!current) return;
+    updateGuest(id, { checkedIn: !current.checkedIn });
+  }, [households, updateGuest]);
+
+  const submitRsvp = useCallback((id: string, updates: Partial<Guest>): boolean => {
+    const target = households.find((household) => household.id === id);
+    if (!target) return false;
+    updateGuest(id, { ...updates, respondedAt: new Date().toISOString() });
+    return true;
+  }, [households, updateGuest]);
+
+  const registerAndRsvp = useCallback((input: RegisterGuestInput): Guest => {
+    if (dataMode === 'supabase') {
+      throw new Error('Direct registration is disabled. Please use the secure code on the invitation.');
+    }
+    const household = addGuest(input);
+    const completed = { ...household, ...input, respondedAt: new Date().toISOString() };
+    updateGuest(household.id, completed);
+    return completed;
+  }, [addGuest, dataMode, updateGuest]);
+
+  const searchGuest = useCallback((query: string): Guest | null => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return null;
+    return households.find((household) => household.inviteCode.toLowerCase() === normalized)
+      ?? (adminSession ? households.find((household) => household.name.toLowerCase() === normalized) : undefined)
+      ?? null;
+  }, [adminSession, households]);
+
+  const updateConfig = useCallback((updates: Partial<WeddingConfig>) => {
+    setConfig((current) => {
+      const next = { ...current, ...updates, adminPin: '6385' };
+      if (dataMode === 'supabase' && adminSession) {
+        void repository.updateSiteConfig(next).catch((error) => setDataError(errorMessage(error)));
+      }
+      return next;
+    });
+  }, [adminSession, dataMode]);
+
+  const updateSiteConfig = useCallback(async (updates: Partial<WeddingConfig>) => {
+    const next = { ...config, ...updates, adminPin: '6385' };
+    if (dataMode === 'supabase') await repository.updateSiteConfig(next);
+    setConfig(next);
+  }, [config, dataMode]);
+
+  const addWish = useCallback((name: string, message: string) => {
+    const localWish: GuestWish = {
+      id: crypto.randomUUID(),
+      name,
+      message,
+      date: new Date().toISOString().slice(0, 10),
+      likes: 0,
+      approved: dataMode === 'local',
+    };
+    setWishes((current) => [localWish, ...current]);
+    if (dataMode === 'supabase') {
+      void repository.createWish(name, message).then((saved) => {
+        setWishes((current) => current.map((wish) => wish.id === localWish.id ? saved : wish));
+      }).catch((error) => {
+        setWishes((current) => current.filter((wish) => wish.id !== localWish.id));
+        setDataError(errorMessage(error));
+      });
+    }
+  }, [dataMode]);
+
+  const likeWish = useCallback((id: string) => {
+    if (dataMode === 'supabase') return;
+    setWishes((current) => current.map((wish) => wish.id === id ? { ...wish, likes: (wish.likes ?? 0) + 1 } : wish));
+  }, [dataMode]);
+
+  const addRegistryItem = useCallback(async (item: Omit<RegistryItem, 'id'>) => {
+    const saved = dataMode === 'supabase'
+      ? await repository.createRegistryItem(item)
+      : { ...item, id: crypto.randomUUID() };
+    setRegistryItems((current) => [...current, saved]);
+    return saved;
+  }, [dataMode]);
+
+  const updateRegistryItem = useCallback(async (id: string, updates: Partial<RegistryItem>) => {
+    if (dataMode === 'supabase') await repository.updateRegistryItem(id, updates);
+    setRegistryItems((current) => current.map((item) => item.id === id ? { ...item, ...updates } : item));
+  }, [dataMode]);
+
+  const deleteRegistryItem = useCallback(async (id: string) => {
+    if (dataMode === 'supabase') await repository.deleteRegistryItem(id);
+    setRegistryItems((current) => current.filter((item) => item.id !== id));
+  }, [dataMode]);
+
+  const updateScheduleEvent = useCallback((index: number, event: Partial<ScheduleEvent>) => {
+    setScheduleEvents((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...event } : item));
+  }, []);
+
+  const addAccommodation = useCallback(async (item: Omit<Accommodation, 'id'>) => {
+    const saved = dataMode === 'supabase'
+      ? await repository.createAccommodation(item)
+      : { ...item, id: crypto.randomUUID() };
+    setAccommodations((current) => [...current, saved]);
+    return saved;
+  }, [dataMode]);
+
+  const updateAccommodation = useCallback(async (id: string | number, updates: Partial<Accommodation>) => {
+    const resolved = typeof id === 'number' ? accommodations[id]?.id : id;
+    if (!resolved) return;
+    if (dataMode === 'supabase') await repository.updateAccommodation(resolved, updates);
+    setAccommodations((current) => current.map((item) => item.id === resolved ? { ...item, ...updates } : item));
+  }, [accommodations, dataMode]);
+
+  const deleteAccommodation = useCallback(async (id: string) => {
+    if (dataMode === 'supabase') await repository.deleteAccommodation(id);
+    setAccommodations((current) => current.filter((item) => item.id !== id));
+  }, [dataMode]);
+
+  const addService = useCallback(async (item: Omit<WeddingService, 'id'>) => {
+    const saved = dataMode === 'supabase'
+      ? await repository.createService(item)
+      : { ...item, id: crypto.randomUUID() };
+    setServices((current) => [...current, saved]);
+    return saved;
+  }, [dataMode]);
+
+  const updateService = useCallback(async (id: string, updates: Partial<WeddingService>) => {
+    if (dataMode === 'supabase') await repository.updateService(id, updates);
+    setServices((current) => current.map((item) => item.id === id ? { ...item, ...updates } : item));
+  }, [dataMode]);
+
+  const deleteService = useCallback(async (id: string) => {
+    if (dataMode === 'supabase') await repository.deleteService(id);
+    setServices((current) => current.filter((item) => item.id !== id));
+  }, [dataMode]);
+
+  const addGalleryItem = useCallback(async (item: Omit<GalleryItem, 'id'>) => {
+    const saved = dataMode === 'supabase'
+      ? await repository.createGalleryItem(item)
+      : { ...item, id: crypto.randomUUID() };
+    setGalleryItems((current) => [...current, saved]);
+    return saved;
+  }, [dataMode]);
+
+  const uploadGalleryPhoto = useCallback(async (
+    file: File,
+    metadata: Pick<GalleryItem, 'title' | 'altText'> & Partial<GalleryItem>,
+  ) => {
+    if (dataMode !== 'supabase') throw new Error('Photo uploads require Supabase Storage.');
+    const saved = await repository.uploadGalleryPhoto(file, metadata);
+    setGalleryItems((current) => [...current, saved]);
+    return saved;
+  }, [dataMode]);
+
+  const updateGalleryItem = useCallback(async (id: string, updates: Partial<GalleryItem>) => {
+    if (dataMode === 'supabase') await repository.updateGalleryItem(id, updates);
+    setGalleryItems((current) => current.map((item) => item.id === id ? { ...item, ...updates } : item));
+  }, [dataMode]);
+
+  const deleteGalleryItem = useCallback(async (id: string) => {
+    const item = galleryItems.find((entry) => entry.id === id);
+    if (!item) return;
+    if (dataMode === 'supabase') await repository.deleteGalleryItem(item);
+    setGalleryItems((current) => current.filter((entry) => entry.id !== id));
+  }, [dataMode, galleryItems]);
+
+  const upsertInvitationTemplate = useCallback(async (template: InvitationTemplate) => {
+    const saved = dataMode === 'supabase' ? await repository.upsertInvitationTemplate(template) : template;
+    setInvitationTemplates((current) => {
+      const exists = current.some((item) => item.id === saved.id || item.kind === saved.kind);
+      return exists
+        ? current.map((item) => item.id === saved.id || item.kind === saved.kind ? saved : item)
+        : [...current, saved];
+    });
+    return saved;
+  }, [dataMode]);
+
+  const sendInvitations = useCallback(async (request: SendInvitationRequest) => {
+    if (dataMode !== 'supabase') {
+      const results = request.householdIds.flatMap((householdId) => {
+        const household = households.find((item) => item.id === householdId);
+        if (!household) return [];
+        return request.channels.map((channel) => ({
+          householdId,
+          channel,
+          recipient: channel === 'email' ? household.email : household.phone,
+          status: 'preview' as const,
+          invitationUrl: household.invitationUrl ?? buildInvitationUrl(config, household.inviteCode),
+        }));
+      });
+      return { ok: true, dryRun: true, results };
+    }
+    const maxChunkSize = Math.min(10, Math.max(1, Math.floor(24 / Math.max(request.channels.length, 1))));
+    const chunks: string[][] = [];
+    for (let index = 0; index < request.householdIds.length; index += maxChunkSize) {
+      chunks.push(request.householdIds.slice(index, index + maxChunkSize));
+    }
+    const baseRequestKey = request.requestKey || crypto.randomUUID();
+    const responses: SendInvitationResult[] = [];
+    for (let index = 0; index < chunks.length; index += 1) {
+      responses.push(await repository.sendInvitations({
+        ...request,
+        householdIds: chunks[index],
+        requestKey: `${baseRequestKey}-${index + 1}`,
+      }));
+    }
+    const result: SendInvitationResult = {
+      ok: responses.every((response) => response.ok),
+      dryRun: Boolean(request.dryRun),
+      results: responses.flatMap((response) => response.results),
+      error: responses.find((response) => response.error)?.error,
+    };
+    if (!request.dryRun) {
+      void repository.fetchAdminData(config).then((bundle) => {
+        setInvitationDeliveries(bundle.invitationDeliveries);
+      }).catch((error) => setDataError(`Invitations were submitted, but send history could not refresh: ${errorMessage(error)}`));
+    }
+    return result;
+  }, [config, dataMode, households]);
+
+  const signInAdmin = useCallback(async (email: string, password: string): Promise<ActionResult> => {
+    try {
+      const session = await repository.signInAdmin(email, password);
+      setAdminSession(session);
+      applyAdminBundle(await repository.fetchAdminData());
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: errorMessage(error) };
+    }
+  }, [applyAdminBundle]);
+
+  const sendAdminMagicLink = useCallback(async (email: string): Promise<ActionResult> => {
+    try {
+      await repository.sendAdminMagicLink(email);
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: errorMessage(error) };
+    }
+  }, []);
+
+  const authenticateAdmin = useCallback((pin: string): boolean => {
+    if (dataMode === 'supabase' || pin !== '6385') return false;
+    setAdminSession({ userId: 'local-admin', email: 'local-fallback' });
+    window.sessionStorage.setItem('wedding_admin_auth', 'true');
+    return true;
+  }, [dataMode]);
+
+  const logoutAdmin = useCallback(async () => {
+    if (dataMode === 'supabase') await repository.signOutAdmin();
+    else window.sessionStorage.removeItem('wedding_admin_auth');
+    setAdminSession(null);
+    setActiveHouseholdState(null);
+  }, [dataMode]);
+
+  const value = useMemo<WeddingContextType>(() => ({
+    config,
+    siteConfig: config,
+    updateConfig,
+    updateSiteConfig,
+    dataMode,
+    isLoading,
+    dataError,
+    refreshData,
+    households,
+    guests: households,
+    activeHousehold,
+    setActiveHousehold,
+    activeGuest: activeHousehold,
+    setActiveGuest,
+    lookupInvitation,
+    submitHouseholdRsvp,
+    createHousehold,
+    updateHousehold,
+    deleteHousehold,
+    submitRsvp,
+    registerAndRsvp,
+    addGuest,
+    updateGuest,
+    deleteGuest,
+    bulkAddGuests,
+    toggleCheckIn,
+    searchGuest,
+    wishes,
+    addWish,
+    likeWish,
+    registryItems,
+    addRegistryItem,
+    updateRegistryItem,
+    deleteRegistryItem,
+    scheduleEvents,
+    updateScheduleEvent,
+    accommodations,
+    addAccommodation,
+    updateAccommodation,
+    deleteAccommodation,
+    services,
+    addService,
+    updateService,
+    deleteService,
+    galleryItems,
+    addGalleryItem,
+    uploadGalleryPhoto,
+    updateGalleryItem,
+    deleteGalleryItem,
+    invitationTemplates,
+    invitationDeliveries,
+    upsertInvitationTemplate,
+    sendInvitations,
+    isAdminOpen,
+    setIsAdminOpen,
+    adminSession,
+    isAdminAuthenticated: Boolean(adminSession),
+    signInAdmin,
+    sendAdminMagicLink,
+    authenticateAdmin,
+    logoutAdmin,
+    resetAllData: resetAppToFactoryDefaults,
+  }), [
+    accommodations, activeHousehold, addAccommodation, addGalleryItem, addGuest, addRegistryItem,
+    addService, addWish, adminSession, authenticateAdmin, bulkAddGuests, config, createHousehold,
+    dataError, dataMode, deleteAccommodation, deleteGalleryItem, deleteGuest, deleteHousehold,
+    deleteRegistryItem, deleteService, galleryItems, households, invitationDeliveries,
+    invitationTemplates, isAdminOpen, isLoading, likeWish, logoutAdmin, lookupInvitation,
+    refreshData, registerAndRsvp, registryItems, scheduleEvents, searchGuest, sendAdminMagicLink,
+    sendInvitations, services, setActiveGuest, setActiveHousehold, signInAdmin, submitHouseholdRsvp,
+    submitRsvp, toggleCheckIn, updateAccommodation, updateConfig, updateGalleryItem, updateGuest,
+    updateHousehold, updateRegistryItem, updateScheduleEvent, updateService, updateSiteConfig,
+    uploadGalleryPhoto, upsertInvitationTemplate, wishes,
+  ]);
+
+  return <WeddingContext.Provider value={value}>{children}</WeddingContext.Provider>;
+}
+
+export function useWedding(): WeddingContextType {
+  const context = useContext(WeddingContext);
+  if (!context) throw new Error('useWedding must be used within a WeddingProvider');
+  return context;
+}

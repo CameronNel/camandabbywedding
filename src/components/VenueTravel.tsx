@@ -1,343 +1,206 @@
-import React, { useState } from 'react';
-import { useWedding } from '../context/WeddingContext';
+import { useState } from 'react';
 import {
-  MapPin,
-  Car,
-  Plane,
-  Globe,
-  Copy,
+  ArrowDownAZ,
+  ArrowUpAZ,
+  ArrowUpRight,
+  BedDouble,
+  CalendarDays,
+  CalendarPlus,
   Check,
+  Clock3,
+  KeyRound,
+  LockKeyhole,
+  MapPin,
   Sparkles,
-  Clock,
-  Compass,
-  Heart
 } from 'lucide-react';
+import type { SectionId } from './Navbar';
+import { Reveal } from './Reveal';
+import { type ListingView, useGuestExperience } from './guestExperience';
+import { formatWeddingDate } from '../utils/dates';
+import { useWedding } from '../context/WeddingContext';
+import { generateIcsFile } from '../utils/storage';
 
-export const VenueTravel: React.FC = () => {
-  const { config } = useWedding();
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+interface VenueTravelProps {
+  onNavigate: (section: SectionId) => void;
+}
 
-  const copyToClipboard = (text: string, index: number) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2500);
-  };
+function ListingCard({ item, kind }: { item: ListingView; kind: 'stay' | 'service' }) {
+  return (
+    <article className="group flex h-full flex-col rounded-[1.5rem] border border-stone-200 bg-white p-6 shadow-[0_14px_45px_rgba(64,48,39,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(64,48,39,0.1)]">
+      <div className="flex items-start justify-between gap-4">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#eef1e9] text-[#596651]">
+          {kind === 'stay' ? <BedDouble className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+        </span>
+        <span className="rounded-full bg-[#f2ece5] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#704b3d]">
+          {item.priceLabel}
+        </span>
+      </div>
+      <h4 className="mt-5 font-display text-2xl font-semibold text-stone-800">{item.name}</h4>
+      {item.address && <p className="mt-2 flex items-start gap-2 text-xs leading-5 text-stone-500"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />{item.address}</p>}
+      {item.description && <p className="mt-4 text-sm leading-7 text-stone-600">{item.description}</p>}
+      <div className="mt-auto pt-6">
+        {item.bookingCode && (
+          <p className="mb-3 rounded-xl bg-stone-50 px-3 py-2 text-xs text-stone-600">
+            Booking code: <strong className="font-mono text-stone-800">{item.bookingCode}</strong>
+          </p>
+        )}
+        {item.link && (
+          <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#704b3d] underline decoration-[#c7aa98] underline-offset-4">
+            View details <ArrowUpRight className="h-4 w-4" />
+          </a>
+        )}
+      </div>
+    </article>
+  );
+}
+
+export function VenueTravel({ onNavigate }: VenueTravelProps) {
+  const wedding = useWedding();
+  const { site, activeHousehold, accommodations, services } = useGuestExperience();
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  const sortListings = (items: ListingView[]) => [...items].sort((a, b) => {
+    if (a.price === b.price) return 0;
+    return sortDirection === 'asc' ? a.price - b.price : b.price - a.price;
+  });
+
+  const isAttending = activeHousehold?.status === 'attending';
+  const hasComplimentaryStay = Boolean(activeHousehold?.complimentaryVenueStay);
+  const freeVenueStays = accommodations.filter(item => item.visibility === 'free_venue_housing' || item.isVenueHousing);
+  const generalStays = accommodations.filter(item => item.visibility === 'general' && !item.isVenueHousing);
+  const generalServices = services.filter(item => item.visibility === 'general' && !item.isVenueHousing);
+  const sortedStays = sortListings(hasComplimentaryStay ? freeVenueStays : generalStays);
+  const sortedServices = sortListings(hasComplimentaryStay ? [] : generalServices);
+  const formattedDate = site.dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(site.weddingDate);
 
   return (
-    <section id="venue" className="py-20 bg-gradient-to-b from-[#FFFDFB] via-[#FFF8FA] to-[#FFFDFB] relative">
-      {/* Decorative background glows */}
-      <div className="absolute top-1/4 right-0 w-96 h-96 bg-blush-200/30 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-1/4 left-0 w-80 h-80 bg-champagne-200/40 rounded-full blur-3xl pointer-events-none"></div>
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-blush-600 mb-3 bg-blush-50 px-3 py-1 rounded-full border border-blush-100">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>The Wedding Destination</span>
+    <section id="details" className="anchor-section bg-[#fbfaf7]">
+      <div className="mx-auto max-w-[1440px] px-5 py-24 sm:px-8 sm:py-32 lg:px-14">
+        <Reveal className="grid items-end gap-8 lg:grid-cols-[1fr_0.75fr]">
+          <div>
+            <p className="eyebrow">The setting</p>
+            <h2 className="section-title max-w-3xl">Our setting in George</h2>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-serif font-normal text-stone-800 tracking-tight mb-4">
-            ArendsRus Country Lodge
-          </h2>
-          <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-blush-400 to-transparent mx-auto mb-4"></div>
-          <p className="font-display italic text-lg sm:text-xl text-stone-600">
-            Geelhoutboom, George, Garden Route — At the foot of the magnificent Outeniqua Mountains.
+          <p className="section-copy lg:pb-2">
+            We’ll gather at {site.venueName} in George. The final ceremony and reception timings will be shared with invited guests once confirmed.
           </p>
-        </div>
+        </Reveal>
 
-        {/* Hero Venue Showcase Banner */}
-        <div className="rounded-3xl overflow-hidden relative shadow-2xl border border-blush-200 mb-16 group bg-stone-900">
-          <img
-            src={`${import.meta.env.BASE_URL}images/hero-arendsrus.jpg`}
-            alt="ArendsRus Country Lodge Wedding Venue"
-            className="w-full h-80 sm:h-[480px] object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/40 to-transparent"></div>
-
-          <div className="absolute bottom-6 left-6 right-6 sm:bottom-10 sm:left-10 sm:right-10 text-white max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-blush-100 text-xs font-medium uppercase tracking-wider mb-3">
-              <MapPin className="w-3.5 h-3.5 text-blush-300" />
-              <span>George, Western Cape, South Africa</span>
+        <Reveal delay={100} className="mt-14 overflow-hidden rounded-[2rem] bg-[#30342e] text-white shadow-[0_30px_90px_rgba(33,38,31,0.2)]">
+          <div className="grid lg:grid-cols-[1.25fr_0.75fr]">
+            <div className="relative min-h-[340px] overflow-hidden sm:min-h-[460px]">
+              <img src={`${import.meta.env.BASE_URL}images/hero-arendsrus.jpg`} alt="ArendsRus Country Lodge" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
             </div>
-            <h3 className="text-2xl sm:text-4xl font-serif font-light mb-2">
-              ArendsRus Country Lodge &amp; Barn Yard
-            </h3>
-            <p className="text-stone-300 text-xs sm:text-sm leading-relaxed mb-4">
-              Nestled in the tranquil valley of Geelhoutboom, ArendsRus offers sweeping views of the Outeniqua mountain range, fragrant rose gardens, and a magical wooden barn setting.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href={config.ceremonyVenue.mapUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-stone-900 hover:bg-blush-50 text-xs font-semibold uppercase tracking-wider shadow-lg transition"
+            <div className="flex flex-col justify-between p-7 sm:p-10 lg:p-12">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#d9c8b4]">George · Western Cape</p>
+                <h3 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">{site.venueName}</h3>
+                <dl className="mt-9 space-y-6 text-sm">
+                  <div className="flex gap-3">
+                    <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-[#d9c8b4]" />
+                    <div><dt className="text-white/50">Date</dt><dd className="mt-1 font-medium"><time dateTime={site.dateIsTbc ? undefined : site.weddingDate.slice(0, 10)}>{formattedDate}</time></dd></div>
+                  </div>
+                  <div className="flex gap-3">
+                    <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-[#d9c8b4]" />
+                    <div><dt className="text-white/50">Times</dt><dd className="mt-1 font-medium">{site.ceremonyIsTbc || !site.ceremonyTime ? 'To be confirmed' : site.ceremonyTime}</dd></div>
+                  </div>
+                  <div className="flex gap-3">
+                    <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#d9c8b4]" />
+                    <div><dt className="text-white/50">Location</dt><dd className="mt-1 font-medium">{site.venueAddress ? `${site.venueAddress}, ` : ''}{site.venueCity}</dd></div>
+                  </div>
+                </dl>
+              </div>
+              <div className="mt-10 flex flex-wrap gap-3">
+                <a href={site.mapUrl} target="_blank" rel="noopener noreferrer" className="button-light min-h-12 justify-center px-6">
+                  Open in maps <ArrowUpRight className="h-4 w-4" />
+                </a>
+                {!site.dateIsTbc && (
+                  <button
+                    type="button"
+                    onClick={() => generateIcsFile(wedding.config)}
+                    className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 text-xs font-semibold uppercase tracking-[0.08em] text-white backdrop-blur-sm transition hover:bg-white hover:text-stone-900"
+                    title="Download .ics calendar event for Apple Calendar, Outlook, and Google Calendar"
+                  >
+                    <CalendarPlus className="h-4 w-4" /> Add to calendar
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </Reveal>
+
+        <div className="mt-24">
+          <Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+            <div>
+              <p className="eyebrow">For invited guests</p>
+              <h3 className="font-display text-4xl font-semibold tracking-tight text-stone-800 sm:text-5xl">Stay &amp; local services</h3>
+            </div>
+            {isAttending && !hasComplimentaryStay && (sortedStays.length > 1 || sortedServices.length > 1) && (
+              <button
+                type="button"
+                onClick={() => setSortDirection(current => current === 'asc' ? 'desc' : 'asc')}
+                className="button-secondary min-h-11 self-start px-5 sm:self-auto"
+                aria-label={`Sort prices ${sortDirection === 'asc' ? 'high to low' : 'low to high'}`}
               >
-                <Compass className="w-4 h-4 text-blush-600" />
-                <span>Open in Google Maps</span>
-              </a>
-              <a
-                href="https://arendsrus.co.za"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-medium uppercase tracking-wider transition border border-white/30"
-              >
-                <Globe className="w-4 h-4" />
-                <span>Visit Lodge Website</span>
-              </a>
-            </div>
-          </div>
-        </div>
+                {sortDirection === 'asc' ? <ArrowDownAZ className="h-4 w-4" /> : <ArrowUpAZ className="h-4 w-4" />}
+                {sortDirection === 'asc' ? 'Lowest price first' : 'Highest price first'}
+              </button>
+            )}
+          </Reveal>
 
-        {/* 2-Column: Ceremony Chapel vs Reception Barn Yard */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          {/* Ceremony: The Chapel */}
-          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-blush-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
-            <div className="relative mb-6 rounded-2xl overflow-hidden h-52 sm:h-60 shadow-md">
-              <img
-                src={`${import.meta.env.BASE_URL}images/chapel.jpg`}
-                alt="The ArendsRus Country Chapel"
-                className="w-full h-full object-cover hover:scale-105 transition duration-500"
-              />
-              <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-rosewood border border-blush-200">
-                The Ceremony
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xl sm:text-2xl font-serif text-stone-800 font-medium">
-                  {config.ceremonyVenue.name}
-                </h4>
-                <span className="text-xs uppercase tracking-wider font-semibold text-blush-600 bg-blush-50 px-3 py-1 rounded-full border border-blush-100">
-                  {config.ceremonyVenue.time}
-                </span>
-              </div>
-              <p className="text-stone-600 text-xs sm:text-sm leading-relaxed mb-4">
-                {config.ceremonyVenue.description}
-              </p>
-            </div>
-
-            <div className="pt-4 border-t border-blush-100 text-xs text-stone-500 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-blush-500 shrink-0" />
-                <span>{config.ceremonyVenue.address}, {config.ceremonyVenue.city}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Reception: The Barn Yard */}
-          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-blush-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
-            <div className="relative mb-6 rounded-2xl overflow-hidden h-52 sm:h-60 shadow-md">
-              <img
-                src={`${import.meta.env.BASE_URL}images/venue.jpg`}
-                alt="The ArendsRus Barn Yard"
-                className="w-full h-full object-cover hover:scale-105 transition duration-500"
-              />
-              <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-rosewood border border-blush-200">
-                The Reception &amp; Party
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xl sm:text-2xl font-serif text-stone-800 font-medium">
-                  {config.receptionVenue.name}
-                </h4>
-                <span className="text-xs uppercase tracking-wider font-semibold text-blush-600 bg-blush-50 px-3 py-1 rounded-full border border-blush-100">
-                  {config.receptionVenue.time}
-                </span>
-              </div>
-              <p className="text-stone-600 text-xs sm:text-sm leading-relaxed mb-4">
-                {config.receptionVenue.description}
-              </p>
-            </div>
-
-            <div className="pt-4 border-t border-blush-100 text-xs text-stone-500 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Heart className="w-4 h-4 text-blush-500 shrink-0" />
-                <span>Dining, toasts, first dance, and midnight celebrations!</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Travel & Airport Information */}
-        <div className="bg-gradient-to-br from-white via-blush-50/40 to-white rounded-3xl p-8 border border-blush-200 shadow-md mb-16">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-2xl bg-blush-100 text-blush-600 flex items-center justify-center shadow-sm">
-              <Plane className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="font-serif font-semibold text-xl text-stone-800">
-                Getting To George &amp; ArendsRus
-              </h4>
-              <p className="text-xs text-stone-500">Travel details for our local and out-of-town guests</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-stone-600">
-            <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-sm">
-              <div className="flex items-center gap-2 text-stone-800 font-semibold mb-2">
-                <Plane className="w-4 h-4 text-blush-500" />
-                <span>George Airport (GRJ)</span>
-              </div>
-              <p className="leading-relaxed">
-                The closest airport is George Airport (GRJ), serviced with daily direct flights from Cape Town, Johannesburg, and Durban. It is just a <strong>15-minute drive</strong> to ArendsRus Country Lodge.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-sm">
-              <div className="flex items-center gap-2 text-stone-800 font-semibold mb-2">
-                <Car className="w-4 h-4 text-blush-500" />
-                <span>Driving &amp; Parking</span>
-              </div>
-              <p className="leading-relaxed">
-                Take the R102 / Geelhoutboom turnoff towards Koesterbos Road. The route is scenic and paved. <strong>Complimentary secure on-site parking</strong> is available for all wedding guests at the lodge.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-sm">
-              <div className="flex items-center gap-2 text-stone-800 font-semibold mb-2">
-                <Clock className="w-4 h-4 text-blush-500" />
-                <span>Guest Shuttle Service</span>
-              </div>
-              <p className="leading-relaxed">
-                Complimentary luxury shuttle vans will operate between Fancourt Estate / Protea Hotel and ArendsRus from <strong>2:30 PM</strong> until the early hours of the morning.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Accommodation Section */}
-        <div>
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <h3 className="text-2xl sm:text-3xl font-serif text-stone-800 font-medium mb-2">
-              Guest Accommodations &amp; Lodging
-            </h3>
-            <p className="text-stone-500 text-xs sm:text-sm">
-              We have arranged special room rates at ArendsRus Country Lodge and nearby luxury partner resorts.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Arendsrus on-site */}
-            <div className="bg-white rounded-3xl p-6 border-2 border-blush-300 shadow-lg relative flex flex-col justify-between">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blush-500 to-rose-500 text-white text-[10px] uppercase tracking-widest font-semibold px-3 py-0.5 rounded-full shadow-sm">
-                On-Site at Wedding Venue
-              </div>
-
-              <div>
-                <h5 className="font-serif font-bold text-lg text-stone-800 mb-1 mt-2">
-                  ArendsRus Country Lodge
-                </h5>
-                <p className="text-xs text-stone-500 mb-3">Koesterbos Road, Geelhoutboom, George</p>
-                <div className="inline-block px-2.5 py-1 rounded-lg bg-blush-50 text-blush-700 text-xs font-semibold mb-4 border border-blush-100">
-                  Log Cabins &amp; En-Suite Rooms
+          {!activeHousehold ? (
+            <Reveal delay={80} className="mt-8 rounded-[2rem] border border-stone-200 bg-[#f1ece4] p-8 sm:p-10">
+              <LockKeyhole className="h-7 w-7 text-[#704b3d]" />
+              <h4 className="mt-5 font-display text-3xl text-stone-800">Private details unlock with your invitation.</h4>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-600">Accommodation and service recommendations are personalized for each attending household.</p>
+              <button type="button" onClick={() => onNavigate('rsvp')} className="button-primary mt-6 min-h-11 px-6"><KeyRound className="h-4 w-4" /> Open invitation</button>
+            </Reveal>
+          ) : !isAttending ? (
+            <Reveal delay={80} className="mt-8 rounded-[2rem] border border-stone-200 bg-white p-8 sm:p-10">
+              <Clock3 className="h-7 w-7 text-[#7a8870]" />
+              <h4 className="mt-5 font-display text-3xl text-stone-800">Available after an attending RSVP</h4>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-600">Confirm that someone in your household is attending to view the relevant stay and service information.</p>
+              <button type="button" onClick={() => onNavigate('rsvp')} className="button-secondary mt-6 min-h-11 px-6">Review RSVP</button>
+            </Reveal>
+          ) : hasComplimentaryStay ? (
+            <Reveal delay={80} className="mt-8 overflow-hidden rounded-[2rem] border border-[#abb7a1] bg-[#eef1e9] p-8 sm:p-10">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#596651]"><Check className="h-3.5 w-3.5" /> Venue stay included</span>
+              <h4 className="mt-5 max-w-2xl font-display text-4xl text-stone-800">Your accommodation at the venue is provided by us.</h4>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600">There is no need to book an alternative stay. Room and arrival details will be shared directly with your household.</p>
+              {sortedStays.length > 0 && (
+                <div className="mt-8 grid gap-5 md:grid-cols-2">
+                  {sortedStays.map(item => <ListingCard key={item.id} item={item} kind="stay" />)}
                 </div>
-                <p className="text-xs text-stone-600 leading-relaxed mb-4">
-                  Stay right on the estate in rustic-chic wooden chalets with mountain panoramas. Limited rooms available.
-                </p>
-              </div>
+              )}
+            </Reveal>
+          ) : (
+            <>
+              <Reveal delay={80} className="mt-8">
+                <h4 className="font-display text-2xl font-semibold text-stone-800">Accommodation</h4>
+                {sortedStays.length ? (
+                  <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    {sortedStays.map(item => <ListingCard key={item.id} item={item} kind="stay" />)}
+                  </div>
+                ) : (
+                  <div className="mt-5 rounded-[1.5rem] border border-dashed border-stone-300 bg-white p-7 text-sm leading-7 text-stone-600">No accommodation recommendations have been published yet. Please check back once the couple has finalized the list.</div>
+                )}
+              </Reveal>
 
-              <div className="pt-4 border-t border-stone-100 space-y-2 text-xs">
-                <div className="flex items-center justify-between text-stone-600">
-                  <span>Phone:</span>
-                  <a href="tel:+27440500256" className="font-medium text-blush-600 hover:underline">+27 (0)44 050 0256</a>
-                </div>
-                <div className="flex items-center justify-between text-stone-600">
-                  <span>Email:</span>
-                  <a href="mailto:info@arendsrus.co.za" className="font-medium text-blush-600 hover:underline">info@arendsrus.co.za</a>
-                </div>
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-stone-400 font-mono text-[11px]">Code: CAM-ABBY</span>
-                  <button
-                    onClick={() => copyToClipboard('CAM-ABBY', 0)}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-blush-600 hover:text-blush-800"
-                  >
-                    {copiedIndex === 0 ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedIndex === 0 ? 'Copied' : 'Copy Code'}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Fancourt Estate */}
-            <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm relative flex flex-col justify-between hover:shadow-md transition">
-              <div>
-                <h5 className="font-serif font-bold text-lg text-stone-800 mb-1">
-                  Fancourt Luxury Estate
-                </h5>
-                <p className="text-xs text-stone-500 mb-3">Montagu Street, Blanco, George (10 mins away)</p>
-                <div className="inline-block px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 text-xs font-semibold mb-4">
-                  5-Star Golf &amp; Spa Resort
-                </div>
-                <p className="text-xs text-stone-600 leading-relaxed mb-4">
-                  World-renowned luxury resort featuring award-winning spas, championship golf courses, and fine dining.
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-stone-100 space-y-2 text-xs">
-                <div className="flex items-center justify-between text-stone-600">
-                  <span>Phone:</span>
-                  <a href="tel:+27448040000" className="font-medium text-stone-800 hover:underline">+27 (0)44 804 0000</a>
-                </div>
-                <div className="flex items-center justify-between text-stone-600">
-                  <span>Rate:</span>
-                  <span className="font-semibold text-stone-800">From R2,450 / night</span>
-                </div>
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-stone-400 font-mono text-[11px]">Code: CAM-ABBY-2027</span>
-                  <button
-                    onClick={() => copyToClipboard('CAM-ABBY-2027', 1)}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-blush-600 hover:text-blush-800"
-                  >
-                    {copiedIndex === 1 ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedIndex === 1 ? 'Copied' : 'Copy Code'}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Protea Hotel King George */}
-            <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm relative flex flex-col justify-between hover:shadow-md transition">
-              <div>
-                <h5 className="font-serif font-bold text-lg text-stone-800 mb-1">
-                  Protea Hotel King George
-                </h5>
-                <p className="text-xs text-stone-500 mb-3">King George Drive, George (15 mins away)</p>
-                <div className="inline-block px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 text-xs font-semibold mb-4">
-                  Marriott Hotel &amp; Suites
-                </div>
-                <p className="text-xs text-stone-600 leading-relaxed mb-4">
-                  Contemporary comfort overlooking the George Golf Course, ideal for families and traveling friends.
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-stone-100 space-y-2 text-xs">
-                <div className="flex items-center justify-between text-stone-600">
-                  <span>Phone:</span>
-                  <a href="tel:+27448747664" className="font-medium text-stone-800 hover:underline">+27 (0)44 874 7664</a>
-                </div>
-                <div className="flex items-center justify-between text-stone-600">
-                  <span>Rate:</span>
-                  <span className="font-semibold text-stone-800">From R1,250 / night</span>
-                </div>
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-stone-400 font-mono text-[11px]">Code: WEDDING2027</span>
-                  <button
-                    onClick={() => copyToClipboard('WEDDING2027', 2)}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-blush-600 hover:text-blush-800"
-                  >
-                    {copiedIndex === 2 ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedIndex === 2 ? 'Copied' : 'Copy Code'}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+              <Reveal delay={100} className="mt-12">
+                <h4 className="font-display text-2xl font-semibold text-stone-800">Guest services</h4>
+                {sortedServices.length ? (
+                  <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    {sortedServices.map(item => <ListingCard key={item.id} item={item} kind="service" />)}
+                  </div>
+                ) : (
+                  <div className="mt-5 rounded-[1.5rem] border border-dashed border-stone-300 bg-white p-7 text-sm leading-7 text-stone-600">No local services have been published yet. Any recommendations added by the couple will appear here.</div>
+                )}
+              </Reveal>
+            </>
+          )}
         </div>
       </div>
     </section>
   );
-};
+}

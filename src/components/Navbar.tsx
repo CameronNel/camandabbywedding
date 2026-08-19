@@ -1,170 +1,128 @@
-import React, { useState } from 'react';
-import { useWedding } from '../context/WeddingContext';
-import { CutePrintButton } from './PrintInvitationModal';
-import { Menu, X, Lock, CalendarCheck, Sparkles, Home, Clock, BookOpen, Gift } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { CalendarCheck, Gift, Home, Images, MapPinned, Menu, X } from 'lucide-react';
+import { useGuestExperience } from './guestExperience';
+import { formatWeddingDate } from '../utils/dates';
 
-export type TabId = 'home' | 'rsvp' | 'details' | 'story' | 'registry';
+export type SectionId = 'home' | 'rsvp' | 'details' | 'gallery' | 'gifts';
 
 interface NavbarProps {
-  activeTab: TabId;
-  setActiveTab: (tab: TabId) => void;
+  activeSection: SectionId;
+  onNavigate: (section: SectionId) => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
-  const { config, setIsAdminOpen } = useWedding();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const navigation: Array<{ id: SectionId; label: string; icon: typeof Home }> = [
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'rsvp', label: 'RSVP', icon: CalendarCheck },
+  { id: 'details', label: 'Venue & stay', icon: MapPinned },
+  { id: 'gallery', label: 'Gallery', icon: Images },
+  { id: 'gifts', label: 'Gifts', icon: Gift },
+];
 
-  const navTabs: Array<{ id: TabId; name: string; icon: React.FC<{ className?: string }> }> = [
-    { id: 'home', name: 'Home', icon: Home },
-    { id: 'rsvp', name: 'RSVP', icon: CalendarCheck },
-    { id: 'details', name: 'Schedule & Venue', icon: Clock },
-    { id: 'story', name: 'Our Story & Gallery', icon: BookOpen },
-    { id: 'registry', name: 'Wishlist & Wishes', icon: Gift },
-  ];
+export function Navbar({ activeSection, onNavigate }: NavbarProps) {
+  const { activeHousehold, site } = useGuestExperience();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navDate = site.dateIsTbc
+    ? 'Date TBC'
+    : formatWeddingDate(site.weddingDate, { day: '2-digit', month: 'short', year: 'numeric' });
 
-  const handleTabClick = (tab: TabId) => {
-    setActiveTab(tab);
-    setMobileMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    window.history.pushState(null, '', `#${tab}`);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [menuOpen]);
+
+  const choose = (section: SectionId) => {
+    setMenuOpen(false);
+    onNavigate(section);
   };
 
-  const formattedDate = new Date(config.weddingDate).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  }).toUpperCase();
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-blush-100 py-3.5">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* Monogram / Brand: Perfectly Centered, Single-Line C&A Emblem */}
+    <header className="site-nav fixed inset-x-0 top-0 z-50 h-[76px] border-b border-white/70 bg-[#f8f5ef]/[0.92] backdrop-blur-xl">
+      <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <button
-          onClick={() => handleTabClick('home')}
-          className="group flex items-center gap-3 text-left shrink-0 min-w-[190px]"
+          type="button"
+          onClick={() => choose('home')}
+          className="group flex min-w-0 items-center gap-3 rounded-full text-left focus-visible:outline-none"
+          aria-label={`${site.groomName} and ${site.brideName} wedding home`}
         >
-          <div className="relative w-11 h-11 rounded-full bg-gradient-to-br from-[#FFF4F7] via-white to-[#FFE6EE] border-2 border-blush-300 flex items-center justify-center shrink-0 shadow-sm group-hover:border-blush-500 transition-colors">
-            <span className="font-serif font-bold text-xs uppercase tracking-widest text-rosewood whitespace-nowrap select-none leading-none">
-              C&amp;A
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-serif tracking-[0.15em] text-xs sm:text-sm uppercase text-stone-900 font-bold group-hover:text-blush-700 transition-colors whitespace-nowrap">
-              {config.groomShortName} &amp; {config.brideShortName}
-            </span>
-            <span className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-stone-500 font-medium whitespace-nowrap">
-              {formattedDate}
-            </span>
-          </div>
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[#84614e]/25 bg-white font-display text-lg font-semibold tracking-[0.08em] text-[#704b3d] shadow-[0_6px_20px_rgba(89,61,48,0.08)] transition-transform duration-300 group-hover:-rotate-3">
+            {site.groomName.charAt(0)}<span className="mx-[-1px] text-[11px] text-[#ad7a64]">&amp;</span>{site.brideName.charAt(0)}
+          </span>
+          <span className="hidden min-w-0 sm:block">
+            <span className="block truncate font-display text-[17px] font-semibold tracking-[0.08em] text-stone-800">{site.groomName} &amp; {site.brideName}</span>
+            <span className="block text-[9px] font-semibold uppercase tracking-[0.2em] text-stone-500">{navDate}</span>
+          </span>
         </button>
 
-        {/* Desktop Tab Navigation - Fixed Width & Zero Layout Shifting */}
-        <nav className="hidden lg:flex items-center gap-1.5 bg-blush-50/60 p-1.5 rounded-full border border-blush-200/80 shadow-inner">
-          {navTabs.map(tab => {
-            const isActive = activeTab === tab.id;
-            const Icon = tab.icon;
+        <nav className="hidden items-center gap-1 rounded-full border border-stone-200/80 bg-white/[0.65] p-1.5 shadow-sm lg:flex" aria-label="Wedding website">
+          {navigation.map(item => {
+            const active = activeSection === item.id;
             return (
               <button
-                key={tab.id}
-                onClick={() => handleTabClick(tab.id)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs uppercase tracking-wider font-medium transition-colors ${
-                  isActive
-                    ? 'bg-gradient-to-r from-blush-500 to-rose-500 text-white shadow-md shadow-blush-500/25'
-                    : 'text-stone-600 hover:text-blush-700 hover:bg-white/80'
-                }`}
+                key={item.id}
+                type="button"
+                onClick={() => choose(item.id)}
+                aria-current={active ? 'page' : undefined}
+                className={`nav-pill ${active ? 'is-active' : ''}`}
               >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{tab.name}</span>
+                {item.label}
               </button>
             );
           })}
         </nav>
 
-        {/* Right CTAs - Rock Solid Fixed Dimensions, Never Shifts */}
-        <div className="hidden sm:flex items-center justify-end gap-2.5 shrink-0 min-w-[270px]">
-          <CutePrintButton variant="outline" />
-
-          <button
-            onClick={() => setIsAdminOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs text-stone-600 hover:text-stone-900 hover:bg-blush-50 transition border border-stone-200 font-medium"
-            title="Organizer Portal / Guest List & Settings"
-          >
-            <Lock className="w-3.5 h-3.5 text-stone-400" />
-            <span>Admin</span>
-          </button>
-
-          <button
-            onClick={() => handleTabClick('rsvp')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-wider shadow-md transition-colors ${
-              activeTab === 'rsvp'
-                ? 'bg-rosewood text-white shadow-rosewood/25'
-                : 'bg-gradient-to-r from-blush-400 via-blush-500 to-rose-400 text-white shadow-blush-500/20 hover:shadow-lg hover:shadow-blush-500/35 active:opacity-90'
-            }`}
-          >
-            <CalendarCheck className="w-3.5 h-3.5" />
-            <span>RSVP</span>
-            <Sparkles className="w-3 h-3 text-gold-light" />
-          </button>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="flex items-center gap-2 lg:hidden">
-          <button
-            onClick={() => handleTabClick('rsvp')}
-            className="px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-blush-500 text-white shadow-sm"
-          >
-            RSVP
+        <div className="flex shrink-0 items-center gap-2">
+          {activeHousehold && (
+            <span className="hidden max-w-40 truncate rounded-full border border-[#8d9b80]/30 bg-[#eef1e9] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#57634f] xl:block">
+              Invitation found
+            </span>
+          )}
+          <button type="button" onClick={() => choose('rsvp')} className="button-primary hidden min-h-11 px-5 sm:inline-flex">
+            {activeHousehold ? 'View RSVP' : 'Find invitation'}
           </button>
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-blush-50 transition"
-            aria-label="Toggle menu"
+            type="button"
+            className="grid h-11 w-11 place-items-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-sm lg:hidden"
+            onClick={() => setMenuOpen(open => !open)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-navigation"
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-white/98 backdrop-blur-xl border-b border-blush-100 px-6 py-6 shadow-2xl animate-fadeIn">
-          <div className="flex flex-col space-y-3">
-            {navTabs.map(tab => {
-              const isActive = activeTab === tab.id;
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabClick(tab.id)}
-                  className={`flex items-center gap-3 w-full text-left px-4 py-3 rounded-2xl text-xs uppercase tracking-widest font-medium transition ${
-                    isActive
-                      ? 'bg-blush-500 text-white shadow-md shadow-blush-500/20'
-                      : 'text-stone-700 hover:bg-blush-50'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{tab.name}</span>
-                </button>
-              );
-            })}
-
-            <div className="pt-3 border-t border-stone-100 flex flex-col gap-2.5">
-              <CutePrintButton variant="outline" className="w-full justify-center py-2.5" />
-
+      <div
+        id="mobile-navigation"
+        className={`absolute inset-x-0 top-full border-b border-stone-200 bg-[#f8f5ef]/[0.98] px-4 pb-5 pt-3 shadow-xl backdrop-blur-xl transition-all duration-200 lg:hidden ${
+          menuOpen ? 'visible translate-y-0 opacity-100' : 'invisible -translate-y-2 opacity-0'
+        }`}
+      >
+        <nav className="mx-auto grid max-w-xl gap-1.5" aria-label="Mobile wedding website">
+          {navigation.map(item => {
+            const Icon = item.icon;
+            const active = activeSection === item.id;
+            return (
               <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setIsAdminOpen(true);
-                }}
-                className="flex items-center justify-center gap-1.5 py-2.5 rounded-full text-xs font-medium text-stone-600 bg-stone-100 hover:bg-stone-200 transition"
+                key={item.id}
+                type="button"
+                onClick={() => choose(item.id)}
+                aria-current={active ? 'page' : undefined}
+                className={`flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-sm font-semibold transition-colors ${
+                  active ? 'bg-[#704b3d] text-white' : 'text-stone-700 hover:bg-white'
+                }`}
               >
-                <Lock className="w-3.5 h-3.5 text-stone-500" />
-                <span>Couple &amp; Planner Dashboard (Admin)</span>
+                <Icon className="h-4 w-4" />
+                {item.label}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
+            );
+          })}
+        </nav>
+      </div>
     </header>
   );
-};
+}
