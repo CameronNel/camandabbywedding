@@ -25,6 +25,7 @@ import type {
 } from '../../types/wedding';
 import {
   buildInvitationMessage,
+  buildWhatsAppInvitationUrl,
   createInvitationPdfBlob,
   dispatchInvitationDryRun,
   downloadInvitationPdf,
@@ -363,9 +364,27 @@ export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
           </div>
 
           <div className="mt-5 space-y-2">
+            {channels.includes('whatsapp') && selectedHouseholds[0] && (
+              <a
+                href={buildWhatsAppInvitationUrl(config, {
+                  id: selectedHouseholds[0].id,
+                  name: selectedHouseholds[0].name,
+                  inviteCode: selectedHouseholds[0].inviteCode,
+                  phone: selectedHouseholds[0].phone,
+                  email: selectedHouseholds[0].email,
+                }, kindToVariant(kind))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400 bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+              >
+                <MessageCircle className="h-4 w-4" /> Open WhatsApp for {selectedHouseholds[0].name}
+              </a>
+            )}
             <Button className="w-full" onClick={() => void runDelivery(true)} disabled={!selectedHouseholds.length || sending}><FileCheck2 className="h-4 w-4" /> Test first recipient</Button>
             <Button className="w-full" onClick={() => void prepareConfirmation('preview')} disabled={!selectedHouseholds.length || sending}><Eye className="h-4 w-4" /> Review delivery preview</Button>
-            <Button className="w-full" tone="primary" onClick={() => void prepareConfirmation('live')} disabled={dataMode !== 'supabase' || !selectedHouseholds.length || sending} title={dataMode === 'supabase' ? 'Review and confirm a live provider send' : 'Live sends require shared cloud mode'}><Send className="h-4 w-4" /> {dataMode === 'supabase' ? 'Review live send' : 'Live send unavailable locally'}</Button>
+            {channels.includes('email') && (
+              <Button className="w-full" tone="primary" onClick={() => void prepareConfirmation('live')} disabled={dataMode !== 'supabase' || !selectedHouseholds.length || sending} title={dataMode === 'supabase' ? 'Review and confirm a live provider email send' : 'Live sends require shared cloud mode'}><Send className="h-4 w-4" /> {dataMode === 'supabase' ? 'Send live emails (Resend)' : 'Live email unavailable locally'}</Button>
+            )}
             {retryRequest && <Button className="w-full" tone="danger" onClick={() => void runDelivery(false, undefined, true, retryRequest)} disabled={sending}><RefreshCw className="h-4 w-4" /> Retry same request safely</Button>}
           </div>
         </section>
