@@ -163,7 +163,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   };
 
   return (
-    <section id="rsvp" className="anchor-section relative overflow-hidden bg-[#f8f5ef] px-5 pt-8 pb-20 sm:px-8 sm:pt-10 sm:pb-28">
+    <section id="rsvp" className="anchor-section relative min-h-[calc(100svh-76px)] overflow-hidden bg-[#f8f5ef] px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
       <div className="paper-grain absolute inset-0 opacity-50" aria-hidden="true" />
       <div className="relative mx-auto max-w-6xl">
         <Reveal className="mb-8 max-w-2xl">

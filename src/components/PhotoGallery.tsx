@@ -45,7 +45,7 @@ export function PhotoGallery() {
   }, [activeIndex, close, move]);
 
   return (
-    <section id="gallery" className="anchor-section overflow-hidden bg-[#343832] px-5 pt-8 pb-20 text-white sm:px-8 sm:pt-10 sm:pb-28">
+    <section id="gallery" className="anchor-section min-h-[calc(100svh-76px)] overflow-hidden bg-[#343832] px-5 pt-8 pb-32 text-white sm:px-8 sm:pt-10 sm:pb-44">
       <div className="mx-auto max-w-[1440px]">
         <Reveal className="grid items-end gap-8 lg:grid-cols-[0.72fr_1.28fr]">
           <div>

@@ -74,8 +74,8 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
   const formattedDate = site.dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(site.weddingDate);
 
   return (
-    <section id="details" className="anchor-section bg-[#fbfaf7]">
-      <div className="mx-auto max-w-[1440px] px-5 pt-8 pb-20 sm:px-8 sm:pt-10 sm:pb-28 lg:px-14">
+    <section id="details" className="anchor-section min-h-[calc(100svh-76px)] bg-[#fbfaf7]">
+      <div className="mx-auto max-w-[1440px] px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44 lg:px-14">
         <Reveal className="grid items-end gap-8 lg:grid-cols-[1fr_0.75fr]">
           <div>
             <p className="eyebrow">The setting</p>
@@ -130,7 +130,7 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
           </div>
         </Reveal>
 
-        <div className="mt-24">
+        <div className="mt-32 border-t border-stone-200/60 pt-12 sm:mt-48 sm:pt-16">
           <Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
             <div>
               <p className="eyebrow">For invited guests</p>

@@ -23,7 +23,7 @@ export function Registry({ onNavigate }: RegistryProps) {
   };
 
   return (
-    <section id="gifts" className="anchor-section relative overflow-hidden bg-[#efe8df] px-5 pt-8 pb-20 sm:px-8 sm:pt-10 sm:pb-28">
+    <section id="gifts" className="anchor-section relative min-h-[calc(100svh-76px)] overflow-hidden bg-[#efe8df] px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
       <div className="absolute -right-48 -top-48 h-[34rem] w-[34rem] rounded-full border border-[#bca995]/30" aria-hidden="true" />
       <div className="absolute -bottom-64 -left-56 h-[40rem] w-[40rem] rounded-full border border-[#bca995]/25" aria-hidden="true" />
       <div className="relative mx-auto max-w-6xl">
