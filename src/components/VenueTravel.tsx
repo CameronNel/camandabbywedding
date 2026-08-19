@@ -75,7 +75,7 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
 
   return (
     <section id="details" className="anchor-section bg-[#fbfaf7]">
-      <div className="mx-auto max-w-[1440px] px-5 py-24 sm:px-8 sm:py-32 lg:px-14">
+      <div className="mx-auto max-w-[1440px] px-5 pt-8 pb-20 sm:px-8 sm:pt-10 sm:pb-28 lg:px-14">
         <Reveal className="grid items-end gap-8 lg:grid-cols-[1fr_0.75fr]">
           <div>
             <p className="eyebrow">The setting</p>
@@ -86,7 +86,7 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
           </p>
         </Reveal>
 
-        <Reveal delay={100} className="mt-14 overflow-hidden rounded-[2rem] bg-[#30342e] text-white shadow-[0_30px_90px_rgba(33,38,31,0.2)]">
+        <Reveal delay={100} className="mt-8 overflow-hidden rounded-[2rem] bg-[#30342e] text-white shadow-[0_30px_90px_rgba(33,38,31,0.2)] sm:mt-10">
           <div className="grid lg:grid-cols-[1.25fr_0.75fr]">
             <div className="relative min-h-[340px] overflow-hidden sm:min-h-[460px]">
               <img src={`${import.meta.env.BASE_URL}images/hero-arendsrus.jpg`} alt="ArendsRus Country Lodge" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />

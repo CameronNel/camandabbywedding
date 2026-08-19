@@ -23,7 +23,7 @@ export function Registry({ onNavigate }: RegistryProps) {
   };
 
   return (
-    <section id="gifts" className="anchor-section relative overflow-hidden bg-[#efe8df] px-5 py-24 sm:px-8 sm:py-32">
+    <section id="gifts" className="anchor-section relative overflow-hidden bg-[#efe8df] px-5 pt-8 pb-20 sm:px-8 sm:pt-10 sm:pb-28">
       <div className="absolute -right-48 -top-48 h-[34rem] w-[34rem] rounded-full border border-[#bca995]/30" aria-hidden="true" />
       <div className="absolute -bottom-64 -left-56 h-[40rem] w-[40rem] rounded-full border border-[#bca995]/25" aria-hidden="true" />
       <div className="relative mx-auto max-w-6xl">
@@ -34,7 +34,7 @@ export function Registry({ onNavigate }: RegistryProps) {
         </Reveal>
 
         {!activeHousehold ? (
-          <Reveal delay={80} className="mt-12 grid overflow-hidden rounded-[2rem] border border-[#d4c7b8] bg-[#f8f5ef] shadow-[0_24px_70px_rgba(82,61,48,0.1)] md:grid-cols-[auto_1fr_auto] md:items-center">
+          <Reveal delay={80} className="mt-8 grid overflow-hidden rounded-[2rem] border border-[#d4c7b8] bg-[#f8f5ef] shadow-[0_24px_70px_rgba(82,61,48,0.1)] sm:mt-10 md:grid-cols-[auto_1fr_auto] md:items-center">
             <div className="grid h-full min-h-36 place-items-center bg-[#704b3d] px-9 text-[#f3e9df]">
               <LockKeyhole className="h-8 w-8" />
             </div>

@@ -45,7 +45,7 @@ export function PhotoGallery() {
   }, [activeIndex, close, move]);
 
   return (
-    <section id="gallery" className="anchor-section overflow-hidden bg-[#343832] px-5 py-24 text-white sm:px-8 sm:py-32">
+    <section id="gallery" className="anchor-section overflow-hidden bg-[#343832] px-5 pt-8 pb-20 text-white sm:px-8 sm:pt-10 sm:pb-28">
       <div className="mx-auto max-w-[1440px]">
         <Reveal className="grid items-end gap-8 lg:grid-cols-[0.72fr_1.28fr]">
           <div>
@@ -57,7 +57,7 @@ export function PhotoGallery() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid auto-rows-[230px] gap-4 sm:auto-rows-[300px] sm:grid-cols-2 lg:grid-cols-12">
+        <div className="mt-8 grid auto-rows-[230px] gap-4 sm:auto-rows-[300px] sm:grid-cols-2 sm:mt-10 lg:grid-cols-12">
           {galleryItems.map((item, index) => (
             <Reveal
               key={item.id}

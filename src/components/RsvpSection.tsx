@@ -163,10 +163,10 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   };
 
   return (
-    <section id="rsvp" className="anchor-section relative overflow-hidden bg-[#f8f5ef] px-5 py-24 sm:px-8 sm:py-32">
+    <section id="rsvp" className="anchor-section relative overflow-hidden bg-[#f8f5ef] px-5 pt-8 pb-20 sm:px-8 sm:pt-10 sm:pb-28">
       <div className="paper-grain absolute inset-0 opacity-50" aria-hidden="true" />
       <div className="relative mx-auto max-w-6xl">
-        <Reveal className="mb-12 max-w-2xl">
+        <Reveal className="mb-8 max-w-2xl">
           <p className="eyebrow">Your invitation</p>
           <h2 className="section-title">Celebrate with us</h2>
           <p className="section-copy mt-5">
