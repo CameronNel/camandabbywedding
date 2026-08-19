@@ -1,22 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import {
-  AlertCircle,
-  CheckCircle2,
-  Clock3,
+  Check,
+  Copy,
   Download,
   Eye,
-  FileCheck2,
-  History,
-  Mail,
   MessageCircle,
-  RefreshCw,
+  Phone,
   Save,
-  Send,
-  Smartphone,
+  Search,
+  Users,
 } from 'lucide-react';
 import type {
   HouseholdInvitation,
-  InvitationChannel,
   InvitationDelivery,
   InvitationTemplate,
   SendInvitationRequest,
@@ -26,15 +21,10 @@ import type {
 import {
   buildInvitationMessage,
   buildWhatsAppInvitationUrl,
-  createInvitationPdfBlob,
-  dispatchInvitationDryRun,
   downloadInvitationPdf,
-  invitationFilename,
-  readDryRunDeliveryHistory,
-  type DryRunDelivery,
   type InvitationVariant,
 } from '../../utils/invitations';
-import { Button, EmptyState, Field, Modal, Toggle, inputClass } from './AdminPrimitives';
+import { Button, EmptyState, Field, inputClass } from './AdminPrimitives';
 import type { ProviderStatus, ToastState } from './contracts';
 
 interface DeliveryManagerProps {
@@ -47,89 +37,86 @@ interface DeliveryManagerProps {
   deliveries: InvitationDelivery[];
   providerStatus?: ProviderStatus;
   onUpsertTemplate: (template: InvitationTemplate) => Promise<InvitationTemplate>;
-  onSend: (request: SendInvitationRequest) => Promise<SendInvitationResult>;
+  onSend?: (request: SendInvitationRequest) => Promise<SendInvitationResult>;
   onPreview: (household: HouseholdInvitation, variant: InvitationVariant) => void;
   notify: (toast: ToastState) => void;
 }
 
-const kindToVariant = (kind: InvitationTemplate['kind']): InvitationVariant => kind === 'save_the_date' ? 'save-the-date' : 'official';
+const kindToVariant = (kind: InvitationTemplate['kind']): InvitationVariant =>
+  kind === 'save_the_date' ? 'save-the-date' : 'official';
 
 const defaultTemplate = (kind: InvitationTemplate['kind'], config: WeddingConfig): InvitationTemplate => {
-  const couple = `${config.groomShortName} & ${config.brideShortName}`;
-  return kind === 'save_the_date' ? {
-    id: 'save-the-date-template',
-    kind,
-    name: 'Save the Date',
-    subject: `Save the date — ${couple}`,
-    heading: 'Please save the date',
-    body: 'We would love you to reserve our wedding date. Open your private link for the latest confirmed details.',
-    design: { attachPdf: true, includeQr: true },
-    isActive: true,
-  } : {
-    id: 'official-invitation-template',
-    kind,
-    name: 'Official Invitation',
-    subject: `Your wedding invitation — ${couple}`,
-    heading: 'We would be delighted to celebrate with you',
-    body: 'Your personalised invitation is attached. Please follow your private link to RSVP and view the latest guest details.',
-    design: { attachPdf: true, includeQr: true },
-    isActive: true,
-  };
+  const couple = `${config.groomShortName || config.groomName} & ${config.brideShortName || config.brideName}`;
+  return kind === 'save_the_date'
+    ? {
+        id: 'save-the-date-template',
+        kind,
+        name: 'Save the Date',
+        subject: `Save the date — ${couple}`,
+        heading: 'Please save our wedding date',
+        body: `Dear {name},\n\nPlease save the date for our wedding on {date} at {venue}! ✨\n\nView details and reserve your spot: {url}\n\nWith love,\n${couple}`,
+        design: { attachPdf: true, includeQr: true },
+        isActive: true,
+      }
+    : {
+        id: 'official-invitation-template',
+        kind,
+        name: 'Official Invitation',
+        subject: `Wedding Invitation — ${couple}`,
+        heading: 'We would love you to celebrate with us',
+        body: `Dear {name},\n\nWe would love for you to celebrate our wedding with us on {date} at {venue}! 💍✨\n\nPlease view your personal invitation and RSVP here: {url}\n\nWith love,\n${couple}`,
+        design: { attachPdf: true, includeQr: true },
+        isActive: true,
+      };
 };
 
-const channelInfo: Record<InvitationChannel, { label: string; icon: React.ReactNode; destination: (household: HouseholdInvitation) => string | undefined }> = {
-  email: { label: 'Email + PDF', icon: <Mail className="h-5 w-5" />, destination: household => household.email },
-  sms: { label: 'SMS', icon: <Smartphone className="h-5 w-5" />, destination: household => household.phone },
-  whatsapp: { label: 'WhatsApp', icon: <MessageCircle className="h-5 w-5" />, destination: household => household.phone },
+const WHATSAPP_SENT_KEY = 'camabby_whatsapp_sent_v1';
+
+const readWhatsAppSentMap = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const val = localStorage.getItem(WHATSAPP_SENT_KEY);
+    return val ? (JSON.parse(val) as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
 };
 
-const statusStyle: Record<string, string> = {
-  delivered: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  sent: 'bg-blue-50 text-blue-700 border-blue-200',
-  queued: 'bg-amber-50 text-amber-700 border-amber-200',
-  preview: 'bg-violet-50 text-violet-700 border-violet-200',
-  simulated: 'bg-violet-50 text-violet-700 border-violet-200',
-  failed: 'bg-rose-50 text-rose-700 border-rose-200',
-  bounced: 'bg-rose-50 text-rose-700 border-rose-200',
-  draft: 'bg-stone-50 text-stone-600 border-stone-200',
+const saveWhatsAppSent = (householdId: string): Record<string, string> => {
+  const current = readWhatsAppSentMap();
+  const next = { ...current, [householdId]: new Date().toISOString() };
+  try {
+    localStorage.setItem(WHATSAPP_SENT_KEY, JSON.stringify(next));
+  } catch {
+    // Storage quota fallback
+  }
+  return next;
 };
 
 export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
   config,
-  dataMode,
   households,
   selectedIds,
   onSelectionChange,
   templates,
-  deliveries,
-  providerStatus,
   onUpsertTemplate,
-  onSend,
   onPreview,
   notify,
 }) => {
-  const [kind, setKind] = useState<InvitationTemplate['kind']>('save_the_date');
+  const [kind, setKind] = useState<InvitationTemplate['kind']>('official_invitation');
   const storedTemplate = templates.find(template => template.kind === kind);
   const [templateDraft, setTemplateDraft] = useState<InvitationTemplate>(() => storedTemplate || defaultTemplate(kind, config));
-  const [channels, setChannels] = useState<InvitationChannel[]>(['email']);
   const [savingTemplate, setSavingTemplate] = useState(false);
-  const [confirmationOpen, setConfirmationOpen] = useState(false);
-  const [deliveryMode, setDeliveryMode] = useState<'preview' | 'live'>('preview');
-  const [confirmationText, setConfirmationText] = useState('');
-  const [sending, setSending] = useState(false);
-  const [attachmentSize, setAttachmentSize] = useState<number | null>(null);
-  const [result, setResult] = useState<SendInvitationResult | null>(null);
-  const [retryRequest, setRetryRequest] = useState<SendInvitationRequest | null>(null);
-  const [dryHistory, setDryHistory] = useState<DryRunDelivery[]>(readDryRunDeliveryHistory);
-  const [historyFilter, setHistoryFilter] = useState<'all' | InvitationChannel>('all');
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'sent' | 'no-phone'>('all');
+  const [whatsappSentMap, setWhatsappSentMap] = useState<Record<string, string>>(readWhatsAppSentMap);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const selectedHouseholds = useMemo(() => households.filter(household => selectedIds.has(household.id)), [households, selectedIds]);
-  const activeTemplate = storedTemplate || templateDraft;
+  const variant = kindToVariant(kind);
 
   const selectKind = (nextKind: InvitationTemplate['kind']) => {
     setKind(nextKind);
     setTemplateDraft(templates.find(template => template.kind === nextKind) || defaultTemplate(nextKind, config));
-    setResult(null);
   };
 
   const saveTemplate = async (): Promise<InvitationTemplate> => {
@@ -141,303 +128,400 @@ export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
         design: { ...templateDraft.design, attachPdf: true, includeQr: true },
       });
       setTemplateDraft(saved);
-      notify({ tone: 'success', message: `${saved.name} template saved.` });
+      notify({ tone: 'success', message: `WhatsApp ${saved.name} message template saved.` });
       return saved;
+    } catch (error) {
+      notify({ tone: 'error', message: error instanceof Error ? error.message : 'Could not save message template.' });
+      throw error;
     } finally {
       setSavingTemplate(false);
     }
   };
 
-  const toggleChannel = (channel: InvitationChannel) => {
-    setChannels(current => current.includes(channel) ? current.filter(item => item !== channel) : [...current, channel]);
+  const filteredHouseholds = useMemo(() => {
+    return households.filter(h => {
+      const matchesSearch = !search || h.name.toLowerCase().includes(search.toLowerCase()) || (h.phone && h.phone.includes(search)) || h.inviteCode.toLowerCase().includes(search.toLowerCase());
+      if (!matchesSearch) return false;
+      const isSent = Boolean(whatsappSentMap[h.id]);
+      if (statusFilter === 'sent') return isSent;
+      if (statusFilter === 'pending') return !isSent;
+      if (statusFilter === 'no-phone') return !h.phone;
+      return true;
+    });
+  }, [households, search, statusFilter, whatsappSentMap]);
+
+  const selectedCount = selectedIds.size;
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredHouseholds.length && filteredHouseholds.length > 0) {
+      onSelectionChange(new Set());
+    } else {
+      onSelectionChange(new Set(filteredHouseholds.map(h => h.id)));
+    }
   };
 
-  const prepareConfirmation = async (mode: 'preview' | 'live') => {
-    if (!selectedHouseholds.length) {
-      notify({ tone: 'error', message: 'Select at least one household before creating a delivery preview.' });
-      return;
-    }
-    if (!channels.length) {
-      notify({ tone: 'error', message: 'Choose at least one delivery channel.' });
-      return;
-    }
-    const missing = selectedHouseholds.flatMap(household => channels
-      .filter(channel => !channelInfo[channel].destination(household))
-      .map(channel => `${household.name} (${channel})`));
-    if (missing.length) {
-      notify({ tone: 'error', message: `Add missing contact details before sending: ${missing.slice(0, 3).join(', ')}${missing.length > 3 ? ` and ${missing.length - 3} more` : ''}.` });
-      return;
-    }
+  const toggleHousehold = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    onSelectionChange(next);
+  };
+
+  const getPersonalizedMessage = (household: HouseholdInvitation): string => {
+    const base = buildInvitationMessage(
+      { ...config, websiteUrl: household.invitationUrl || config.siteUrl },
+      { id: household.id, name: household.name, inviteCode: household.inviteCode, phone: household.phone, email: household.email },
+      variant,
+    );
+    return base.message;
+  };
+
+  const handleSendWhatsApp = (household: HouseholdInvitation) => {
+    const url = buildWhatsAppInvitationUrl(
+      { ...config, websiteUrl: household.invitationUrl || config.siteUrl },
+      { id: household.id, name: household.name, inviteCode: household.inviteCode, phone: household.phone, email: household.email },
+      variant,
+    );
+    window.open(url, '_blank', 'noopener,noreferrer');
+    const updated = saveWhatsAppSent(household.id);
+    setWhatsappSentMap(updated);
+    notify({ tone: 'success', message: `Opened WhatsApp for ${household.name}.` });
+  };
+
+  const handleCopyMessage = async (household: HouseholdInvitation) => {
+    const message = getPersonalizedMessage(household);
     try {
-      if (channels.includes('email')) {
-        const first = selectedHouseholds[0];
-        const blob = await createInvitationPdfBlob(
-          { ...config, websiteUrl: first.invitationUrl || config.siteUrl },
-          { id: first.id, name: first.name, inviteCode: first.inviteCode, email: first.email, phone: first.phone },
-          kindToVariant(kind),
-        );
-        setAttachmentSize(blob.size);
-      } else setAttachmentSize(null);
-      setDeliveryMode(mode);
-      setConfirmationText('');
-      setConfirmationOpen(true);
-    } catch (error) {
-      notify({ tone: 'error', message: error instanceof Error ? error.message : 'The personalised PDF attachment could not be prepared.' });
+      await navigator.clipboard.writeText(message);
+      setCopiedId(household.id);
+      setTimeout(() => setCopiedId(null), 2500);
+      notify({ tone: 'success', message: `Copied WhatsApp invitation for ${household.name}.` });
+    } catch {
+      notify({ tone: 'error', message: 'Clipboard access blocked by browser.' });
     }
   };
 
-  const recordPreviewHistory = async (sendResult: SendInvitationResult, template: InvitationTemplate, isTest: boolean) => {
-    const variant = kindToVariant(template.kind);
-    for (const item of sendResult.results) {
-      const household = households.find(entry => entry.id === item.householdId);
-      if (!household) continue;
-      const message = buildInvitationMessage(
-        { ...config, websiteUrl: household.invitationUrl || config.siteUrl },
-        { id: household.id, name: household.name, inviteCode: household.inviteCode, email: household.email, phone: household.phone },
-        variant,
-      );
-      await dispatchInvitationDryRun({
-        recipientId: household.id,
-        recipientName: household.name,
-        invitationVariant: variant,
-        channel: item.channel,
-        destination: item.recipient || channelInfo[item.channel].destination(household) || 'Missing destination',
-        subject: template.subject,
-        message: message.message,
-        attachmentName: item.channel === 'email' ? invitationFilename(config, household, variant) : undefined,
-        isTest,
-      });
+  const handleCopyAllSelected = async () => {
+    const targetHouseholds = households.filter(h => selectedIds.has(h.id));
+    if (!targetHouseholds.length) {
+      notify({ tone: 'error', message: 'Select at least one household to copy messages.' });
+      return;
     }
-    setDryHistory(readDryRunDeliveryHistory());
-  };
+    const combined = targetHouseholds
+      .map(h => {
+        const phone = h.phone ? ` (${h.phone})` : '';
+        return `═══════════════════════════════════════\nTO: ${h.name}${phone}\n═══════════════════════════════════════\n${getPersonalizedMessage(h)}\n`;
+      })
+      .join('\n\n');
 
-  const runDelivery = async (
-    isTest = false,
-    override?: { householdId: string; templateId: string; channel: InvitationChannel },
-    live = false,
-    retry?: SendInvitationRequest,
-  ) => {
-    setSending(true);
-    setResult(null);
-    let attemptedRequest: SendInvitationRequest | null = retry || null;
     try {
-      let template = storedTemplate || templateDraft;
-      if (!retry && (!storedTemplate || templateDraft.subject !== storedTemplate.subject || templateDraft.body !== storedTemplate.body || templateDraft.heading !== storedTemplate.heading)) {
-        template = await saveTemplate();
-      }
-      const request: SendInvitationRequest = retry || (override ? {
-        householdIds: [override.householdId],
-        templateId: override.templateId || template.id,
-        channels: [override.channel],
-        dryRun: !live,
-        requestKey: live ? crypto.randomUUID() : undefined,
-      } : {
-        householdIds: isTest ? selectedHouseholds.slice(0, 1).map(household => household.id) : selectedHouseholds.map(household => household.id),
-        templateId: template.id,
-        channels,
-        dryRun: !live,
-        requestKey: live ? crypto.randomUUID() : undefined,
-      });
-      attemptedRequest = request;
-      const response = await onSend(request);
-      setResult(response);
-      setRetryRequest(null);
-      if (!live) await recordPreviewHistory(response, template, isTest);
-      const failed = response.results.filter(item => item.status === 'failed' || item.status === 'skipped');
-      if (!response.ok || failed.length) {
-        notify({ tone: 'error', message: response.error || `${failed.length} delivery preview${failed.length === 1 ? '' : 's'} failed. Review the results below.` });
-      } else {
-        notify({
-          tone: 'success',
-          message: live
-            ? `${response.results.length} personalised ${response.results.length === 1 ? 'delivery' : 'deliveries'} submitted. Review the provider results below.`
-            : `${response.results.length} personalised delivery preview${response.results.length === 1 ? '' : 's'} generated. Nothing was sent.`,
-        });
-      }
-      setConfirmationOpen(false);
-    } catch (error) {
-      if (live && attemptedRequest) setRetryRequest(attemptedRequest);
-      const rawMessage = error instanceof Error ? error.message : String(error);
-      const isFunctionMissing = rawMessage.toLowerCase().includes('not found') || rawMessage.toLowerCase().includes('functionsfetcherror') || rawMessage.toLowerCase().includes('edge function');
-      const message = isFunctionMissing
-        ? 'Live email sending requires the Supabase Edge Function with a Resend API key. To preview invitations and generate PDFs without sending real emails, click "Review delivery preview" or "Sample PDF".'
-        : (rawMessage || 'The invitation service could not process the request.');
-      notify({
-        tone: 'error',
-        message,
-      });
-    } finally {
-      setSending(false);
+      await navigator.clipboard.writeText(combined);
+      notify({ tone: 'success', message: `Copied ${targetHouseholds.length} personalized WhatsApp messages!` });
+    } catch {
+      notify({ tone: 'error', message: 'Clipboard access blocked by browser.' });
     }
   };
 
-  const selectAudience = (audience: 'all' | 'pending' | 'attending') => {
-    onSelectionChange(new Set(households.filter(household => audience === 'all' || household.rsvpStatus === audience).map(household => household.id)));
-  };
-
-  const combinedHistory = useMemo(() => {
-    const persistent = deliveries.map(delivery => ({
-      id: delivery.id,
-      householdId: delivery.householdId,
-      templateId: delivery.templateId,
-      channel: delivery.channel,
-      recipient: delivery.recipient,
-      status: delivery.status,
-      attempts: delivery.attemptNumber,
-      date: delivery.sentAt || delivery.createdAt || '',
-      error: delivery.errorMessage,
-      simulated: false,
-    }));
-    const previews = dryHistory.map(delivery => ({
-      id: delivery.id,
-      householdId: delivery.recipientId || '',
-      templateId: templates.find(template => kindToVariant(template.kind) === delivery.invitationVariant)?.id || '',
-      channel: delivery.channel,
-      recipient: delivery.destination,
-      status: delivery.status,
-      attempts: 1,
-      date: delivery.sentAt,
-      error: undefined,
-      simulated: true,
-    }));
-    return [...previews, ...persistent]
-      .filter(item => historyFilter === 'all' || item.channel === historyFilter)
-      .sort((left, right) => new Date(right.date).getTime() - new Date(left.date).getTime())
-      .slice(0, 100);
-  }, [deliveries, dryHistory, historyFilter, templates]);
-
-  const variant = kindToVariant(kind);
+  const totalSentCount = Object.keys(whatsappSentMap).filter(id => households.some(h => h.id === id)).length;
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a45d72]">Invitation operations</p>
-        <h2 className="font-serif text-2xl font-semibold text-stone-900">Design, test &amp; deliver</h2>
-        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-stone-500">Every household receives its own QR, private RSVP link and—by email—a personalised PDF. Test with a dry run first; shared cloud mode can then send through the configured providers after an explicit final confirmation.</p>
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+              <MessageCircle className="h-3.5 w-3.5" />
+            </span>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700">Direct WhatsApp Dispatcher</p>
+          </div>
+          <h2 className="mt-1 font-serif text-2xl font-semibold text-stone-900">WhatsApp Invitations</h2>
+          <p className="mt-1 max-w-3xl text-xs leading-relaxed text-stone-500">
+            Dispatch personalized invitations directly to your guests on WhatsApp with 1 click. Zero server setup or API fees.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-center">
+            <p className="text-xl font-bold text-emerald-800">{totalSentCount} / {households.length}</p>
+            <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-600">Sent on WhatsApp</p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+        {/* Template & Message Customization */}
         <section className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
           <div className="mb-5 grid grid-cols-2 rounded-2xl bg-stone-100 p-1">
             {([
-              ['save_the_date', 'Save the Date'],
-              ['official_invitation', 'Official Invitation'],
+              ['official_invitation', '💍 Official Invitation'],
+              ['save_the_date', '✨ Save the Date'],
             ] as Array<[InvitationTemplate['kind'], string]>).map(([value, label]) => (
-              <button key={value} type="button" onClick={() => selectKind(value)} className={`rounded-xl px-3 py-2.5 text-xs font-semibold transition ${kind === value ? 'bg-white text-[#7f2540] shadow-sm' : 'text-stone-500 hover:text-stone-800'}`}>{label}</button>
-            ))}
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2"><Field label="Template name"><input value={templateDraft.name} onChange={event => setTemplateDraft(current => ({ ...current, name: event.target.value }))} className={inputClass} /></Field><Field label="Email subject"><input value={templateDraft.subject} onChange={event => setTemplateDraft(current => ({ ...current, subject: event.target.value }))} className={inputClass} /></Field></div>
-            <Field label="Heading"><input value={templateDraft.heading} onChange={event => setTemplateDraft(current => ({ ...current, heading: event.target.value }))} className={inputClass} /></Field>
-            <Field label="Message body" hint="The delivery service appends each household's private link. Avoid placing a generic shared URL here."><textarea rows={5} value={templateDraft.body} onChange={event => setTemplateDraft(current => ({ ...current, body: event.target.value }))} className={inputClass} /></Field>
-            <div className="grid gap-3 sm:grid-cols-2"><Toggle checked={true} onChange={() => undefined} disabled label="Attach personalised 5×7 PDF" description="Email attachments are generated per household and encoded for the configured Resend provider." /><Toggle checked={templateDraft.isActive} onChange={checked => setTemplateDraft(current => ({ ...current, isActive: checked }))} label="Active template" description="Only active templates should be used for a delivery batch." /></div>
-            <div className="flex flex-wrap justify-end gap-2 border-t border-stone-100 pt-4">
-              {selectedHouseholds[0] && <Button onClick={() => onPreview(selectedHouseholds[0], variant)}><Eye className="h-4 w-4" /> Preview card</Button>}
-              {selectedHouseholds[0] && <Button onClick={async () => {
-                try {
-                  await downloadInvitationPdf({ ...config, websiteUrl: selectedHouseholds[0].invitationUrl || config.siteUrl }, selectedHouseholds[0], variant);
-                } catch (error) {
-                  notify({ tone: 'error', message: error instanceof Error ? error.message : 'PDF download failed.' });
-                }
-              }}><Download className="h-4 w-4" /> Sample PDF</Button>}
-              <Button tone="primary" onClick={() => void saveTemplate().catch(error => notify({ tone: 'error', message: error instanceof Error ? error.message : 'The invitation template could not be saved.' }))} disabled={savingTemplate}><Save className="h-4 w-4" /> {savingTemplate ? 'Saving…' : 'Save template'}</Button>
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
-          <h3 className="font-serif text-lg font-semibold text-stone-900">Delivery audience</h3>
-          <p className="mt-1 text-[11px] leading-relaxed text-stone-500">Use the household checkboxes or a quick audience selector.</p>
-          <div className="mt-4 grid grid-cols-3 gap-2"><Button size="sm" onClick={() => selectAudience('all')}>All</Button><Button size="sm" onClick={() => selectAudience('pending')}>Pending</Button><Button size="sm" onClick={() => selectAudience('attending')}>Attending</Button></div>
-          <div className="mt-4 rounded-2xl border border-[#dfbbc6] bg-[#fff6f8] p-4 text-[#713047]">
-            <p className="text-2xl font-semibold">{selectedHouseholds.length}</p><p className="text-[10px] font-bold uppercase tracking-[0.16em]">households selected</p>
-          </div>
-
-          <p className="mb-2 mt-5 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">Channels</p>
-          <div className="space-y-2">
-            {(Object.keys(channelInfo) as InvitationChannel[]).map(channel => (
-              <button key={channel} type="button" onClick={() => toggleChannel(channel)} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition ${channels.includes(channel) ? 'border-[#ce93a6] bg-[#fff4f7] text-[#713047]' : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'}`}>
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm">{channelInfo[channel].icon}</span><span className="flex-1 text-xs font-semibold">{channelInfo[channel].label}</span>{channels.includes(channel) && <CheckCircle2 className="h-4 w-4" />}
+              <button
+                key={value}
+                type="button"
+                onClick={() => selectKind(value)}
+                className={`rounded-xl px-3 py-2.5 text-xs font-semibold transition ${
+                  kind === value ? 'bg-white text-emerald-800 shadow-sm' : 'text-stone-500 hover:text-stone-800'
+                }`}
+              >
+                {label}
               </button>
             ))}
           </div>
 
-          <div className="mt-5 space-y-2">
-            {channels.includes('whatsapp') && selectedHouseholds[0] && (
-              <a
-                href={buildWhatsAppInvitationUrl(config, {
-                  id: selectedHouseholds[0].id,
-                  name: selectedHouseholds[0].name,
-                  inviteCode: selectedHouseholds[0].inviteCode,
-                  phone: selectedHouseholds[0].phone,
-                  email: selectedHouseholds[0].email,
-                }, kindToVariant(kind))}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400 bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+          <div className="space-y-4">
+            <Field label="Message Heading">
+              <input
+                value={templateDraft.heading}
+                onChange={event => setTemplateDraft(current => ({ ...current, heading: event.target.value }))}
+                className={inputClass}
+                placeholder="We would love you to celebrate with us"
+              />
+            </Field>
+
+            <Field
+              label="WhatsApp Message Body"
+              hint="Each guest automatically receives their personal name, date, venue, and private RSVP link."
+            >
+              <textarea
+                rows={6}
+                value={templateDraft.body}
+                onChange={event => setTemplateDraft(current => ({ ...current, body: event.target.value }))}
+                className={`${inputClass} font-sans text-xs leading-relaxed`}
+              />
+            </Field>
+
+            {/* Live Message Sample Preview */}
+            <div className="rounded-2xl border border-emerald-200 bg-[#f4faf4] p-4 text-xs">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                Live WhatsApp Message Preview (Sample):
+              </p>
+              <div className="whitespace-pre-line rounded-xl bg-white p-3.5 font-sans text-xs text-stone-800 shadow-sm border border-emerald-100/60">
+                {households[0] ? getPersonalizedMessage(households[0]) : templateDraft.body}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-stone-100 pt-4">
+              {households[0] && (
+                <Button size="sm" onClick={() => onPreview(households[0], variant)}>
+                  <Eye className="h-4 w-4" /> Preview Card
+                </Button>
+              )}
+              {households[0] && (
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await downloadInvitationPdf({ ...config, websiteUrl: households[0].invitationUrl || config.siteUrl }, households[0], variant);
+                      notify({ tone: 'success', message: 'Sample 5×7 PDF downloaded.' });
+                    } catch (error) {
+                      notify({ tone: 'error', message: error instanceof Error ? error.message : 'PDF download failed.' });
+                    }
+                  }}
+                >
+                  <Download className="h-4 w-4" /> Sample 5×7 PDF
+                </Button>
+              )}
+              <Button
+                size="sm"
+                tone="primary"
+                onClick={() => void saveTemplate()}
+                disabled={savingTemplate}
               >
-                <MessageCircle className="h-4 w-4" /> Open WhatsApp for {selectedHouseholds[0].name}
-              </a>
-            )}
-            <Button className="w-full" onClick={() => void runDelivery(true)} disabled={!selectedHouseholds.length || sending}><FileCheck2 className="h-4 w-4" /> Test first recipient</Button>
-            <Button className="w-full" onClick={() => void prepareConfirmation('preview')} disabled={!selectedHouseholds.length || sending}><Eye className="h-4 w-4" /> Review delivery preview</Button>
-            {channels.includes('email') && (
-              <Button className="w-full" tone="primary" onClick={() => void prepareConfirmation('live')} disabled={dataMode !== 'supabase' || !selectedHouseholds.length || sending} title={dataMode === 'supabase' ? 'Review and confirm a live provider email send' : 'Live sends require shared cloud mode'}><Send className="h-4 w-4" /> {dataMode === 'supabase' ? 'Send live emails (Resend)' : 'Live email unavailable locally'}</Button>
-            )}
-            {retryRequest && <Button className="w-full" tone="danger" onClick={() => void runDelivery(false, undefined, true, retryRequest)} disabled={sending}><RefreshCw className="h-4 w-4" /> Retry same request safely</Button>}
+                <Save className="h-4 w-4" /> {savingTemplate ? 'Saving…' : 'Save Message'}
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Quick Batch Actions & Progress */}
+        <section className="flex flex-col justify-between rounded-3xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+          <div>
+            <h3 className="font-serif text-lg font-semibold text-stone-900">Batch WhatsApp Actions</h3>
+            <p className="mt-1 text-xs text-stone-500">Select guests below to batch copy messages or dispatch 1-by-1.</p>
+
+            <div className="mt-5 space-y-3">
+              <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 p-3.5 text-xs">
+                <span className="font-medium text-stone-700">Selected households:</span>
+                <span className="rounded-full bg-emerald-600 px-3 py-1 font-bold text-white">
+                  {selectedCount} selected
+                </span>
+              </div>
+
+              <Button
+                tone="primary"
+                className="w-full justify-center !bg-emerald-600 !border-emerald-600 hover:!bg-emerald-700 !text-white min-h-11"
+                onClick={() => void handleCopyAllSelected()}
+                disabled={!selectedCount}
+              >
+                <Copy className="h-4 w-4" /> Copy All Selected WhatsApp Messages
+              </Button>
+
+              <div className="rounded-2xl border border-stone-200/80 bg-stone-50/60 p-4 text-[11px] leading-relaxed text-stone-600">
+                <p className="font-semibold text-stone-800 mb-1">💡 How WhatsApp Dispatch Works:</p>
+                <ul className="list-disc pl-4 space-y-1 text-stone-500">
+                  <li>Clicking <strong>Send on WhatsApp</strong> opens WhatsApp directly with that guest's pre-filled personalized message.</li>
+                  <li>South African phone numbers (e.g. <code className="text-stone-700 font-mono">082 123 4567</code>) are automatically formatted to international standard (<code className="text-stone-700 font-mono">2782...</code>).</li>
+                  <li>Once opened, the guest is marked as <strong>Sent on WhatsApp</strong> so you can track your progress.</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </section>
       </div>
 
-      <ProviderReadiness dataMode={dataMode} status={providerStatus} />
+      {/* Guest WhatsApp Queue & Dispatch Table */}
+      <section className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="font-serif text-lg font-semibold text-stone-900">Guest WhatsApp Queue</h3>
+            <p className="mt-0.5 text-xs text-stone-500">Click the green WhatsApp button next to each guest to send their invitation.</p>
+          </div>
 
-      {result && (
-        <section className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
-          <div className="flex items-start justify-between gap-3"><div><h3 className="font-serif text-lg font-semibold text-stone-900">Latest {result.dryRun ? 'dry-run' : 'send'} results</h3><p className="text-[11px] text-stone-500">{result.dryRun ? 'No provider messages were sent.' : 'Provider responses are shown exactly as returned by the delivery service.'}</p></div><span className={`rounded-full border px-3 py-1 text-[10px] font-bold ${result.dryRun ? 'border-violet-200 bg-violet-50 text-violet-700' : 'border-blue-200 bg-blue-50 text-blue-700'}`}>{result.results.length} result{result.results.length === 1 ? '' : 's'}</span></div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {result.results.map((item, index) => {
-              const household = households.find(entry => entry.id === item.householdId);
-              return <div key={`${item.householdId}-${item.channel}-${index}`} className={`rounded-2xl border p-3 text-[11px] ${item.status === 'failed' || item.status === 'skipped' ? 'border-rose-200 bg-rose-50' : 'border-stone-200 bg-stone-50'}`}><div className="flex items-center justify-between gap-2"><strong className="truncate text-stone-800">{household?.name || item.householdId}</strong><span className={`rounded-full border px-2 py-0.5 text-[9px] font-bold ${statusStyle[item.status] || statusStyle.draft}`}>{item.status}</span></div><p className="mt-1 text-stone-500">{item.channel} · {item.recipient || 'missing destination'}</p>{item.error && <p className="mt-2 font-medium text-rose-700">{item.error}</p>}</div>;
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-400" />
+              <input
+                value={search}
+                onChange={event => setSearch(event.target.value)}
+                placeholder="Search guest or phone…"
+                className={`${inputClass} py-1.5 pl-8 text-xs`}
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={event => setStatusFilter(event.target.value as any)}
+              className={`${inputClass} w-auto py-1.5 text-xs`}
+            >
+              <option value="all">All Guests ({households.length})</option>
+              <option value="pending">Not Sent Yet</option>
+              <option value="sent">Sent on WhatsApp ({totalSentCount})</option>
+              <option value="no-phone">Phone Missing</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Action toolbar */}
+        <div className="mt-4 flex items-center justify-between border-b border-stone-100 pb-3 text-xs text-stone-500">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filteredHouseholds.length > 0 && selectedIds.size === filteredHouseholds.length}
+              onChange={toggleSelectAll}
+              className="h-4 w-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
+            />
+            <span className="font-medium">Select all ({filteredHouseholds.length})</span>
+          </label>
+
+          <span className="text-[11px]">
+            Showing {filteredHouseholds.length} household{filteredHouseholds.length === 1 ? '' : 's'}
+          </span>
+        </div>
+
+        {/* List */}
+        {filteredHouseholds.length ? (
+          <div className="divide-y divide-stone-100">
+            {filteredHouseholds.map(household => {
+              const isSent = Boolean(whatsappSentMap[household.id]);
+              const isSelected = selectedIds.has(household.id);
+
+              return (
+                <div
+                  key={household.id}
+                  className={`flex flex-col gap-3 py-3.5 sm:flex-row sm:items-center sm:justify-between transition ${
+                    isSelected ? 'bg-emerald-50/40 -mx-3 px-3 rounded-2xl' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleHousehold(household.id)}
+                      className="h-4 w-4 shrink-0 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <strong className="truncate text-sm font-semibold text-stone-900">{household.name}</strong>
+                        <span className="text-[10px] text-stone-400 font-mono">({household.inviteCode})</span>
+                      </div>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-3 text-[11px] text-stone-500">
+                        {household.phone ? (
+                          <span className="flex items-center gap-1 text-stone-700 font-mono">
+                            <Phone className="h-3 w-3 text-emerald-600" /> {household.phone}
+                          </span>
+                        ) : (
+                          <span className="text-amber-600 font-medium">⚠️ No phone number</span>
+                        )}
+                        <span>·</span>
+                        <span>{household.members?.length || household.partySize} guests</span>
+                        {isSent && (
+                          <>
+                            <span>·</span>
+                            <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                              <Check className="h-3 w-3" /> Sent on WhatsApp
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Row Actions */}
+                  <div className="flex flex-wrap items-center gap-1.5 self-end sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleSendWhatsApp(household)}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400 bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                      title="Open WhatsApp chat with pre-filled message"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      <span>Send on WhatsApp</span>
+                    </button>
+
+                    <Button
+                      size="sm"
+                      onClick={() => void handleCopyMessage(household)}
+                      title="Copy WhatsApp text"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      <span>{copiedId === household.id ? 'Copied!' : 'Copy'}</span>
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          await downloadInvitationPdf({ ...config, websiteUrl: household.invitationUrl || config.siteUrl }, household, variant);
+                          notify({ tone: 'success', message: `5×7 PDF downloaded for ${household.name}.` });
+                        } catch (error) {
+                          notify({ tone: 'error', message: 'PDF generation failed.' });
+                        }
+                      }}
+                      title="Download 5×7 PDF Card"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      onClick={() => onPreview(household, variant)}
+                      title="Preview Card"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              );
             })}
           </div>
-        </section>
-      )}
-
-      <section className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h3 className="flex items-center gap-2 font-serif text-lg font-semibold text-stone-900"><History className="h-4 w-4 text-[#99516a]" /> Send &amp; resend history</h3><p className="mt-0.5 text-[11px] text-stone-500">Includes provider deliveries and local dry-run previews.</p></div><select value={historyFilter} onChange={event => setHistoryFilter(event.target.value as 'all' | InvitationChannel)} className={`${inputClass} w-auto py-2 text-xs`}><option value="all">All channels</option><option value="email">Email</option><option value="sms">SMS</option><option value="whatsapp">WhatsApp</option></select></div>
-        {combinedHistory.length ? <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[720px] text-left text-[11px]"><thead><tr className="border-b border-stone-200 text-[9px] font-bold uppercase tracking-[0.14em] text-stone-400"><th className="px-3 py-2">Household</th><th className="px-3 py-2">Channel</th><th className="px-3 py-2">Recipient</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Date</th><th className="px-3 py-2 text-right">Action</th></tr></thead><tbody className="divide-y divide-stone-100">{combinedHistory.map(item => {
-          const household = households.find(entry => entry.id === item.householdId);
-          return <tr key={item.id}><td className="px-3 py-3 font-semibold text-stone-800">{household?.name || 'Unknown household'}{item.simulated && <span className="ml-2 text-[9px] font-normal text-violet-600">dry run</span>}</td><td className="px-3 py-3 capitalize text-stone-600">{item.channel}</td><td className="px-3 py-3 text-stone-500">{item.recipient}</td><td className="px-3 py-3"><span className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${statusStyle[item.status] || statusStyle.draft}`}>{item.status}</span>{item.error && <p className="mt-1 max-w-xs text-[9px] text-rose-600">{item.error}</p>}</td><td className="px-3 py-3 text-stone-500">{item.date ? new Date(item.date).toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}</td><td className="px-3 py-3 text-right"><Button size="sm" disabled={!household} onClick={() => household && void runDelivery(false, { householdId: household.id, templateId: item.templateId || activeTemplate.id, channel: item.channel })}><RefreshCw className="h-3.5 w-3.5" /> Resend preview</Button></td></tr>;
-        })}</tbody></table></div> : <EmptyState icon={<Clock3 className="h-5 w-5" />} title="No send history yet" description="Run a test or delivery preview and each personalised attempt will appear here for safe repeat sending." />}
+        ) : (
+          <EmptyState
+            icon={<Users className="h-6 w-6" />}
+            title="No households match this filter"
+            description="Clear your search or switch filters to view more guests."
+          />
+        )}
       </section>
-
-      <Modal open={confirmationOpen} onClose={() => setConfirmationOpen(false)} title={deliveryMode === 'live' ? 'Confirm live invitation send' : 'Confirm delivery preview'} eyebrow={deliveryMode === 'live' ? 'This contacts real recipients' : 'No live messages will be sent'}>
-        <div className="space-y-4">
-          <div className={`rounded-2xl border p-4 text-xs leading-relaxed ${deliveryMode === 'live' ? 'border-rose-200 bg-rose-50 text-rose-900' : 'border-violet-200 bg-violet-50 text-violet-900'}`}><div className="mb-1 flex items-center gap-2 font-semibold">{deliveryMode === 'live' ? <Send className="h-4 w-4" /> : <FileCheck2 className="h-4 w-4" />}{deliveryMode === 'live' ? 'Live provider delivery' : 'Provider-safe dry run'}</div>{deliveryMode === 'live' ? 'Email, SMS and WhatsApp providers will be contacted. Every email receives its household-specific PDF attachment and private RSVP link. Provider setup errors will be returned in the results.' : 'This creates personalised previews and records them in history. Resend, Twilio, SMS and WhatsApp providers will not be contacted.'}</div>
-          <dl className="grid grid-cols-2 gap-3 text-xs"><div className="rounded-xl bg-stone-50 p-3"><dt className="text-[9px] font-bold uppercase tracking-wider text-stone-400">Recipients</dt><dd className="mt-1 font-semibold text-stone-800">{selectedHouseholds.length} households</dd></div><div className="rounded-xl bg-stone-50 p-3"><dt className="text-[9px] font-bold uppercase tracking-wider text-stone-400">Deliveries</dt><dd className="mt-1 font-semibold text-stone-800">{selectedHouseholds.length * channels.length} {deliveryMode === 'live' ? 'messages' : 'previews'}</dd></div><div className="rounded-xl bg-stone-50 p-3"><dt className="text-[9px] font-bold uppercase tracking-wider text-stone-400">Channels</dt><dd className="mt-1 font-semibold capitalize text-stone-800">{channels.join(', ')}</dd></div><div className="rounded-xl bg-stone-50 p-3"><dt className="text-[9px] font-bold uppercase tracking-wider text-stone-400">PDF attachment</dt><dd className="mt-1 font-semibold text-stone-800">{channels.includes('email') ? `${attachmentSize ? Math.ceil(attachmentSize / 1024) : '—'} KB sample verified` : 'Not applicable'}</dd></div></dl>
-          {deliveryMode === 'live' && <Field label="Type SEND to confirm"><input value={confirmationText} onChange={event => setConfirmationText(event.target.value.toUpperCase())} placeholder="SEND" autoComplete="off" className={inputClass} /></Field>}
-          <div className="flex justify-end gap-2 border-t border-stone-200 pt-4"><Button onClick={() => setConfirmationOpen(false)}>Cancel</Button><Button tone="primary" onClick={() => void runDelivery(false, undefined, deliveryMode === 'live')} disabled={sending || (deliveryMode === 'live' && confirmationText !== 'SEND')}>{sending ? 'Working…' : deliveryMode === 'live' ? 'Send invitations now' : 'Generate previews'}</Button></div>
-        </div>
-      </Modal>
     </div>
   );
 };
 
-const ProviderReadiness: React.FC<{ dataMode: 'supabase' | 'local'; status?: ProviderStatus }> = ({ dataMode, status }) => {
-  const items = [
-    { key: 'email' as const, name: 'Email + PDF', detail: 'Resend requires a verified sender domain. Attachments are sent as base64 and must remain below the provider limit.' },
-    { key: 'sms' as const, name: 'SMS', detail: 'Twilio credentials and an approved sending number are required.' },
-    { key: 'whatsapp' as const, name: 'WhatsApp', detail: 'Business-initiated messages outside the 24-hour window require an approved WhatsApp sender and template.' },
-  ];
-  return (
-    <section className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
-      <h3 className="font-serif text-lg font-semibold text-stone-900">Provider readiness</h3>
-      <div className="mt-3 grid gap-3 md:grid-cols-3">{items.map(item => {
-        const ready = Boolean(status?.[item.key]);
-        const error = status?.[`${item.key}Error` as 'emailError' | 'smsError' | 'whatsappError'];
-        return <div key={item.key} className={`rounded-2xl border p-4 ${ready ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}><div className="flex items-center gap-2 text-xs font-semibold text-stone-800">{ready ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <AlertCircle className="h-4 w-4 text-amber-600" />}{item.name}</div><p className="mt-2 text-[10px] leading-relaxed text-stone-600">{error || (dataMode === 'local' ? 'Provider not configured in local mode. ' : 'Configuration is verified by the backend at send time. ')}{item.detail}</p></div>;
-      })}</div>
-    </section>
-  );
-};
