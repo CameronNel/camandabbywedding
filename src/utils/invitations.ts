@@ -1,5 +1,5 @@
 import QRCode from 'qrcode';
-import type { jsPDF as JsPdf } from 'jspdf';
+import { jsPDF } from 'jspdf';
 import { formatWeddingDate } from './dates';
 
 export type InvitationVariant = 'save-the-date' | 'official';
@@ -120,7 +120,7 @@ const safePdfText = (value: string): string => value
   .replace(/[“”]/g, '"')
   .replace(/[^\x20-\x7E]/g, '');
 
-const drawBotanicalCorner = (pdf: JsPdf, x: number, y: number, mirrorX = 1, mirrorY = 1) => {
+const drawBotanicalCorner = (pdf: jsPDF, x: number, y: number, mirrorX = 1, mirrorY = 1) => {
   pdf.setDrawColor(144, 117, 91);
   pdf.setLineWidth(0.45);
   pdf.line(x, y, x + mirrorX * 34, y + mirrorY * 42);
@@ -135,7 +135,7 @@ const drawBotanicalCorner = (pdf: JsPdf, x: number, y: number, mirrorX = 1, mirr
   pdf.ellipse(x + mirrorX * 28, y + mirrorY * 34, 5, 2.4, 'F');
 };
 
-const drawQr = (pdf: JsPdf, value: string, x: number, y: number, size: number) => {
+const drawQr = (pdf: jsPDF, value: string, x: number, y: number, size: number) => {
   const matrix = createQrMatrix(value);
   const quietZone = 4;
   const moduleSize = size / (matrix.length + quietZone * 2);
@@ -169,12 +169,11 @@ export const invitationFilename = (
     .replace(/^_|_$/g, '') + '.pdf';
 };
 
-export const createInvitationPdf = (
+export const createInvitationPdf = async (
   config: InvitationConfig,
   recipient: InvitationRecipient,
   variant: InvitationVariant = 'official',
-): Promise<JsPdf> => {
-  return import('jspdf').then(({ jsPDF }) => {
+): Promise<jsPDF> => {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: [PDF_WIDTH, PDF_HEIGHT], compress: true });
   const invitationUrl = buildInvitationUrl(recipient, config.websiteUrl || config.siteUrl);
   const centre = PDF_WIDTH / 2;
@@ -330,7 +329,6 @@ export const createInvitationPdf = (
   pdf.text('Scan the code for your private invitation and RSVP.', qrX + qrSize / 2, qrY + qrSize + 10, { align: 'center' });
 
   return pdf;
-  });
 };
 
 export const createInvitationPdfBlob = (

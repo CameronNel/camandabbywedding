@@ -14,6 +14,7 @@ import type {
   RegistryItem,
   SendInvitationRequest,
   SendInvitationResult,
+  InvitationSendItemResult,
   WeddingConfig,
   WeddingService,
 } from '../types/wedding';
@@ -718,8 +719,42 @@ export async function upsertInvitationTemplate(item: InvitationTemplate): Promis
 
 export async function sendInvitations(request: SendInvitationRequest): Promise<SendInvitationResult> {
   const client = requireSupabase();
-  const { data, error } = await client.functions.invoke<SendInvitationResult>('send-invitation', { body: request });
-  if (error) throw error;
-  if (!data) throw new Error('The invitation service returned no result.');
-  return data;
+  try {
+    const { data, error } = await client.functions.invoke<SendInvitationResult>('send-invitation', { body: request });
+    if (!error && data) return data;
+    if (!request.dryRun) {
+      const msg = error ? (error instanceof Error ? error.message : String(error)) : 'The invitation service returned no result.';
+      throw new Error(msg);
+    }
+  } catch (err) {
+    if (!request.dryRun) {
+      throw new Error(
+        'Live email sending requires the Supabase Edge Function to be deployed. Run `npx supabase functions deploy send-invitation` with your RESEND_API_KEY.',
+      );
+    }
+  }
+
+  // Client-side preview fallback for dry-run simulations:
+  const { data: households } = await client.from('households').select('*').in('id', request.householdIds);
+  const siteUrl = window.location.origin + window.location.pathname;
+  const results: InvitationSendItemResult[] = (households || []).flatMap((h: Row) =>
+    request.channels.map((channel) => {
+      const target = channel === 'email' ? h.email : h.phone;
+      const recipient = typeof target === 'string' && target.trim() ? target.trim() : undefined;
+      return {
+        householdId: String(h.id),
+        channel,
+        recipient,
+        status: recipient ? ('preview' as const) : ('skipped' as const),
+        invitationUrl: `${siteUrl}?invite=${String(h.invite_code || '')}#rsvp`,
+        error: recipient ? undefined : `No ${channel === 'email' ? 'email address' : 'phone number'} is saved.`,
+      };
+    }),
+  );
+
+  return {
+    ok: true,
+    dryRun: true,
+    results,
+  };
 }
