@@ -346,6 +346,39 @@ export const downloadInvitationPdf = (
     pdf.save(invitationFilename(config, recipient, variant));
   });
 
+export const shareInvitationPdf = async (
+  config: InvitationConfig,
+  recipient: InvitationRecipient,
+  variant: InvitationVariant = 'official',
+): Promise<boolean> => {
+  if (typeof navigator === 'undefined' || !navigator.share) return false;
+  try {
+    const blob = await createInvitationPdfBlob(config, recipient, variant);
+    const filename = invitationFilename(config, recipient, variant);
+    const file = new File([blob], filename, { type: 'application/pdf' });
+    const { message, subject } = buildInvitationMessage(config, recipient, variant);
+
+    if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: subject,
+        text: message,
+        files: [file],
+      });
+      return true;
+    } else {
+      await navigator.share({
+        title: subject,
+        text: message,
+        url: buildInvitationUrl(recipient, config.websiteUrl || config.siteUrl),
+      });
+      return true;
+    }
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') return true;
+    return false;
+  }
+};
+
 export const buildInvitationMessage = (
   config: InvitationConfig,
   recipient: InvitationRecipient,
