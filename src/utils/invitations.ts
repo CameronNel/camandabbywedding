@@ -357,9 +357,29 @@ export const buildInvitationMessage = (
     ? `Save the date — ${couple}`
     : `Your wedding invitation — ${couple}`;
   const message = variant === 'save-the-date'
-    ? `Dear ${recipient.name},\n\nPlease save ${formatDate(config.weddingDate)} for our wedding celebration at ${config.ceremonyVenue.name}. Your personal details page is available at ${url}\n\nWith love,\n${couple}`
-    : `Dear ${recipient.name},\n\nWe would be delighted to celebrate our wedding with you on ${formatDate(config.weddingDate)} at ${config.ceremonyVenue.name}. Please view your invitation and RSVP using your private link: ${url}\n\nWith love,\n${couple}`;
+    ? `Dear ${recipient.name},\n\nPlease save the date for our wedding on ${formatDate(config.weddingDate)} at ${config.ceremonyVenue.name}! ✨\n\nView details and reserve your spot: ${url}\n\nWith love,\n${couple}`
+    : `Dear ${recipient.name},\n\nWe would love for you to celebrate our wedding with us on ${formatDate(config.weddingDate)} at ${config.ceremonyVenue.name}! 💍✨\n\nPlease view your personal invitation and RSVP here: ${url}\n\nWith love,\n${couple}`;
   return { subject, message, url };
+};
+
+export const formatWhatsAppNumber = (phone?: string): string => {
+  if (!phone) return '';
+  let clean = phone.replace(/[^0-9]/g, '');
+  if (clean.startsWith('0') && clean.length === 10) {
+    clean = '27' + clean.slice(1);
+  }
+  return clean;
+};
+
+export const buildWhatsAppInvitationUrl = (
+  config: InvitationConfig,
+  recipient: InvitationRecipient,
+  variant: InvitationVariant = 'official',
+): string => {
+  const { message } = buildInvitationMessage(config, recipient, variant);
+  const cleanPhone = formatWhatsAppNumber(recipient.phone);
+  const encoded = encodeURIComponent(message);
+  return cleanPhone ? `https://wa.me/${cleanPhone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
 };
 
 export const readDryRunDeliveryHistory = (): DryRunDelivery[] => {

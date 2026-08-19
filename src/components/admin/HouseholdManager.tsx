@@ -7,6 +7,7 @@ import {
   Gift,
   Home,
   Mail,
+  MessageCircle,
   Pencil,
   Plus,
   Search,
@@ -20,13 +21,15 @@ import type {
   HouseholdInvitation,
   HouseholdMember,
   RsvpStatus,
+  WeddingConfig,
 } from '../../types/wedding';
-import type { InvitationVariant } from '../../utils/invitations';
+import { buildWhatsAppInvitationUrl, type InvitationVariant } from '../../utils/invitations';
 import { exportGuestsToCsv } from '../../utils/storage';
 import { Button, EmptyState, Field, Modal, Toggle, inputClass } from './AdminPrimitives';
 import type { ToastState } from './contracts';
 
 interface HouseholdManagerProps {
+  config?: WeddingConfig;
   households: HouseholdInvitation[];
   selectedIds: Set<string>;
   onSelectionChange: (selected: Set<string>) => void;
@@ -115,6 +118,7 @@ const statusStyles: Record<RsvpStatus, string> = {
 };
 
 export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
+  config,
   households,
   selectedIds,
   onSelectionChange,
@@ -359,7 +363,25 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                     </span>
                   )) : <span className="text-[10px] text-stone-400">Standard access</span>}
                 </div>
-                <div className="flex flex-wrap justify-start gap-1.5 lg:justify-end">
+                <div className="flex flex-wrap items-center justify-start gap-1.5 lg:justify-end">
+                  {config && (
+                    <a
+                      href={buildWhatsAppInvitationUrl(config, {
+                        id: household.id,
+                        name: household.name,
+                        inviteCode: household.inviteCode,
+                        phone: household.phone,
+                        email: household.email,
+                      }, 'official')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-100"
+                      title={`Send official wedding invitation to ${household.name} on WhatsApp`}
+                    >
+                      <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
+                      <span>WhatsApp</span>
+                    </a>
+                  )}
                   <Button size="sm" onClick={() => copyInvitation(household)} title="Copy private invitation link"><Copy className="h-3.5 w-3.5" /></Button>
                   <Button size="sm" onClick={() => onPreview(household, 'official')} title="Preview official invitation"><CalendarHeart className="h-3.5 w-3.5" /></Button>
                   <Button size="sm" onClick={() => openEdit(household)} title="Edit household"><Pencil className="h-3.5 w-3.5" /></Button>
