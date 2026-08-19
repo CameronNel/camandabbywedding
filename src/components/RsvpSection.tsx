@@ -223,6 +223,44 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                 {lookupPending || loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
                 {lookupPending || loading ? 'Checking invitation…' : 'Open invitation'}
               </button>
+
+              <div className="mt-5 border-t border-stone-200/80 pt-4 text-center">
+                <p className="text-[11px] font-semibold text-stone-500">Quick Test Codes:</p>
+                <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => { setCode('CA-VENUESTAY'); void findInvitation('CA-VENUESTAY'); }}
+                    className="rounded-full bg-[#f2eae4] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#704b3d] transition hover:bg-[#e6d8ce]"
+                    title="Test VIP Stay (tag: free_venue_housing)"
+                  >
+                    CA-VENUESTAY (VIP Venue Stay)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setCode('CA-NOGIFTS01'); void findInvitation('CA-NOGIFTS01'); }}
+                    className="rounded-full bg-[#eaf0e6] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#596651] transition hover:bg-[#dbe6d5]"
+                    title="Test No Gifts (tag: presence_is_our_gift)"
+                  >
+                    CA-NOGIFTS01 (No Gifts Message)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setCode('CA-CAMABBY1'); void findInvitation('CA-CAMABBY1'); }}
+                    className="rounded-full bg-[#e8eef2] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#486375] transition hover:bg-[#d7e2e8]"
+                    title="Test Standard Attending RSVP"
+                  >
+                    CA-CAMABBY1 (Cam & Abby)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setCode('CA-DAVIES27'); void findInvitation('CA-DAVIES27'); }}
+                    className="rounded-full bg-stone-100 px-2.5 py-1 font-mono text-[10px] font-semibold text-stone-600 transition hover:bg-stone-200"
+                    title="Test Pending RSVP with multi-member checklist"
+                  >
+                    CA-DAVIES27 (Pending RSVP)
+                  </button>
+                </div>
+              </div>
             </form>
           </Reveal>
         ) : saved ? (

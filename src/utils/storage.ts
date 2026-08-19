@@ -23,7 +23,7 @@ import {
   initialWishes,
 } from '../data/initialData';
 
-const STORAGE_PREFIX = 'cam_abby_wedding_v8';
+const STORAGE_PREFIX = 'cam_abby_wedding_v9';
 
 const STORAGE_KEYS = {
   config: `${STORAGE_PREFIX}_config`,
