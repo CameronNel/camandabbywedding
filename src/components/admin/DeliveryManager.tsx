@@ -256,11 +256,14 @@ export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
       setConfirmationOpen(false);
     } catch (error) {
       if (live && attemptedRequest) setRetryRequest(attemptedRequest);
+      const rawMessage = error instanceof Error ? error.message : String(error);
+      const isFunctionMissing = rawMessage.toLowerCase().includes('not found') || rawMessage.toLowerCase().includes('functionsfetcherror') || rawMessage.toLowerCase().includes('edge function');
+      const message = isFunctionMissing
+        ? 'Live email sending requires the Supabase Edge Function with a Resend API key. To preview invitations and generate PDFs without sending real emails, click "Review delivery preview" or "Sample PDF".'
+        : (rawMessage || 'The invitation service could not process the request.');
       notify({
         tone: 'error',
-        message: live && attemptedRequest
-          ? 'The connection ended before the final send result was confirmed. Use “Retry same request” so the server can safely return the original result without duplicating messages.'
-          : error instanceof Error ? error.message : 'The invitation service could not create the preview.',
+        message,
       });
     } finally {
       setSending(false);
