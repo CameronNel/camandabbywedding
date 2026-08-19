@@ -5,6 +5,7 @@ import {
   CalendarHeart,
   Camera,
   CheckCircle2,
+  FileSpreadsheet,
   Gift,
   MailCheck,
   Settings2,
@@ -32,6 +33,7 @@ interface AdminOverviewProps {
   registry: RegistryItem[];
   deliveries: InvitationDelivery[];
   onNavigate: (section: AdminSection) => void;
+  onOpenReport?: () => void;
 }
 
 export const AdminOverview: React.FC<AdminOverviewProps> = ({
@@ -43,6 +45,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
   registry,
   deliveries,
   onNavigate,
+  onOpenReport,
 }) => {
   const attending = households.filter(household => household.rsvpStatus === 'attending');
   const pending = households.filter(household => household.rsvpStatus === 'pending');
@@ -91,6 +94,11 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           <h3 className="font-serif text-lg font-semibold text-stone-900">Quick actions</h3>
           <p className="mt-0.5 text-[11px] text-stone-500">Jump straight into the next useful task.</p>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+            {onOpenReport && (
+              <Button tone="primary" className="justify-start !bg-[#7f2540] !text-white" onClick={onOpenReport}>
+                <FileSpreadsheet className="h-4 w-4" /> View Master Wedding Report
+              </Button>
+            )}
             <Button className="justify-start" onClick={() => onNavigate('households')}><Users className="h-4 w-4" /> Add or tag guests</Button>
             <Button className="justify-start" onClick={() => onNavigate('invitations')}><CalendarHeart className="h-4 w-4" /> Prepare invitation batch</Button>
             <Button className="justify-start" onClick={() => onNavigate('gallery')}><Camera className="h-4 w-4" /> Upload photos</Button>

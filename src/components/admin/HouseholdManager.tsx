@@ -4,6 +4,7 @@ import {
   Check,
   Copy,
   Download,
+  FileSpreadsheet,
   Gift,
   Home,
   Mail,
@@ -37,6 +38,7 @@ interface HouseholdManagerProps {
   onUpdate: (id: string, updates: Partial<HouseholdInvitation>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onPreview: (household: HouseholdInvitation, variant: InvitationVariant) => void;
+  onOpenReport?: () => void;
   notify: (toast: ToastState) => void;
 }
 
@@ -126,6 +128,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
   onUpdate,
   onDelete,
   onPreview,
+  onOpenReport,
   notify,
 }) => {
   const [search, setSearch] = useState('');
@@ -288,6 +291,11 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-stone-500">One private invitation per household. Add individual members, contact details and access tags without exposing bearer invite codes publicly.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {onOpenReport && (
+            <Button onClick={onOpenReport} title="Open Complete Master Wedding Report">
+              <FileSpreadsheet className="h-4 w-4 text-[#8a2947]" /> Master Report
+            </Button>
+          )}
           <Button onClick={() => exportGuestsToCsv(households)} disabled={!households.length} title="Download CSV of all guests and RSVP details">
             <Download className="h-4 w-4" /> Export CSV
           </Button>

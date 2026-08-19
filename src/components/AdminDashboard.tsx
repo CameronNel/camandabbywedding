@@ -6,6 +6,7 @@ import {
   Camera,
   Eye,
   EyeOff,
+  FileSpreadsheet,
   Gift,
   LayoutDashboard,
   Loader2,
@@ -30,6 +31,7 @@ import { ContentManager } from './admin/ContentManager';
 import { DeliveryManager } from './admin/DeliveryManager';
 import { GalleryManager } from './admin/GalleryManager';
 import { HouseholdManager } from './admin/HouseholdManager';
+import { MasterWeddingReportModal } from './admin/MasterWeddingReportModal';
 import { SiteSettings } from './admin/SiteSettings';
 import type { ProviderStatus, ToastState } from './admin/contracts';
 
@@ -57,6 +59,7 @@ export const AdminDashboard: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<ToastState | null>(null);
   const [preview, setPreview] = useState<{ household: HouseholdInvitation; variant: InvitationVariant } | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     if (!wedding.isAdminOpen) return;
@@ -141,6 +144,15 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setReportOpen(true)}
+                  className="flex items-center gap-1.5 rounded-xl border border-[#ddbdc7] bg-[#fff8fa] px-3 py-1.5 text-xs font-semibold text-[#7f2540] shadow-sm transition hover:bg-[#ffeef3]"
+                  title="Open Complete Master Wedding, Seating & RSVP Report"
+                >
+                  <FileSpreadsheet className="h-4 w-4 text-[#8a2947]" />
+                  <span className="hidden sm:inline">Master Report</span>
+                </button>
                 <button type="button" onClick={() => void wedding.refreshData()} disabled={wedding.isLoading} className="rounded-full p-2 text-stone-500 transition hover:bg-stone-100 disabled:opacity-40" title="Refresh shared data"><RefreshCw className={`h-4 w-4 ${wedding.isLoading ? 'animate-spin' : ''}`} /></button>
                 <button type="button" onClick={() => void wedding.logoutAdmin()} className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-semibold text-stone-500 transition hover:bg-stone-100 hover:text-stone-800 sm:flex"><LogOut className="h-3.5 w-3.5" /> Log out</button>
                 <button type="button" onClick={() => wedding.setIsAdminOpen(false)} className="rounded-full p-2 text-stone-500 transition hover:bg-stone-100" aria-label="Close dashboard"><X className="h-5 w-5" /></button>
@@ -180,8 +192,8 @@ export const AdminDashboard: React.FC = () => {
                   <div className="flex min-h-[50vh] items-center justify-center"><div className="text-center"><Loader2 className="mx-auto h-7 w-7 animate-spin text-[#8a2947]" /><p className="mt-3 text-xs text-stone-500">Loading shared wedding data…</p></div></div>
                 ) : (
                   <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-                    {section === 'overview' && <AdminOverview config={wedding.config} households={wedding.households} accommodations={wedding.accommodations} services={wedding.services} gallery={wedding.galleryItems} registry={wedding.registryItems} deliveries={wedding.invitationDeliveries} onNavigate={navigate} />}
-                    {section === 'households' && <HouseholdManager config={wedding.config} households={wedding.households} selectedIds={activeSelectedIds} onSelectionChange={setSelectedIds} onCreate={async draft => { await wedding.createHousehold(draft); }} onUpdate={wedding.updateHousehold} onDelete={wedding.deleteHousehold} onPreview={(household, variant) => setPreview({ household, variant })} notify={notify} />}
+                    {section === 'overview' && <AdminOverview config={wedding.config} households={wedding.households} accommodations={wedding.accommodations} services={wedding.services} gallery={wedding.galleryItems} registry={wedding.registryItems} deliveries={wedding.invitationDeliveries} onNavigate={navigate} onOpenReport={() => setReportOpen(true)} />}
+                    {section === 'households' && <HouseholdManager config={wedding.config} households={wedding.households} selectedIds={activeSelectedIds} onSelectionChange={setSelectedIds} onCreate={async draft => { await wedding.createHousehold(draft); }} onUpdate={wedding.updateHousehold} onDelete={wedding.deleteHousehold} onPreview={(household, variant) => setPreview({ household, variant })} onOpenReport={() => setReportOpen(true)} notify={notify} />}
                     {section === 'invitations' && <DeliveryManager config={wedding.config} dataMode={wedding.dataMode} households={wedding.households} selectedIds={activeSelectedIds} onSelectionChange={setSelectedIds} templates={wedding.invitationTemplates} deliveries={wedding.invitationDeliveries} providerStatus={providerStatus} onUpsertTemplate={wedding.upsertInvitationTemplate} onSend={wedding.sendInvitations} onPreview={(household, variant) => setPreview({ household, variant })} notify={notify} />}
                     {section === 'content' && <ContentManager accommodations={wedding.accommodations} services={wedding.services} registryItems={wedding.registryItems} onAddAccommodation={async item => { await wedding.addAccommodation(item); }} onUpdateAccommodation={async (id, updates) => { await wedding.updateAccommodation(id, updates); }} onDeleteAccommodation={wedding.deleteAccommodation} onAddService={async item => { await wedding.addService(item); }} onUpdateService={wedding.updateService} onDeleteService={wedding.deleteService} onAddRegistry={async item => { await wedding.addRegistryItem(item); }} onUpdateRegistry={wedding.updateRegistryItem} onDeleteRegistry={wedding.deleteRegistryItem} notify={notify} />}
                     {section === 'gallery' && <GalleryManager items={wedding.galleryItems} onUpload={handleLocalGalleryUpload} onUpdate={wedding.updateGalleryItem} onDelete={wedding.deleteGalleryItem} notify={notify} />}
@@ -203,6 +215,13 @@ export const AdminDashboard: React.FC = () => {
           invitationType={preview.variant}
         />
       )}
+      <MasterWeddingReportModal
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        config={wedding.config}
+        households={wedding.households}
+        notify={notify}
+      />
     </div>
   );
 
