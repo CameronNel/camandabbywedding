@@ -18,15 +18,15 @@ export function Hero({ onNavigate }: HeroProps) {
   const formattedDate = site.dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(site.weddingDate);
 
   return (
-    <section id="home" className="anchor-section relative min-h-screen min-h-[100svh] overflow-hidden bg-[#272722] pt-[76px] text-white flex flex-col justify-center">
+    <section id="home" className="anchor-section relative z-10 min-h-screen min-h-[100svh] overflow-hidden bg-[#272722] pt-[76px] text-white flex flex-col justify-center">
       <img
         src={`${import.meta.env.BASE_URL}images/hero-arendsrus.jpg`}
         alt="ArendsRus Country Lodge in George"
         className="absolute inset-0 h-full w-full object-cover object-center"
         fetchPriority="high"
       />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(24,25,21,.88)_0%,rgba(24,25,21,.67)_42%,rgba(24,25,21,.2)_78%,rgba(24,25,21,.35)_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(20,21,18,.52)_0%,transparent_45%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(24,25,21,.85)_0%,rgba(24,25,21,.6)_40%,rgba(24,25,21,.05)_75%,transparent_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(20,21,18,.45)_0%,transparent_35%)]" />
 
       <div className="relative mx-auto flex w-full min-h-[calc(100svh-76px)] max-w-[1440px] items-center px-5 py-16 sm:px-8 lg:px-14">
         <div className="max-w-3xl">

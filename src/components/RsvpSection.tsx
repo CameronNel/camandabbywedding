@@ -16,6 +16,7 @@ import {
 import type { SectionId } from './Navbar';
 import { Reveal } from './Reveal';
 import { type HouseholdView, useGuestExperience } from './guestExperience';
+import { TulipDuo, TulipCorner } from './decorations/TulipAccents';
 
 interface RsvpSectionProps {
   onNavigate: (section: SectionId) => void;
@@ -193,11 +194,14 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   };
 
   return (
-    <section id="rsvp" className="anchor-section relative min-h-[calc(100svh-76px)] overflow-hidden bg-[#f8f5ef] px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
-      <div className="paper-grain absolute inset-0 opacity-50" aria-hidden="true" />
-      <div className="relative mx-auto max-w-6xl">
-        <Reveal className="mb-8 max-w-2xl">
-          <p className="eyebrow">Your invitation</p>
+    <section id="rsvp" className="anchor-section relative min-h-[calc(100svh-76px)] overflow-hidden bg-transparent px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
+      <div className="paper-grain pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
+      <div className="relative z-10 mx-auto max-w-6xl">
+        <Reveal className="relative z-10 mb-8 max-w-2xl">
+          <p className="eyebrow flex items-center gap-2">
+            <TulipDuo size={22} className="drop-shadow-sm" />
+            <span>Your invitation</span>
+          </p>
           <h2 className="section-title">Celebrate with us</h2>
           <p className="section-copy mt-5">
             Use the private code on your invitation to open your household RSVP. Each invitation only shows the guests included in that household.
@@ -205,7 +209,8 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
         </Reveal>
 
         {!household ? (
-          <Reveal delay={100} className="grid overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-[0_24px_80px_rgba(64,48,39,0.09)] lg:grid-cols-[0.78fr_1.22fr]">
+          <Reveal delay={100} className="relative z-10 grid overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-[0_24px_80px_rgba(64,48,39,0.09)] lg:grid-cols-[0.78fr_1.22fr]">
+            <TulipCorner position="top-right" className="z-10 hidden sm:block" />
             <div className="relative min-h-64 overflow-hidden bg-[#485143] p-8 text-white sm:p-10">
               <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full border border-white/10" />
               <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full border border-white/10" />
@@ -294,7 +299,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
             </form>
           </Reveal>
         ) : saved ? (
-          <Reveal className="mx-auto max-w-3xl rounded-[2rem] border border-[#aeb9a4] bg-[#eef1e9] p-8 text-center shadow-[0_20px_60px_rgba(72,81,67,0.12)] sm:p-12">
+          <Reveal className="relative z-10 mx-auto max-w-3xl rounded-[2rem] border border-[#aeb9a4] bg-[#eef1e9] p-8 text-center shadow-[0_20px_60px_rgba(72,81,67,0.12)] sm:p-12">
             <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#596651] text-white shadow-lg">
               <Check className="h-7 w-7" strokeWidth={2} />
             </span>
@@ -319,7 +324,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
             </div>
           </Reveal>
         ) : (
-          <Reveal className="grid gap-8 rounded-[2rem] border border-stone-200 bg-white p-6 shadow-[0_24px_80px_rgba(64,48,39,0.09)] sm:p-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-12">
+          <Reveal className="relative z-10 grid gap-8 rounded-[2rem] border border-stone-200 bg-white p-6 shadow-[0_24px_80px_rgba(64,48,39,0.09)] sm:p-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-12">
             <aside className="rounded-[1.5rem] bg-[#f0ebe3] p-6 sm:p-8">
               <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#704b3d]">
                 <CheckCircle2 className="h-3.5 w-3.5" /> Invitation verified

@@ -8,6 +8,8 @@ import { PhotoGallery } from './components/PhotoGallery';
 import { Registry } from './components/Registry';
 import { Footer } from './components/Footer';
 import { useGuestExperience } from './components/guestExperience';
+import { SakuraPetals } from './components/decorations/SakuraPetals';
+import { TulipDivider, PastelTulip } from './components/decorations/TulipAccents';
 
 const AdminDashboard = lazy(() =>
   import('./components/AdminDashboard').then(module => ({ default: module.AdminDashboard })),
@@ -76,12 +78,25 @@ export function AppContent() {
   return (
     <div className="min-h-screen overflow-x-clip bg-[#f8f5ef] text-stone-800">
       <a className="skip-link" href="#main-content">Skip to content</a>
+      <SakuraPetals />
       <Navbar activeSection={activeSection} onNavigate={navigate} />
-      <main id="main-content">
+      <main id="main-content" className="relative z-10">
+        {/* Floating subtle pastel tulips on wide screens along gutters */}
+        <aside aria-hidden="true" className="pointer-events-auto fixed left-4 top-1/3 z-20 hidden 2xl:block opacity-80 hover:opacity-100 transition-opacity">
+          <PastelTulip color="pink" size={38} tilt={-10} className="animate-gentle-sway drop-shadow-sm" />
+        </aside>
+        <aside aria-hidden="true" className="pointer-events-auto fixed right-4 top-2/3 z-20 hidden 2xl:block opacity-80 hover:opacity-100 transition-opacity">
+          <PastelTulip color="lavender" size={36} tilt={12} className="animate-gentle-sway-delayed drop-shadow-sm" />
+        </aside>
+
         <Hero onNavigate={navigate} />
+        <TulipDivider className="py-4" />
         <RsvpSection onNavigate={navigate} />
+        <TulipDivider className="py-4" />
         <VenueTravel onNavigate={navigate} />
+        <TulipDivider className="py-4" />
         <PhotoGallery />
+        <TulipDivider className="py-4" />
         <Registry onNavigate={navigate} />
       </main>
       <Footer onNavigate={navigate} />

@@ -69,6 +69,9 @@ function safeSave<T>(key: string, value: T): void {
 
 export function loadConfig(): WeddingConfig {
   const saved = safeLoad<Partial<WeddingConfig>>(STORAGE_KEYS.config, {});
+  if (saved.weddingDate === '2027-01-04') {
+    saved.weddingDate = '2027-08-01';
+  }
   return {
     ...initialConfig,
     ...saved,
@@ -104,8 +107,22 @@ export const saveServices = (items: WeddingService[]): void => safeSave(STORAGE_
 export const loadGallery = (): GalleryItem[] => safeLoad(STORAGE_KEYS.gallery, initialGallery);
 export const saveGallery = (items: GalleryItem[]): void => safeSave(STORAGE_KEYS.gallery, items);
 
-export const loadInvitationTemplates = (): InvitationTemplate[] =>
-  safeLoad(STORAGE_KEYS.invitationTemplates, initialInvitationTemplates);
+export const loadInvitationTemplates = (): InvitationTemplate[] => {
+  const templates = safeLoad(STORAGE_KEYS.invitationTemplates, initialInvitationTemplates);
+  return templates.map(t => {
+    if (t.body?.includes('4 January 2027')) {
+      return {
+        ...t,
+        subject: t.subject?.replace('4 January 2027', '1 August 2027') ?? t.subject,
+        body: t.body
+          .replace('Monday, 4 January 2027', 'Sunday, 1 August 2027')
+          .replace('4 January 2027', '1 August 2027')
+          .replace('Monday, the fourth of January, twenty twenty-seven', 'Sunday, the first of August, twenty twenty-seven'),
+      };
+    }
+    return t;
+  });
+};
 export const saveInvitationTemplates = (items: InvitationTemplate[]): void =>
   safeSave(STORAGE_KEYS.invitationTemplates, items);
 
@@ -256,3 +273,60 @@ export function generateIcsFile(config: WeddingConfig): void {
   link.remove();
   URL.revokeObjectURL(url);
 }
+
+export const compressImageForLocalPreview = async (
+  file: File,
+  maxDimension = 1920,
+  targetQuality = 0.82,
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read image file.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Failed to decode image. Please ensure it is a valid JPG, PNG, or WebP.'));
+      img.onload = () => {
+        try {
+          let { width, height } = img;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(String(reader.result));
+            return;
+          }
+
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+
+          let dataUrl = canvas.toDataURL('image/webp', targetQuality);
+          if (!dataUrl.startsWith('data:image/webp')) {
+            dataUrl = canvas.toDataURL('image/jpeg', targetQuality);
+          }
+
+          if (dataUrl.length > 800_000) {
+            dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+          }
+
+          resolve(dataUrl);
+        } catch {
+          resolve(String(reader.result));
+        }
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+};

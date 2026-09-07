@@ -187,6 +187,7 @@ export function useGuestExperience() {
       alt: item.altText || item.title,
       title: item.title,
       caption: item.subtitle || '',
+      category: item.category || '',
     }));
   const registryItems = context.registryItems
     .filter(item => item.published !== false)

@@ -1097,7 +1097,7 @@ values (
     'brideShortName', 'Abby',
     'groomName', 'Cameron Nel',
     'groomShortName', 'Cam',
-    'weddingDate', '2027-01-04',
+    'weddingDate', '2027-08-01',
     'timezone', 'Africa/Johannesburg',
     'rsvpDeadline', '',
     'contactEmail', '',
