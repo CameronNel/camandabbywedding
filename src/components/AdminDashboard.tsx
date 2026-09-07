@@ -24,6 +24,7 @@ import {
 import { useWedding } from '../context/WeddingContext';
 import type { GalleryItem, HouseholdInvitation } from '../types/wedding';
 import type { InvitationVariant } from '../utils/invitations';
+import { compressImageForLocalPreview } from '../utils/storage';
 import { PrintInvitationModal } from './PrintInvitationModal';
 import { AdminOverview, type AdminSection } from './admin/AdminOverview';
 import { Button, Toast, inputClass } from './admin/AdminPrimitives';
@@ -43,13 +44,6 @@ const navigation: Array<{ id: AdminSection; label: string; icon: React.ReactNode
   { id: 'gallery', label: 'Gallery', icon: <Camera className="h-4 w-4" /> },
   { id: 'settings', label: 'Site settings', icon: <Settings2 className="h-4 w-4" /> },
 ];
-
-const fileAsDataUrl = (file: File): Promise<string> => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => resolve(String(reader.result));
-  reader.onerror = () => reject(reader.error || new Error('The image could not be read.'));
-  reader.readAsDataURL(file);
-});
 
 export const AdminDashboard: React.FC = () => {
   const wedding = useWedding();
@@ -101,10 +95,10 @@ export const AdminDashboard: React.FC = () => {
       });
       return;
     }
-    if (file.size > 1_500_000) {
-      throw new Error('Local preview storage is limited to 1.5 MB per photo. Configure Supabase Storage for full-size uploads.');
+    if (file.size > 25 * 1024 * 1024) {
+      throw new Error('Please choose a photo smaller than 25 MB.');
     }
-    const src = await fileAsDataUrl(file);
+    const src = await compressImageForLocalPreview(file);
     await wedding.addGalleryItem({
       storagePath: `local-preview/${file.name}`,
       src,

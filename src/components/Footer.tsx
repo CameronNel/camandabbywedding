@@ -2,6 +2,7 @@ import { LockKeyhole, MapPin } from 'lucide-react';
 import type { SectionId } from './Navbar';
 import { useGuestExperience } from './guestExperience';
 import { formatWeddingDate, parseWeddingDate } from '../utils/dates';
+import { TulipGardenRow } from './decorations/TulipAccents';
 
 interface FooterProps {
   onNavigate: (section: SectionId) => void;
@@ -13,8 +14,11 @@ export function Footer({ onNavigate }: FooterProps) {
   const date = site.dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(site.weddingDate, { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <footer className="bg-[#242722] px-5 py-14 text-white sm:px-8">
+    <footer className="relative z-10 bg-[#242722] px-5 py-14 text-white sm:px-8">
       <div className="mx-auto max-w-[1440px]">
+        <div className="mb-10 flex justify-center opacity-85">
+          <TulipGardenRow />
+        </div>
         <div className="grid gap-10 border-b border-white/10 pb-10 md:grid-cols-[1fr_auto] md:items-end">
           <div>
             <p className="font-display text-4xl font-semibold tracking-tight">{site.groomName} <span className="font-script font-normal text-[#d9c8b4]">&amp;</span> {site.brideName}</p>

@@ -62,6 +62,9 @@ const stringArray = (value: unknown): string[] => Array.isArray(value)
 
 function normalizeConfig(value: unknown): WeddingConfig {
   const saved = value && typeof value === 'object' ? value as Partial<WeddingConfig> : {};
+  if (saved.weddingDate === '2027-01-04') {
+    saved.weddingDate = '2027-08-01';
+  }
   return {
     ...initialConfig,
     ...saved,

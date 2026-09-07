@@ -66,8 +66,8 @@ export const GalleryManager: React.FC<GalleryManagerProps> = ({ items, onUpload,
       notify({ tone: 'error', message: 'Please choose an image file.' });
       return;
     }
-    if (file.size > 15 * 1024 * 1024) {
-      notify({ tone: 'error', message: 'That photo is larger than 15 MB. Compress it before uploading.' });
+    if (file.size > 25 * 1024 * 1024) {
+      notify({ tone: 'error', message: 'That photo is larger than 25 MB. Please choose a smaller photo.' });
       return;
     }
     setSaving(true);
@@ -177,7 +177,7 @@ export const GalleryManager: React.FC<GalleryManagerProps> = ({ items, onUpload,
       <Modal open={uploadOpen} onClose={() => setUploadOpen(false)} title="Upload a gallery photo" eyebrow="Public gallery">
         <form onSubmit={saveUpload} className="space-y-4">
           <label className="block cursor-pointer rounded-2xl border-2 border-dashed border-stone-300 bg-white p-4 text-center transition hover:border-[#c78ca0] hover:bg-[#fff9fb]">
-            {previewUrl ? <img src={previewUrl} alt="Selected upload preview" className="mx-auto max-h-52 rounded-xl object-contain" /> : <><UploadCloud className="mx-auto h-8 w-8 text-stone-400" /><span className="mt-2 block text-xs font-semibold text-stone-700">Choose an image</span><span className="mt-1 block text-[10px] text-stone-400">JPG, PNG or WebP · maximum 15 MB</span></>}
+            {previewUrl ? <img src={previewUrl} alt="Selected upload preview" className="mx-auto max-h-52 rounded-xl object-contain" /> : <><UploadCloud className="mx-auto h-8 w-8 text-stone-400" /><span className="mt-2 block text-xs font-semibold text-stone-700">Choose an image</span><span className="mt-1 block text-[10px] text-stone-400">JPG, PNG or WebP · maximum 25 MB</span></>}
             <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={event => chooseFile(event.target.files?.[0] || null)} />
           </label>
           <GalleryFields draft={draft} setDraft={setDraft} />

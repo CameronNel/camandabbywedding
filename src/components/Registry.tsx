@@ -3,6 +3,7 @@ import { ArrowUpRight, Check, Copy, Gift, Heart, KeyRound, LockKeyhole } from 'l
 import type { SectionId } from './Navbar';
 import { Reveal } from './Reveal';
 import { useGuestExperience } from './guestExperience';
+import { TulipDuo, TulipTrio } from './decorations/TulipAccents';
 
 interface RegistryProps {
   onNavigate: (section: SectionId) => void;
@@ -23,12 +24,15 @@ export function Registry({ onNavigate }: RegistryProps) {
   };
 
   return (
-    <section id="gifts" className="anchor-section relative min-h-[calc(100svh-76px)] overflow-hidden bg-[#efe8df] px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
+    <section id="gifts" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-transparent px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
       <div className="absolute -right-48 -top-48 h-[34rem] w-[34rem] rounded-full border border-[#bca995]/30" aria-hidden="true" />
       <div className="absolute -bottom-64 -left-56 h-[40rem] w-[40rem] rounded-full border border-[#bca995]/25" aria-hidden="true" />
-      <div className="relative mx-auto max-w-6xl">
+      <div className="relative z-10 mx-auto max-w-6xl">
         <Reveal className="max-w-3xl">
-          <p className="eyebrow">With love</p>
+          <p className="eyebrow flex items-center gap-2">
+            <TulipDuo size={20} />
+            With love
+          </p>
           <h2 className="section-title">Gifts</h2>
           <p className="section-copy mt-5">Sharing the day with the people we love matters most. Gift details, where applicable, are private to each invitation.</p>
         </Reveal>
@@ -51,12 +55,15 @@ export function Registry({ onNavigate }: RegistryProps) {
             <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#596651] text-white">
               <Heart className="h-7 w-7 fill-current" />
             </span>
-            <p className="eyebrow mt-7 text-[#596651]">A note just for you</p>
+            <p className="eyebrow mt-7 flex items-center justify-center gap-2 text-[#596651]"><TulipDuo size={18} /> A note just for you</p>
             <h3 className="mx-auto mt-3 max-w-2xl font-display text-4xl leading-tight text-stone-800 sm:text-5xl">Your presence is the only present we want.</h3>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-stone-600">
               You have been kindly blocked from giving gifts, as having you there to celebrate with us is the greatest gift in and of itself! Please bring only yourselves and your smiles.
             </p>
-            <p className="mt-6 font-script text-3xl text-[#704b3d]">With all our love, {site.groomName} &amp; {site.brideName}</p>
+            <div className="mt-6 flex flex-col items-center gap-2">
+              <p className="font-script text-3xl text-[#704b3d]">With all our love, {site.groomName} &amp; {site.brideName}</p>
+              <TulipTrio size={36} />
+            </div>
           </Reveal>
         ) : registryItems.length ? (
           <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">

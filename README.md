@@ -1,6 +1,6 @@
 # Cam & Abby Wedding
 
-The public wedding site and private couple dashboard for Cam and Abby's wedding at ArendsRus Country Lodge on 4 January 2027.
+The public wedding site and private couple dashboard for Cam and Abby's wedding at ArendsRus Country Lodge on 1 August 2027.
 
 The frontend is React, TypeScript, Vite, and Tailwind. GitHub Pages serves the frontend; Supabase provides authentication, durable data, row-level security, photo storage, and the server function used to send invitations. Resend delivers email, while Twilio is optional for SMS and WhatsApp.
 

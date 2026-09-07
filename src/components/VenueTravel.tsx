@@ -19,6 +19,7 @@ import { type ListingView, useGuestExperience } from './guestExperience';
 import { formatWeddingDate } from '../utils/dates';
 import { useWedding } from '../context/WeddingContext';
 import { generateIcsFile } from '../utils/storage';
+import { PastelTulip } from './decorations/TulipAccents';
 
 interface VenueTravelProps {
   onNavigate: (section: SectionId) => void;
@@ -74,11 +75,14 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
   const formattedDate = site.dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(site.weddingDate);
 
   return (
-    <section id="details" className="anchor-section min-h-[calc(100svh-76px)] bg-[#fbfaf7]">
-      <div className="mx-auto max-w-[1440px] px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44 lg:px-14">
+    <section id="details" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] bg-transparent">
+      <div className="relative z-10 mx-auto max-w-[1440px] px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44 lg:px-14">
         <Reveal className="grid items-end gap-8 lg:grid-cols-[1fr_0.75fr]">
           <div>
-            <p className="eyebrow">The setting</p>
+            <p className="eyebrow flex items-center gap-2">
+              <PastelTulip color="peach" size={20} className="drop-shadow-sm" />
+              <span>The setting</span>
+            </p>
             <h2 className="section-title max-w-3xl">Our setting in George</h2>
           </div>
           <p className="section-copy lg:pb-2">
@@ -89,7 +93,7 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
         <Reveal delay={100} className="mt-8 overflow-hidden rounded-[2rem] bg-[#30342e] text-white shadow-[0_30px_90px_rgba(33,38,31,0.2)] sm:mt-10">
           <div className="grid lg:grid-cols-[1.25fr_0.75fr]">
             <div className="relative min-h-[340px] overflow-hidden sm:min-h-[460px]">
-              <img src={`${import.meta.env.BASE_URL}images/hero-arendsrus.jpg`} alt="ArendsRus Country Lodge" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+              <img src={`${import.meta.env.BASE_URL}images/arendsrus-grounds.jpg`} alt="ArendsRus Country Lodge grounds" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
             </div>
             <div className="flex flex-col justify-between p-7 sm:p-10 lg:p-12">
