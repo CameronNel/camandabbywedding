@@ -437,52 +437,6 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                 {lookupPending || loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
                 {lookupPending || loading ? 'Checking invitation…' : 'Open invitation'}
               </button>
-
-              <div className="mt-5 border-t border-stone-200/80 pt-4 text-center">
-                <p className="text-[11px] font-semibold text-stone-500">Quick Test Codes:</p>
-                <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => { setCode('Anr-658'); void findInvitation('Anr-658'); }}
-                    className="rounded-full bg-[#fdf2f4] border border-[#f1aab7] px-2.5 py-1 font-mono text-[10px] font-bold text-[#8a2947] transition hover:bg-[#fce5ea]"
-                    title="Test Custom Household Code"
-                  >
-                    Anr-658 (Anri & Henk)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setCode('Cam-101'); void findInvitation('Cam-101'); }}
-                    className="rounded-full bg-[#f6faf8] border border-[#c0dccc]/50 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#3b6b55] transition hover:bg-[#eaf4ef]"
-                    title="Test Standard Attending RSVP"
-                  >
-                    Cam-101 (Cam & Abby)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setCode('Vip-204'); void findInvitation('Vip-204'); }}
-                    className="rounded-full bg-[#fdf5f6] border border-[#e4aeb5]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#8a424e] transition hover:bg-[#fcecef]"
-                    title="Test VIP Stay (tag: free_venue_housing)"
-                  >
-                    Vip-204 (VIP Venue Stay)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setCode('Clo-305'); void findInvitation('Clo-305'); }}
-                    className="rounded-full bg-[#f4f8f5] border border-[#9bbeab]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#385e49] transition hover:bg-[#e7f1eb]"
-                    title="Test No Gifts (tag: presence_is_our_gift)"
-                  >
-                    Clo-305 (No Gifts Message)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setCode('Dav-402'); void findInvitation('Dav-402'); }}
-                    className="rounded-full bg-[#fdf5f2] border border-[#e7af9e]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#854231] transition hover:bg-[#fbe9e3]"
-                    title="Test Pending RSVP with multi-member checklist"
-                  >
-                    Dav-402 (Pending RSVP)
-                  </button>
-                </div>
-              </div>
             </form>
           </Reveal>
         ) : saved ? (

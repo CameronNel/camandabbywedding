@@ -117,9 +117,6 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
               Invitation found
             </span>
           )}
-          <button type="button" onClick={() => choose('rsvp')} className="button-primary hidden min-h-11 px-5 sm:inline-flex">
-            {activeHousehold ? 'View RSVP' : 'Find invitation'}
-          </button>
           <button
             type="button"
             className="grid h-11 w-11 place-items-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-sm lg:hidden"

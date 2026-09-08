@@ -119,7 +119,7 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
     const unseatedAttendingHouseholds = attendingHouseholds.filter(h => !h.tableNumber || !h.tableNumber.trim());
 
     // Count seated guests
-    let seatedGuestsCount = 2; // Cam & Abby at Sweetheart table
+    let seatedGuestsCount = 2; // Cam & Abby at Table 1, Seats 1 & 2
     seatedAttendingHouseholds.forEach(h => {
       const parsed = parseSeatsFromTableNumber(h.tableNumber, h.attendingCount || 1);
       const seatsCount = parsed.reduce((count, item) => count + item.seatNumbers.length, 0);
@@ -161,28 +161,28 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
   const occupiedSeatsMap = useMemo(() => {
     const map = new Map<string, SeatDetail>();
 
-    // Permanent Bride & Groom seats at Sweetheart table (T0)
-    map.set('T0-S1', {
-      tableId: 0,
-      tableName: 'C & A Sweetheart Table',
-      tableTheme: 'Bride & Groom',
+    // Cam & Abby sit with everyone else at Table 1, Seats 1 & 2 (no head table)
+    map.set('T1-S1', {
+      tableId: 1,
+      tableName: 'Table 1',
+      tableTheme: 'Protea',
       seatNumber: 1,
-      seatId: 'T0-S1',
+      seatId: 'T1-S1',
       isOccupied: true,
-      isBridal: true,
+      isBridal: false,
       occupantName: 'Cameron Nel (Groom)',
       householdName: 'Cameron & Abby',
       householdId: 'household-cam-abby',
       favour: 'Stroopwaffels',
     });
-    map.set('T0-S2', {
-      tableId: 0,
-      tableName: 'C & A Sweetheart Table',
-      tableTheme: 'Bride & Groom',
+    map.set('T1-S2', {
+      tableId: 1,
+      tableName: 'Table 1',
+      tableTheme: 'Protea',
       seatNumber: 2,
-      seatId: 'T0-S2',
+      seatId: 'T1-S2',
       isOccupied: true,
-      isBridal: true,
+      isBridal: false,
       occupantName: 'Abby (Bride)',
       householdName: 'Cameron & Abby',
       householdId: 'household-cam-abby',
@@ -671,7 +671,6 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                 className="rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-800 outline-none focus:border-[#7f2540]"
               >
                 <option value="all">All 8 Tables</option>
-                <option value="0">C &amp; A Sweetheart Table</option>
                 {TABLES.map(t => (
                   <option key={t.id} value={t.id}>
                     {t.name}: {t.theme}
@@ -706,12 +705,8 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
               {/* Map Legend */}
               <div className="flex flex-wrap items-center gap-4 py-2 text-xs text-stone-600 border-b border-stone-200/60 mb-4">
                 <div className="flex items-center gap-1.5">
-                  <span className="h-3.5 w-3.5 rounded-full bg-[#c97a8b] border border-[#8a384b]" />
-                  <span>Bride &amp; Groom (C &amp; A)</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="h-3.5 w-3.5 rounded-full bg-emerald-500 border border-emerald-700" />
-                  <span>Reserved by Guest</span>
+                  <span className="h-3.5 w-3.5 rounded-full bg-[#8fae97] border border-[#5d7f66]" />
+                  <span>Reserved by Guest (incl. Cam &amp; Abby at Table 1)</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="h-3.5 w-3.5 rounded-full bg-white border-2 border-stone-300" />
@@ -727,13 +722,9 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
               <div className="relative mx-auto w-full max-w-5xl select-none">
                 <svg viewBox="0 0 1000 730" className="w-full h-auto drop-shadow-xs" style={{ maxHeight: '760px' }}>
                   <defs>
-                    {TABLES.map(t => (
-                      <radialGradient key={t.id} id={`org-table-grad-${t.id}`} cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="#ffffff" />
-                        <stop offset="55%" stopColor={t.bgTint} />
-                        <stop offset="100%" stopColor={t.color} />
-                      </radialGradient>
-                    ))}
+                    <filter id="org-table-soft-shadow" x="-40%" y="-40%" width="180%" height="180%">
+                      <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#8a6f66" floodOpacity="0.28" />
+                    </filter>
                     <linearGradient id="org-bar-wood" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#8d6255" />
                       <stop offset="100%" stopColor="#6e473b" />
@@ -741,11 +732,6 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                     <linearGradient id="org-buffet-wood" x1="0%" y1="0%" x2="0%" y2="100%">
                       <stop offset="0%" stopColor="#7a554a" />
                       <stop offset="100%" stopColor="#5d3b32" />
-                    </linearGradient>
-                    <linearGradient id="org-ca-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#EDC9D4" />
-                      <stop offset="50%" stopColor="#ffffff" />
-                      <stop offset="100%" stopColor="#FFD3C9" />
                     </linearGradient>
                   </defs>
 
@@ -767,59 +753,6 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                     </foreignObject>
                   </g>
 
-                  {/* Bridal Sweetheart Table (C & A) */}
-                  <g className="cursor-default">
-                    <path d="M 390 40 Q 480 14, 570 40" fill="none" stroke="#d8bfc6" strokeWidth="2" strokeDasharray="4 2" />
-                    <rect x="395" y="28" width="170" height="48" rx="24" fill="url(#org-ca-grad)" stroke="#c97a8b" strokeWidth="2.5" />
-                    <text x="480" y="60" textAnchor="middle" fill="#8a384b" fontSize="22" fontWeight="bold" className="font-display tracking-widest select-none">
-                      C &amp; A
-                    </text>
-
-                    {/* Seat 1: Cam */}
-                    <g
-                      className="cursor-pointer"
-                      onMouseEnter={() =>
-                        setHoveredSeat({
-                          seatId: 'T0-S1',
-                          tableId: 0,
-                          tableName: 'C & A Sweetheart Table',
-                          seatNumber: 1,
-                          occupantName: 'Cameron Nel (Groom)',
-                          householdName: 'Cameron & Abby',
-                          favour: 'Stroopwaffels',
-                          x: 445,
-                          y: 100,
-                        })
-                      }
-                      onMouseLeave={() => setHoveredSeat(null)}
-                    >
-                      <circle cx="445" cy="100" r="14" fill="#c97a8b" stroke="#8a384b" strokeWidth="2" />
-                      <text x="445" y="104.5" textAnchor="middle" fill="#ffffff" fontSize="12" fontWeight="bold" className="select-none font-display">C</text>
-                    </g>
-
-                    {/* Seat 2: Abby */}
-                    <g
-                      className="cursor-pointer"
-                      onMouseEnter={() =>
-                        setHoveredSeat({
-                          seatId: 'T0-S2',
-                          tableId: 0,
-                          tableName: 'C & A Sweetheart Table',
-                          seatNumber: 2,
-                          occupantName: 'Abby (Bride)',
-                          householdName: 'Cameron & Abby',
-                          favour: 'Something from the netherlands',
-                          x: 515,
-                          y: 100,
-                        })
-                      }
-                      onMouseLeave={() => setHoveredSeat(null)}
-                    >
-                      <circle cx="515" cy="100" r="14" fill="#c97a8b" stroke="#8a384b" strokeWidth="2" />
-                      <text x="515" y="104.5" textAnchor="middle" fill="#ffffff" fontSize="12" fontWeight="bold" className="select-none font-display">A</text>
-                    </g>
-                  </g>
-
                   {/* Food Buffet (Right Wall) */}
                   <g className="cursor-default">
                     <rect x="925" y="26" width="48" height="605" rx="12" fill="url(#org-buffet-wood)" stroke="#4e3128" strokeWidth="2" />
@@ -830,19 +763,19 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                   </g>
 
                   {/* Dance Floor */}
-                  <g opacity="0.85" pointerEvents="none">
-                    <ellipse cx="480" cy="335" rx="105" ry="68" fill="none" stroke="#c97a8b" strokeWidth="1.8" strokeDasharray="5 5" />
-                    <text x="480" y="330" textAnchor="middle" fill="#9e475a" fontSize="13" fontWeight="bold" letterSpacing="4" className="font-display select-none uppercase">
+                  <g opacity="0.9" pointerEvents="none">
+                    <ellipse cx="480" cy="350" rx="105" ry="68" fill="#fdf2f5" fillOpacity="0.55" stroke="#dfaeb9" strokeWidth="1.8" strokeDasharray="5 5" />
+                    <text x="480" y="345" textAnchor="middle" fill="#9e475a" fontSize="13" fontWeight="bold" letterSpacing="4" className="font-display select-none uppercase">
                       DANCE FLOOR
                     </text>
-                    <Heart className="h-4 w-4 text-[#b8697a]" x="472" y="342" />
+                    <Heart className="h-4 w-4 text-[#df8b9d]" x="472" y="357" />
                   </g>
 
-                  {/* 7 Guest Tables */}
+                  {/* 8 Guest Tables */}
                   {TABLES.map(table => {
-                    const radiusOrbit = 66;
-                    const tableRadius = 43;
-                    const seatRadius = 14;
+                    const radiusOrbit = 78;
+                    const tableRadius = 50;
+                    const seatRadius = 16;
 
                     const occupiedCount = Array.from({ length: table.capacity }).filter((_, i) =>
                       occupiedSeatsMap.has(`T${table.id}-S${i + 1}`),
@@ -852,26 +785,45 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
 
                     return (
                       <g key={table.id} opacity={isHighlighted ? 1 : 0.35} className="transition-opacity">
-                        {/* Table Circle */}
+                        {/* Cottage tablecloth with a soft lifelike shadow */}
                         <circle
                           cx={table.cx}
                           cy={table.cy}
                           r={tableRadius}
-                          fill={`url(#org-table-grad-${table.id})`}
-                          stroke={isHighlighted ? '#8a384b' : table.borderTint}
-                          strokeWidth={isHighlighted ? '2.5' : '2'}
-                          className="drop-shadow-xs cursor-pointer"
+                          fill={table.bgTint}
+                          stroke={isHighlighted ? '#c47b8b' : table.borderTint}
+                          strokeWidth={isHighlighted ? '2' : '1.5'}
+                          strokeOpacity="0.85"
+                          filter="url(#org-table-soft-shadow)"
+                        />
+                        {/* Table runner ring in the table's brand tint */}
+                        <circle
+                          cx={table.cx}
+                          cy={table.cy}
+                          r={tableRadius - 12}
+                          fill="none"
+                          stroke={table.color}
+                          strokeWidth="7"
+                          opacity="0.45"
+                        />
+                        {/* Invisible click layer for table focus filter */}
+                        <circle
+                          cx={table.cx}
+                          cy={table.cy}
+                          r={tableRadius}
+                          fill="transparent"
+                          className="cursor-pointer"
                           onClick={() => setSelectedTableFilter(selectedTableFilter === table.id ? 'all' : table.id)}
                         />
 
                         {/* Table Info */}
-                        <text x={table.cx} y={table.cy - 9} textAnchor="middle" fill="#1c1917" fontSize="14" fontWeight="bold" className="font-display select-none pointer-events-none">
+                        <text x={table.cx} y={table.cy - 12} textAnchor="middle" fill="#1c1917" fontSize="15" fontWeight="bold" className="font-display select-none pointer-events-none">
                           {table.name}
                         </text>
-                        <text x={table.cx} y={table.cy + 6} textAnchor="middle" fill={table.textTint} fontSize="11" fontWeight="bold" letterSpacing="0.5" className="select-none pointer-events-none">
+                        <text x={table.cx} y={table.cy + 5} textAnchor="middle" fill={table.textTint} fontSize="10.5" fontWeight="bold" letterSpacing="0.5" className="select-none pointer-events-none" textLength={table.theme.length > 9 ? 86 : undefined} lengthAdjust="spacingAndGlyphs">
                           {table.theme}
                         </text>
-                        <text x={table.cx} y={table.cy + 20} textAnchor="middle" fill="#57534e" fontSize="10" fontWeight="600" className="select-none pointer-events-none">
+                        <text x={table.cx} y={table.cy + 21} textAnchor="middle" fill="#57534e" fontSize="10" fontWeight="600" className="select-none pointer-events-none">
                           {occupiedCount}/{table.capacity} seated
                         </text>
 
@@ -919,10 +871,9 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                                     cx={sx}
                                     cy={sy}
                                     r={seatRadius}
-                                    fill={table.id === 0 ? '#fbcfe8' : hasDietary ? '#fef08a' : '#dcfce7'}
-                                    stroke={table.id === 0 ? '#db2777' : hasDietary ? '#ca8a04' : '#16a34a'}
+                                    fill={hasDietary ? '#f7ecd2' : '#dfe9dc'}
+                                    stroke={hasDietary ? '#c9a95c' : '#8fae97'}
                                     strokeWidth="1.8"
-                                    className="transition-transform duration-150 group-hover:scale-125 origin-center"
                                   />
                                   <text
                                     x={sx}
@@ -930,7 +881,7 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                                     textAnchor="middle"
                                     fontSize="8"
                                     fontWeight="bold"
-                                    fill={table.id === 0 ? '#9d174d' : hasDietary ? '#854d0e' : '#166534'}
+                                    fill={hasDietary ? '#7a5f2a' : '#41604a'}
                                     className="select-none pointer-events-none font-mono"
                                   >
                                     {seatNum}
@@ -942,18 +893,17 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                                     cx={sx}
                                     cy={sy}
                                     r={seatRadius - 1}
-                                    fill="#f5f5f4"
-                                    stroke="#d6d3d1"
+                                    fill="#fff8fa"
+                                    stroke="#d5c3c9"
                                     strokeWidth="1.2"
                                     strokeDasharray="2 2"
-                                    className="transition-colors group-hover:fill-stone-200"
                                   />
                                   <text
                                     x={sx}
                                     y={sy + 3}
                                     textAnchor="middle"
                                     fontSize="7.5"
-                                    fill="#a8a29e"
+                                    fill="#9a8f85"
                                     className="select-none pointer-events-none font-mono"
                                   >
                                     {seatNum}
@@ -1046,53 +996,7 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
           {/* VIEW: TABLE ROSTERS (Seats 1–8 Card Breakdown) */}
           {seatingViewMode === 'roster' && (
             <div className="space-y-4">
-              {/* Sweetheart Table Card */}
-              {(selectedTableFilter === 'all' || selectedTableFilter === 0) && (
-                <div className="rounded-3xl border-2 border-pink-200 bg-gradient-to-r from-pink-50/60 via-white to-pink-50/60 p-5 shadow-xs">
-                  <div className="flex items-center justify-between border-b border-pink-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <Heart className="h-5 w-5 text-[#8a384b]" />
-                      <div>
-                        <h4 className="font-serif text-base font-bold text-stone-900">
-                          C &amp; A Sweetheart Table
-                        </h4>
-                        <p className="text-xs text-stone-500">Bride &amp; Groom Table • 2 Seats</p>
-                      </div>
-                    </div>
-                    <span className="rounded-full bg-pink-100 px-3 py-1 text-xs font-bold text-[#8a384b]">
-                      2 / 2 Occupied
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                    <div className="flex items-center justify-between rounded-2xl border border-pink-200 bg-white p-3 shadow-2xs">
-                      <div className="flex items-center gap-3">
-                        <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#8a384b] text-white font-bold text-xs">
-                          1
-                        </span>
-                        <div>
-                          <p className="text-xs font-bold text-stone-900">Cameron Nel (Groom)</p>
-                          <p className="text-[10px] text-stone-500">Party of Cameron &amp; Abby</p>
-                        </div>
-                      </div>
-                      <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] text-purple-700 font-medium">🧇 Stroopwaffels</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-2xl border border-pink-200 bg-white p-3 shadow-2xs">
-                      <div className="flex items-center gap-3">
-                        <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#8a384b] text-white font-bold text-xs">
-                          2
-                        </span>
-                        <div>
-                          <p className="text-xs font-bold text-stone-900">Abby (Bride)</p>
-                          <p className="text-[10px] text-stone-500">Party of Cameron &amp; Abby</p>
-                        </div>
-                      </div>
-                      <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] text-purple-700 font-medium">🌷 Dutch Keepsake</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 7 Guest Tables Cards */}
+              {/* 8 Guest Tables Cards (Cam & Abby sit at Table 1, Seats 1 & 2) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {TABLES.filter(t => selectedTableFilter === 'all' || selectedTableFilter === t.id).map(table => {
                   const occupiedCount = Array.from({ length: table.capacity }).filter((_, i) =>
@@ -1259,11 +1163,9 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                   {/* Reuse identical SVG in fullscreen modal */}
                   <svg viewBox="0 0 1000 730" className="w-full h-auto drop-shadow-xs" style={{ maxHeight: '82vh' }}>
                     <defs>
-                      <radialGradient id="fs-org-table-grad" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="#ffffff" />
-                        <stop offset="70%" stopColor="#fbf6f7" />
-                        <stop offset="100%" stopColor="#eddce0" />
-                      </radialGradient>
+                      <filter id="fs-org-table-soft-shadow" x="-40%" y="-40%" width="180%" height="180%">
+                        <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#8a6f66" floodOpacity="0.28" />
+                      </filter>
                       <linearGradient id="fs-org-bar-wood" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stopColor="#8d6255" />
                         <stop offset="100%" stopColor="#6e473b" />
@@ -1271,11 +1173,6 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                       <linearGradient id="fs-org-buffet-wood" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" stopColor="#7a554a" />
                         <stop offset="100%" stopColor="#5d3b32" />
-                      </linearGradient>
-                      <linearGradient id="fs-org-ca-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#fdf4f7" />
-                        <stop offset="50%" stopColor="#ffffff" />
-                        <stop offset="100%" stopColor="#fbf0f4" />
                       </linearGradient>
                     </defs>
 
@@ -1293,19 +1190,6 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                       </foreignObject>
                     </g>
 
-                    {/* Bridal C & A */}
-                    <g className="cursor-default">
-                      <path d="M 390 40 Q 480 14, 570 40" fill="none" stroke="#d8bfc6" strokeWidth="2" strokeDasharray="4 2" />
-                      <rect x="395" y="28" width="170" height="48" rx="24" fill="url(#fs-org-ca-grad)" stroke="#c97a8b" strokeWidth="2.5" />
-                      <text x="480" y="60" textAnchor="middle" fill="#8a384b" fontSize="22" fontWeight="bold" className="font-display tracking-widest select-none">
-                        C &amp; A
-                      </text>
-                      <circle cx="445" cy="100" r="14" fill="#c97a8b" stroke="#8a384b" strokeWidth="2" />
-                      <text x="445" y="104.5" textAnchor="middle" fill="#ffffff" fontSize="12" fontWeight="bold">C</text>
-                      <circle cx="515" cy="100" r="14" fill="#c97a8b" stroke="#8a384b" strokeWidth="2" />
-                      <text x="515" y="104.5" textAnchor="middle" fill="#ffffff" fontSize="12" fontWeight="bold">A</text>
-                    </g>
-
                     {/* Food Buffet */}
                     <g className="cursor-default">
                       <rect x="925" y="26" width="48" height="605" rx="12" fill="url(#fs-org-buffet-wood)" stroke="#4e3128" strokeWidth="2" />
@@ -1314,26 +1198,27 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                     </g>
 
                     {/* Dance Floor */}
-                    <g opacity="0.85" pointerEvents="none">
-                      <ellipse cx="480" cy="335" rx="105" ry="68" fill="none" stroke="#c97a8b" strokeWidth="1.8" strokeDasharray="5 5" />
-                      <text x="480" y="330" textAnchor="middle" fill="#9e475a" fontSize="13" fontWeight="bold" letterSpacing="4">DANCE FLOOR</text>
+                    <g opacity="0.9" pointerEvents="none">
+                      <ellipse cx="480" cy="350" rx="105" ry="68" fill="#fdf2f5" fillOpacity="0.55" stroke="#dfaeb9" strokeWidth="1.8" strokeDasharray="5 5" />
+                      <text x="480" y="345" textAnchor="middle" fill="#9e475a" fontSize="13" fontWeight="bold" letterSpacing="4">DANCE FLOOR</text>
                     </g>
 
-                    {/* 7 Guest Tables */}
+                    {/* 8 Guest Tables */}
                     {TABLES.map(table => {
-                      const radiusOrbit = 66;
-                      const tableRadius = 43;
-                      const seatRadius = 14;
+                      const radiusOrbit = 78;
+                      const tableRadius = 50;
+                      const seatRadius = 16;
                       const occupiedCount = Array.from({ length: table.capacity }).filter((_, i) =>
                         occupiedSeatsMap.has(`T${table.id}-S${i + 1}`),
                       ).length;
 
                       return (
                         <g key={table.id}>
-                          <circle cx={table.cx} cy={table.cy} r={tableRadius} fill="url(#fs-org-table-grad)" stroke="#8a384b" strokeWidth="2" />
-                          <text x={table.cx} y={table.cy - 9} textAnchor="middle" fill="#1c1917" fontSize="14" fontWeight="bold">{table.name}</text>
-                          <text x={table.cx} y={table.cy + 6} textAnchor="middle" fill="#9e475a" fontSize="11" fontWeight="bold">{table.theme}</text>
-                          <text x={table.cx} y={table.cy + 20} textAnchor="middle" fill="#57534e" fontSize="10" fontWeight="600">{occupiedCount}/{table.capacity}</text>
+                          <circle cx={table.cx} cy={table.cy} r={tableRadius} fill={table.bgTint} stroke={table.borderTint} strokeWidth="1.5" strokeOpacity="0.85" filter="url(#fs-org-table-soft-shadow)" />
+                          <circle cx={table.cx} cy={table.cy} r={tableRadius - 12} fill="none" stroke={table.color} strokeWidth="7" opacity="0.45" />
+                          <text x={table.cx} y={table.cy - 12} textAnchor="middle" fill="#1c1917" fontSize="15" fontWeight="bold">{table.name}</text>
+                          <text x={table.cx} y={table.cy + 5} textAnchor="middle" fill={table.textTint} fontSize="10.5" fontWeight="bold" textLength={table.theme.length > 9 ? 86 : undefined} lengthAdjust="spacingAndGlyphs">{table.theme}</text>
+                          <text x={table.cx} y={table.cy + 21} textAnchor="middle" fill="#57534e" fontSize="10" fontWeight="600">{occupiedCount}/{table.capacity}</text>
 
                           {Array.from({ length: table.capacity }).map((_, seatIdx) => {
                             const seatNum = seatIdx + 1;
@@ -1346,11 +1231,11 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                             return (
                               <g key={seatId}>
                                 {occupant ? (
-                                  <circle cx={sx} cy={sy} r={seatRadius} fill="#059669" stroke="#047857" strokeWidth="2" />
+                                  <circle cx={sx} cy={sy} r={seatRadius} fill="#8fae97" stroke="#5d7f66" strokeWidth="2" />
                                 ) : (
-                                  <circle cx={sx} cy={sy} r={seatRadius} fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.8" strokeDasharray="3 2" />
+                                  <circle cx={sx} cy={sy} r={seatRadius} fill="#fff8fa" stroke="#d5c3c9" strokeWidth="1.6" strokeDasharray="3 2" />
                                 )}
-                                <text x={sx} y={sy + 4} textAnchor="middle" fill={occupant ? '#ffffff' : '#94a3b8'} fontSize="11" fontWeight="bold">
+                                <text x={sx} y={sy + 4} textAnchor="middle" fill={occupant ? '#ffffff' : '#9a8f85'} fontSize="11" fontWeight="bold">
                                   {seatNum}
                                 </text>
                               </g>

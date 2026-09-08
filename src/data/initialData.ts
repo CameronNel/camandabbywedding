@@ -80,7 +80,7 @@ export const initialGuests: Guest[] = [
     rsvpStatus: 'attending',
     partySize: 2,
     attendingCount: 2,
-    tableNumber: 'Bridal Table (Seats 1, 2)',
+    tableNumber: 'Table 1 (Seats 1, 2)',
     isPlusOneAllowed: false,
     dietaryRestrictions: [],
     tags: [],
