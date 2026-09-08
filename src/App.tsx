@@ -76,8 +76,21 @@ export function AppContent() {
   }, []);
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-[#fcf9f9] text-stone-800">
+    <div className="relative min-h-screen overflow-x-clip bg-[#fdfbfb] text-stone-800">
       <a className="skip-link" href="#main-content">Skip to content</a>
+      {/* Dreamy Pastel Ambient Light Auras in 7 Colors */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+        {/* Dusty Rose (#EDC9D4) & Soft Peach (#FFD3C9) Top Glow */}
+        <div className="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-[#EDC9D4]/25 blur-[120px]" />
+        <div className="absolute top-[20%] -right-40 h-[560px] w-[560px] rounded-full bg-[#FFD3C9]/20 blur-[140px]" />
+        {/* Buttercream (#FFF7CF) & Matcha Sage (#E4F0C9) Middle Glow */}
+        <div className="absolute top-[45%] -left-36 h-[520px] w-[520px] rounded-full bg-[#FFF7CF]/25 blur-[130px]" />
+        <div className="absolute top-[60%] -right-32 h-[540px] w-[540px] rounded-full bg-[#E4F0C9]/20 blur-[130px]" />
+        {/* Sky Blue (#C7E0FF), Lilac (#CFCFFF) & Periwinkle (#BAC3FF) Lower Glow */}
+        <div className="absolute top-[75%] -left-28 h-[550px] w-[550px] rounded-full bg-[#C7E0FF]/20 blur-[135px]" />
+        <div className="absolute bottom-10 right-0 h-[580px] w-[580px] rounded-full bg-[#CFCFFF]/20 blur-[140px]" />
+      </div>
+
       <SakuraPetals />
       <Navbar activeSection={activeSection} onNavigate={navigate} />
       <main id="main-content" className="relative z-10">

@@ -171,9 +171,9 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
               </div>
             </div>
 
-            {/* 7 Vertical Pastel Swatches (Matching Swatch Card) */}
+            {/* 7 Cute Pastel Circles (Bouncy, Playful & Cutsey) */}
             <div className="mt-8">
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 sm:gap-3.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-5 sm:gap-4 place-items-center">
                 {WEDDING_COLOR_PALETTE.map(color => {
                   const isCopied = copiedHex === color.hex;
                   return (
@@ -181,59 +181,76 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
                       key={color.hex}
                       type="button"
                       onClick={() => handleCopyHex(color.hex)}
-                      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-200 hover:-translate-y-1.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#c97a8b] focus:ring-offset-2 cursor-pointer h-48 sm:h-56 p-3 text-left"
-                      style={{
-                        backgroundColor: color.hex,
-                        borderColor: color.borderTint,
-                      }}
+                      className="group flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-2 focus:outline-none cursor-pointer"
                       title={`Click to copy ${color.hex}`}
                     >
-                      {/* Top Label / Name */}
-                      <div className="flex items-center justify-between">
-                        <span
-                          className="rounded-lg px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-2xs backdrop-blur-xs"
+                      {/* Bouncy Pastel Circle with glossy highlight shine & floating ring */}
+                      <div className="relative">
+                        {/* Outer soft glow ring on hover */}
+                        <div
+                          className="absolute -inset-2 rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-75"
+                          style={{ backgroundColor: color.hex }}
+                        />
+
+                        {/* Main Circle */}
+                        <div
+                          className="relative flex h-24 w-24 sm:h-26 sm:w-26 md:h-28 md:w-28 items-center justify-center rounded-full border-3 shadow-[0_10px_25px_rgba(0,0,0,0.06)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_16px_35px_rgba(0,0,0,0.12)] overflow-hidden"
                           style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.88)',
-                            color: color.textTint,
+                            backgroundColor: color.hex,
+                            borderColor: color.borderTint,
                           }}
                         >
-                          {color.name}
-                        </span>
-                        <span
-                          className="grid h-6 w-6 place-items-center rounded-full bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity text-stone-700 shadow-2xs"
-                        >
-                          {isCopied ? (
-                            <CheckCheck className="h-3.5 w-3.5 text-emerald-600" />
-                          ) : (
-                            <Copy className="h-3 w-3" />
-                          )}
+                          {/* Glossy top-light reflection arc */}
+                          <div className="pointer-events-none absolute inset-x-2 top-1.5 h-7 rounded-full bg-gradient-to-b from-white/60 via-white/20 to-transparent" />
+
+                          {/* Center cute emoji & hex indicator */}
+                          <div className="flex flex-col items-center justify-center transition-transform duration-200 group-hover:scale-110">
+                            {isCopied ? (
+                              <div className="flex flex-col items-center">
+                                <CheckCheck className="h-6 w-6 text-emerald-700 animate-bounce" />
+                                <span className="text-[10px] font-bold text-emerald-800">Copied!</span>
+                              </div>
+                            ) : (
+                              <>
+                                <span className="text-2xl sm:text-3xl select-none filter drop-shadow-xs">
+                                  {color.emoji}
+                                </span>
+                                <span
+                                  className="mt-1 font-mono text-[10px] sm:text-[11px] font-extrabold tracking-wider rounded-full px-2 py-0.5 shadow-2xs backdrop-blur-xs"
+                                  style={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                                    color: color.textTint,
+                                  }}
+                                >
+                                  {color.hex.replace('#', '')}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Cute floating badge tag */}
+                        <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full border border-white bg-white text-stone-600 shadow-xs text-[11px] transition-transform duration-200 group-hover:rotate-12 group-hover:scale-110">
+                          {isCopied ? '✨' : <Copy className="h-3 w-3 text-stone-500" />}
                         </span>
                       </div>
 
-                      {/* Bottom Hex Strip (Matching User's Swatch Card) */}
-                      <div className="mt-auto">
-                        {isCopied && (
-                          <span className="mb-1 block rounded bg-stone-900/80 px-1.5 py-0.5 text-[10px] font-bold text-white text-center">
-                            Copied!
-                          </span>
-                        )}
-                        <div
-                          className="rounded-xl px-2 py-1.5 text-center font-mono text-[11px] font-bold tracking-wider backdrop-blur-sm shadow-2xs transition-colors"
-                          style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                            color: color.textTint,
-                          }}
-                        >
-                          {color.hex.replace('#', '')}
-                        </div>
-                      </div>
+                      {/* Cute Name Label below */}
+                      <span className="mt-3 block font-serif text-sm sm:text-base font-bold text-stone-800 transition-colors group-hover:text-[#c97a8b]">
+                        {color.name}
+                      </span>
+                      <span className="text-[10px] font-semibold text-stone-400">
+                        {color.hex}
+                      </span>
                     </button>
                   );
                 })}
               </div>
-              <p className="mt-4 text-center text-[11px] text-stone-400">
-                Tip: Click any color swatch to copy the hex code for your outfit planning.
-              </p>
+
+              <div className="mt-8 flex items-center justify-center gap-2 text-center text-xs text-stone-500">
+                <Sparkles className="h-3.5 w-3.5 text-[#e597a8]" />
+                <span>Tap any circle to copy its colour hex for dresses, suits, or accessories!</span>
+              </div>
             </div>
           </div>
         </Reveal>

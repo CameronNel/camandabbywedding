@@ -437,21 +437,21 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                             <span
                               className={`grid h-6 w-6 place-items-center rounded-full text-xs font-bold transition-colors ${
                                 isActive
-                                  ? 'bg-[#c97a8b] text-white shadow-sm'
+                                  ? 'bg-gradient-to-r from-[#e597a8] to-[#f7ada0] text-white shadow-sm'
                                   : isCompleted
-                                  ? 'bg-[#edf6ec] text-[#4c6b4b] border border-[#9cb59b]'
+                                  ? 'bg-[#f7faf2] text-[#4a6328] border border-[#cde1a4]'
                                   : 'bg-stone-100 text-stone-500'
                               }`}
                             >
                               {isCompleted ? <Check className="h-3.5 w-3.5 stroke-[2.5]" /> : item.step}
                             </span>
-                            <span className={`text-xs font-semibold tracking-wide ${isActive ? 'text-[#c97a8b]' : 'text-stone-700'}`}>
+                            <span className={`text-xs font-semibold tracking-wide ${isActive ? 'text-[#a84b61]' : 'text-stone-700'}`}>
                               {item.label}
                             </span>
                           </div>
                           <div
                             className={`mt-2 h-1 w-full rounded-full transition-colors ${
-                              isActive ? 'bg-[#c97a8b]' : isCompleted ? 'bg-[#9cb59b]' : 'bg-stone-200/70'
+                              isActive ? 'bg-gradient-to-r from-[#e597a8] to-[#f7ada0]' : isCompleted ? 'bg-[#cde1a4]' : 'bg-stone-200/70'
                             }`}
                           />
                         </button>

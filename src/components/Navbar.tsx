@@ -40,7 +40,7 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
   };
 
   return (
-    <header className="site-nav fixed inset-x-0 top-0 z-50 h-[76px] border-b border-pink-100/60 bg-[#fcf9f9]/[0.92] backdrop-blur-xl">
+    <header className="site-nav fixed inset-x-0 top-0 z-50 h-[76px] border-b border-[#f0d5de]/70 bg-[#fdfbfb]/[0.94] backdrop-blur-xl">
       <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <button
           type="button"
@@ -48,10 +48,10 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
           className="group flex min-w-0 items-center gap-3 rounded-full text-left focus-visible:outline-none"
           aria-label={`${site.groomName} and ${site.brideName} wedding home`}
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#d994a3]/30 bg-white font-display text-base font-semibold leading-none text-[#c97a8b] shadow-[0_6px_20px_rgba(201,122,139,0.12)] transition-transform duration-300 select-none group-hover:-rotate-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#EDC9D4] bg-gradient-to-br from-[#fff7f9] via-white to-[#fff6f4] font-display text-base font-semibold leading-none text-[#a84b61] shadow-[0_6px_20px_rgba(237,201,212,0.35)] transition-transform duration-300 select-none group-hover:-rotate-3">
             <span className="inline-flex items-center justify-center whitespace-nowrap leading-none">
               <span>{site.groomName.charAt(0)}</span>
-              <span className="mx-0.5 text-[10px] font-normal text-[#d994a3]">&amp;</span>
+              <span className="mx-0.5 text-[10px] font-normal text-[#e597a8]">&amp;</span>
               <span>{site.brideName.charAt(0)}</span>
             </span>
           </span>
@@ -80,7 +80,7 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
 
         <div className="flex shrink-0 items-center gap-2">
           {activeHousehold && (
-            <span className="hidden max-w-40 truncate rounded-full border border-[#9bb09b]/35 bg-[#eef6ed] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4c6b4a] xl:block">
+            <span className="hidden max-w-40 truncate rounded-full border border-[#cde1a4] bg-[#f7faf2] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4a6328] xl:block">
               Invitation found
             </span>
           )}

@@ -2,19 +2,20 @@ export interface PaletteColor {
   hex: string;
   name: string;
   label: string;
+  emoji: string;
   bgTint: string;
   borderTint: string;
   textTint: string;
 }
 
 export const WEDDING_COLOR_PALETTE: PaletteColor[] = [
-  { hex: '#EDC9D4', name: 'Dusty Rose', label: 'Blush / Dusty Rose', bgTint: '#fdf6f8', borderTint: '#e8b8c6', textTint: '#8a384b' },
-  { hex: '#FFD3C9', name: 'Soft Peach', label: 'Pastel Peach', bgTint: '#fff6f4', borderTint: '#f9beaf', textTint: '#8c4333' },
-  { hex: '#FFF7CF', name: 'Buttercream', label: 'Buttercream Yellow', bgTint: '#fffdf4', borderTint: '#fae996', textTint: '#7c6819' },
-  { hex: '#E4F0C9', name: 'Matcha Sage', label: 'Matcha / Soft Sage', bgTint: '#f7faf2', borderTint: '#cde1a4', textTint: '#4a6328' },
-  { hex: '#C7E0FF', name: 'Sky Blue', label: 'Pastel Sky Blue', bgTint: '#f3f8ff', borderTint: '#a9cffb', textTint: '#2b578c' },
-  { hex: '#CFCFFF', name: 'Lilac', label: 'Pastel Lavender / Lilac', bgTint: '#f6f6ff', borderTint: '#b7b7fa', textTint: '#474794' },
-  { hex: '#BAC3FF', name: 'Periwinkle', label: 'Pastel Periwinkle', bgTint: '#f3f5ff', borderTint: '#9ba9fb', textTint: '#38469a' },
+  { hex: '#EDC9D4', name: 'Dusty Rose', label: 'Blush / Dusty Rose', emoji: '🌸', bgTint: '#fdf6f8', borderTint: '#e8b8c6', textTint: '#8a384b' },
+  { hex: '#FFD3C9', name: 'Soft Peach', label: 'Pastel Peach', emoji: '🍑', bgTint: '#fff6f4', borderTint: '#f9beaf', textTint: '#8c4333' },
+  { hex: '#FFF7CF', name: 'Buttercream', label: 'Buttercream Yellow', emoji: '🌼', bgTint: '#fffdf4', borderTint: '#fae996', textTint: '#7c6819' },
+  { hex: '#E4F0C9', name: 'Matcha Sage', label: 'Matcha / Soft Sage', emoji: '🍃', bgTint: '#f7faf2', borderTint: '#cde1a4', textTint: '#4a6328' },
+  { hex: '#C7E0FF', name: 'Sky Blue', label: 'Pastel Sky Blue', emoji: '☁️', bgTint: '#f3f8ff', borderTint: '#a9cffb', textTint: '#2b578c' },
+  { hex: '#CFCFFF', name: 'Lilac', label: 'Pastel Lavender / Lilac', emoji: '🪻', bgTint: '#f6f6ff', borderTint: '#b7b7fa', textTint: '#474794' },
+  { hex: '#BAC3FF', name: 'Periwinkle', label: 'Pastel Periwinkle', emoji: '🦋', bgTint: '#f3f5ff', borderTint: '#9ba9fb', textTint: '#38469a' },
 ];
 
 export interface TableConfig {
