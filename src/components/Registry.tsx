@@ -25,8 +25,8 @@ export function Registry({ onNavigate }: RegistryProps) {
 
   return (
     <section id="gifts" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-transparent px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
-      <div className="absolute -right-48 -top-48 h-[34rem] w-[34rem] rounded-full border border-[#bca995]/30" aria-hidden="true" />
-      <div className="absolute -bottom-64 -left-56 h-[40rem] w-[40rem] rounded-full border border-[#bca995]/25" aria-hidden="true" />
+      <div className="absolute -right-48 -top-48 h-[34rem] w-[34rem] rounded-full border border-[#e3b8c3]/30" aria-hidden="true" />
+      <div className="absolute -bottom-64 -left-56 h-[40rem] w-[40rem] rounded-full border border-[#e3b8c3]/25" aria-hidden="true" />
       <div className="relative z-10 mx-auto max-w-6xl">
         <Reveal className="max-w-3xl">
           <p className="eyebrow flex items-center gap-2">
@@ -38,8 +38,8 @@ export function Registry({ onNavigate }: RegistryProps) {
         </Reveal>
 
         {!activeHousehold ? (
-          <Reveal delay={80} className="mt-8 grid overflow-hidden rounded-[2rem] border border-[#d4c7b8] bg-[#f8f5ef] shadow-[0_24px_70px_rgba(82,61,48,0.1)] sm:mt-10 md:grid-cols-[auto_1fr_auto] md:items-center">
-            <div className="grid h-full min-h-36 place-items-center bg-[#704b3d] px-9 text-[#f3e9df]">
+          <Reveal delay={80} className="mt-8 grid overflow-hidden rounded-[2rem] border border-pink-100 bg-[#fcf8fa] shadow-[0_24px_70px_rgba(201,122,139,0.08)] sm:mt-10 md:grid-cols-[auto_1fr_auto] md:items-center">
+            <div className="grid h-full min-h-36 place-items-center bg-gradient-to-br from-[#c97a8b] to-[#b8697a] px-9 text-[#fdf2f4]">
               <LockKeyhole className="h-8 w-8" />
             </div>
             <div className="p-7 sm:p-9">
@@ -51,17 +51,17 @@ export function Registry({ onNavigate }: RegistryProps) {
             </div>
           </Reveal>
         ) : activeHousehold.presenceIsOurGift ? (
-          <Reveal delay={80} className="mx-auto mt-12 max-w-4xl rounded-[2rem] border border-[#aeb9a4] bg-[#eef1e9] p-8 text-center shadow-[0_24px_70px_rgba(72,81,67,0.12)] sm:p-14">
-            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#596651] text-white">
+          <Reveal delay={80} className="mx-auto mt-12 max-w-4xl rounded-[2rem] border border-[#b8cfb6] bg-[#edf6ec] p-8 text-center shadow-[0_24px_70px_rgba(92,122,89,0.08)] sm:p-14">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#5c7a59] text-white">
               <Heart className="h-7 w-7 fill-current" />
             </span>
-            <p className="eyebrow mt-7 flex items-center justify-center gap-2 text-[#596651]"><TulipDuo size={18} /> A note just for you</p>
+            <p className="eyebrow mt-7 flex items-center justify-center gap-2 text-[#4c6b4b]"><TulipDuo size={18} /> A note just for you</p>
             <h3 className="mx-auto mt-3 max-w-2xl font-display text-4xl leading-tight text-stone-800 sm:text-5xl">Your presence is the only present we want.</h3>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-stone-600">
               You have been kindly blocked from giving gifts, as having you there to celebrate with us is the greatest gift in and of itself! Please bring only yourselves and your smiles.
             </p>
             <div className="mt-6 flex flex-col items-center gap-2">
-              <p className="font-script text-3xl text-[#704b3d]">With all our love, {site.groomName} &amp; {site.brideName}</p>
+              <p className="font-script text-3xl text-[#c97a8b]">With all our love, {site.groomName} &amp; {site.brideName}</p>
               <TulipTrio size={36} />
             </div>
           </Reveal>
@@ -69,22 +69,22 @@ export function Registry({ onNavigate }: RegistryProps) {
           <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {registryItems.map((item, index) => (
               <Reveal key={item.id} delay={Math.min(index, 3) * 60}>
-                <article className="flex h-full flex-col rounded-[1.5rem] border border-[#d4c7b8] bg-[#fdfbf7] p-7 shadow-[0_16px_50px_rgba(82,61,48,0.07)]">
-                  <span className="grid h-12 w-12 place-items-center rounded-full bg-[#f0e5da] text-[#704b3d]"><Gift className="h-5 w-5" /></span>
+                <article className="flex h-full flex-col rounded-[1.5rem] border border-pink-100/80 bg-white p-7 shadow-[0_16px_50px_rgba(201,122,139,0.05)]">
+                  <span className="grid h-12 w-12 place-items-center rounded-full bg-[#fdeef2] text-[#c97a8b]"><Gift className="h-5 w-5" /></span>
                   <h3 className="mt-6 font-display text-2xl font-semibold text-stone-800">{item.title}</h3>
                   {item.description && <p className="mt-3 text-sm leading-7 text-stone-600">{item.description}</p>}
                   <div className="mt-auto pt-6">
                     {item.accountDetails && (
-                      <div className="rounded-xl border border-stone-200 bg-white p-3">
+                      <div className="rounded-xl border border-stone-200 bg-[#fdfafb] p-3">
                         <p className="break-words font-mono text-[11px] leading-5 text-stone-600">{item.accountDetails}</p>
-                        <button type="button" onClick={() => void copyDetails(item.id, item.accountDetails)} className="mt-3 inline-flex min-h-9 items-center gap-1.5 text-xs font-semibold text-[#704b3d]">
+                        <button type="button" onClick={() => void copyDetails(item.id, item.accountDetails)} className="mt-3 inline-flex min-h-9 items-center gap-1.5 text-xs font-semibold text-[#c97a8b]">
                           {copiedId === item.id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                           {copiedId === item.id ? 'Copied' : 'Copy details'}
                         </button>
                       </div>
                     )}
                     {item.link && (
-                      <a href={item.link} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#704b3d] underline decoration-[#c7aa98] underline-offset-4">View gift option <ArrowUpRight className="h-4 w-4" /></a>
+                      <a href={item.link} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#c97a8b] underline decoration-[#e8b9c4] underline-offset-4">View gift option <ArrowUpRight className="h-4 w-4" /></a>
                     )}
                   </div>
                 </article>
@@ -92,8 +92,8 @@ export function Registry({ onNavigate }: RegistryProps) {
             ))}
           </div>
         ) : (
-          <Reveal delay={80} className="mt-12 rounded-[2rem] border border-dashed border-[#c8b8a8] bg-[#f8f5ef]/80 p-10 text-center">
-            <Gift className="mx-auto h-7 w-7 text-[#84614e]" />
+          <Reveal delay={80} className="mt-12 rounded-[2rem] border border-dashed border-pink-200 bg-[#fdfafb] p-10 text-center">
+            <Gift className="mx-auto h-7 w-7 text-[#c97a8b]" />
             <h3 className="mt-4 font-display text-3xl text-stone-800">No gift options have been published.</h3>
             <p className="mt-2 text-sm text-stone-600">If {site.groomName} and {site.brideName} add anything for your household, it will appear here.</p>
           </Reveal>

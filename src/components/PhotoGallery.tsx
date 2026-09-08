@@ -82,12 +82,12 @@ export function PhotoGallery() {
   const lightboxItem = lightboxIndex !== null ? galleryItems[lightboxIndex] : null;
 
   return (
-    <section id="gallery" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-[#343832] px-5 pt-8 pb-32 text-white sm:px-8 sm:pt-10 sm:pb-44">
+    <section id="gallery" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-[#2c242b] px-5 pt-8 pb-32 text-white sm:px-8 sm:pt-10 sm:pb-44">
       <div className="mx-auto max-w-[1440px]">
         {/* Header */}
         <Reveal className="grid items-end gap-8 lg:grid-cols-[0.72fr_1.28fr]">
           <div>
-            <p className="eyebrow flex items-center gap-2 text-[#d9c8b4]">
+            <p className="eyebrow flex items-center gap-2 text-[#f7c8d3]">
               <TulipDuo size={20} />
               <span>A few glimpses</span>
             </p>
@@ -168,7 +168,7 @@ export function PhotoGallery() {
                   {/* Small badge bottom-left of the photo */}
                   <div className="absolute bottom-5 left-5 z-30 sm:bottom-6 sm:left-6">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/50 px-3.5 py-1 text-xs font-medium tracking-wide text-white backdrop-blur-md">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#d9c8b4] animate-pulse" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#f7c8d3] animate-pulse" />
                       {String(currentIndex + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
                     </span>
                   </div>
@@ -180,7 +180,7 @@ export function PhotoGallery() {
                   <div>
                     {/* Eyebrow / Category badge */}
                     <div className="flex items-center justify-between gap-4">
-                      <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d9c8b4]">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#f7c8d3]">
                         <PastelTulip color="pink" size={15} />
                         {currentItem.category === 'venue' ? 'The Venue' : currentItem.category === 'couple' ? 'Our Moments' : (currentItem.category || 'Photograph')}
                       </span>
@@ -212,7 +212,7 @@ export function PhotoGallery() {
                       <div className="mb-6 h-1 w-full overflow-hidden rounded-full bg-white/10">
                         <div
                           key={`${currentIndex}-${isPlaying}`}
-                          className="h-full rounded-full bg-[#d9c8b4]"
+                          className="h-full rounded-full bg-[#f7c8d3]"
                           style={{
                             animation: `progressBar ${SLIDE_DURATION_MS}ms linear forwards`,
                           }}
@@ -231,7 +231,7 @@ export function PhotoGallery() {
                             onClick={() => goToSlide(idx)}
                             className={`h-2.5 rounded-full transition-all duration-300 focus-visible:outline-none ${
                               idx === currentIndex
-                                ? 'w-8 bg-[#d9c8b4]'
+                                ? 'w-8 bg-[#f7c8d3]'
                                 : 'w-2.5 bg-white/20 hover:bg-white/40'
                             }`}
                             aria-label={`Go to slide ${idx + 1}: ${item.title}`}
@@ -281,7 +281,7 @@ export function PhotoGallery() {
           </div>
         ) : (
           <div className="mt-14 rounded-[2rem] border border-white/15 bg-white/5 p-10 text-center">
-            <Images className="mx-auto h-7 w-7 text-[#d9c8b4]" />
+            <Images className="mx-auto h-7 w-7 text-[#f7c8d3]" />
             <p className="mt-4 text-sm text-white/65">The gallery is being prepared.</p>
           </div>
         )}

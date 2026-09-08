@@ -40,7 +40,7 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
   };
 
   return (
-    <header className="site-nav fixed inset-x-0 top-0 z-50 h-[76px] border-b border-white/70 bg-[#f8f5ef]/[0.92] backdrop-blur-xl">
+    <header className="site-nav fixed inset-x-0 top-0 z-50 h-[76px] border-b border-pink-100/60 bg-[#fcf9f9]/[0.92] backdrop-blur-xl">
       <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <button
           type="button"
@@ -48,10 +48,10 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
           className="group flex min-w-0 items-center gap-3 rounded-full text-left focus-visible:outline-none"
           aria-label={`${site.groomName} and ${site.brideName} wedding home`}
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#84614e]/25 bg-white font-display text-base font-semibold leading-none text-[#704b3d] shadow-[0_6px_20px_rgba(89,61,48,0.08)] transition-transform duration-300 select-none group-hover:-rotate-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#d994a3]/30 bg-white font-display text-base font-semibold leading-none text-[#c97a8b] shadow-[0_6px_20px_rgba(201,122,139,0.12)] transition-transform duration-300 select-none group-hover:-rotate-3">
             <span className="inline-flex items-center justify-center whitespace-nowrap leading-none">
               <span>{site.groomName.charAt(0)}</span>
-              <span className="mx-0.5 text-[10px] font-normal text-[#ad7a64]">&amp;</span>
+              <span className="mx-0.5 text-[10px] font-normal text-[#d994a3]">&amp;</span>
               <span>{site.brideName.charAt(0)}</span>
             </span>
           </span>
@@ -80,7 +80,7 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
 
         <div className="flex shrink-0 items-center gap-2">
           {activeHousehold && (
-            <span className="hidden max-w-40 truncate rounded-full border border-[#8d9b80]/30 bg-[#eef1e9] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#57634f] xl:block">
+            <span className="hidden max-w-40 truncate rounded-full border border-[#9bb09b]/35 bg-[#eef6ed] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4c6b4a] xl:block">
               Invitation found
             </span>
           )}
@@ -102,7 +102,7 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
 
       <div
         id="mobile-navigation"
-        className={`absolute inset-x-0 top-full border-b border-stone-200 bg-[#f8f5ef]/[0.98] px-4 pb-5 pt-3 shadow-xl backdrop-blur-xl transition-all duration-200 lg:hidden ${
+        className={`absolute inset-x-0 top-full border-b border-pink-100/70 bg-[#fcf9f9]/[0.98] px-4 pb-5 pt-3 shadow-xl backdrop-blur-xl transition-all duration-200 lg:hidden ${
           menuOpen ? 'visible translate-y-0 opacity-100' : 'invisible -translate-y-2 opacity-0'
         }`}
       >
@@ -117,7 +117,7 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
                 onClick={() => choose(item.id)}
                 aria-current={active ? 'page' : undefined}
                 className={`flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-sm font-semibold transition-colors ${
-                  active ? 'bg-[#704b3d] text-white' : 'text-stone-700 hover:bg-white'
+                  active ? 'bg-[#c97a8b] text-white shadow-md shadow-pink-200/50' : 'text-stone-700 hover:bg-white'
                 }`}
               >
                 <Icon className="h-4 w-4" />

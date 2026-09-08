@@ -29,10 +29,10 @@ function ListingCard({ item, kind }: { item: ListingView; kind: 'stay' | 'servic
   return (
     <article className="group flex h-full flex-col rounded-[1.5rem] border border-stone-200 bg-white p-6 shadow-[0_14px_45px_rgba(64,48,39,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(64,48,39,0.1)]">
       <div className="flex items-start justify-between gap-4">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#eef1e9] text-[#596651]">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#edf6ec] text-[#547552]">
           {kind === 'stay' ? <BedDouble className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
         </span>
-        <span className="rounded-full bg-[#f2ece5] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#704b3d]">
+        <span className="rounded-full bg-[#fdebf0] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#b8697a]">
           {item.priceLabel}
         </span>
       </div>
@@ -46,7 +46,7 @@ function ListingCard({ item, kind }: { item: ListingView; kind: 'stay' | 'servic
           </p>
         )}
         {item.link && (
-          <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#704b3d] underline decoration-[#c7aa98] underline-offset-4">
+          <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#c97a8b] underline decoration-[#e8b9c4] underline-offset-4">
             View details <ArrowUpRight className="h-4 w-4" />
           </a>
         )}
@@ -90,7 +90,7 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
           </p>
         </Reveal>
 
-        <Reveal delay={100} className="mt-8 overflow-hidden rounded-[2rem] bg-[#30342e] text-white shadow-[0_30px_90px_rgba(33,38,31,0.2)] sm:mt-10">
+        <Reveal delay={100} className="mt-8 overflow-hidden rounded-[2rem] bg-[#2d332d] text-white shadow-[0_30px_90px_rgba(33,38,31,0.2)] sm:mt-10">
           <div className="grid lg:grid-cols-[1.25fr_0.75fr]">
             <div className="relative min-h-[340px] overflow-hidden sm:min-h-[460px]">
               <img src={`${import.meta.env.BASE_URL}images/arendsrus-grounds.jpg`} alt="ArendsRus Country Lodge grounds" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
@@ -98,19 +98,19 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
             </div>
             <div className="flex flex-col justify-between p-7 sm:p-10 lg:p-12">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#d9c8b4]">George · Western Cape</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#f7c8d3]">George · Western Cape</p>
                 <h3 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">{site.venueName}</h3>
                 <dl className="mt-9 space-y-6 text-sm">
                   <div className="flex gap-3">
-                    <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-[#d9c8b4]" />
+                    <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-[#f7c8d3]" />
                     <div><dt className="text-white/50">Date</dt><dd className="mt-1 font-medium"><time dateTime={site.dateIsTbc ? undefined : site.weddingDate.slice(0, 10)}>{formattedDate}</time></dd></div>
                   </div>
                   <div className="flex gap-3">
-                    <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-[#d9c8b4]" />
+                    <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-[#f7c8d3]" />
                     <div><dt className="text-white/50">Times</dt><dd className="mt-1 font-medium">{site.ceremonyIsTbc || !site.ceremonyTime ? 'To be confirmed' : site.ceremonyTime}</dd></div>
                   </div>
                   <div className="flex gap-3">
-                    <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#d9c8b4]" />
+                    <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#f7c8d3]" />
                     <div><dt className="text-white/50">Location</dt><dd className="mt-1 font-medium">{site.venueAddress ? `${site.venueAddress}, ` : ''}{site.venueCity}</dd></div>
                   </div>
                 </dl>
@@ -154,22 +154,22 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
           </Reveal>
 
           {!activeHousehold ? (
-            <Reveal delay={80} className="mt-8 rounded-[2rem] border border-stone-200 bg-[#f1ece4] p-8 sm:p-10">
-              <LockKeyhole className="h-7 w-7 text-[#704b3d]" />
+            <Reveal delay={80} className="mt-8 rounded-[2rem] border border-pink-100 bg-[#fdf5f7] p-8 sm:p-10">
+              <LockKeyhole className="h-7 w-7 text-[#c97a8b]" />
               <h4 className="mt-5 font-display text-3xl text-stone-800">Private details unlock with your invitation.</h4>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-600">Accommodation and service recommendations are personalized for each attending household.</p>
               <button type="button" onClick={() => onNavigate('rsvp')} className="button-primary mt-6 min-h-11 px-6"><KeyRound className="h-4 w-4" /> Open invitation</button>
             </Reveal>
           ) : !isAttending ? (
             <Reveal delay={80} className="mt-8 rounded-[2rem] border border-stone-200 bg-white p-8 sm:p-10">
-              <Clock3 className="h-7 w-7 text-[#7a8870]" />
+              <Clock3 className="h-7 w-7 text-[#5c7a59]" />
               <h4 className="mt-5 font-display text-3xl text-stone-800">Available after an attending RSVP</h4>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-600">Confirm that someone in your household is attending to view the relevant stay and service information.</p>
               <button type="button" onClick={() => onNavigate('rsvp')} className="button-secondary mt-6 min-h-11 px-6">Review RSVP</button>
             </Reveal>
           ) : hasComplimentaryStay ? (
-            <Reveal delay={80} className="mt-8 overflow-hidden rounded-[2rem] border border-[#abb7a1] bg-[#eef1e9] p-8 sm:p-10">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#596651]"><Check className="h-3.5 w-3.5" /> Venue stay included</span>
+            <Reveal delay={80} className="mt-8 overflow-hidden rounded-[2rem] border border-[#b8cfb6] bg-[#edf6ec] p-8 sm:p-10">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#4c6b4b]"><Check className="h-3.5 w-3.5" /> Venue stay included</span>
               <h4 className="mt-5 max-w-2xl font-display text-4xl text-stone-800">Your accommodation at the venue is provided by us.</h4>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600">There is no need to book an alternative stay. Room and arrival details will be shared directly with your household.</p>
               {sortedStays.length > 0 && (

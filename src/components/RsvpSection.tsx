@@ -168,7 +168,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
             particleCount: 90,
             spread: 75,
             origin: { y: 0.6 },
-            colors: ['#704b3d', '#a87b64', '#596651', '#d9c8b4', '#e8c5b2'],
+            colors: ['#fbcfe8', '#f472b6', '#fed7aa', '#bbf7d0', '#e9d5ff', '#c97a8b'],
           });
         } catch {
           // ignore if canvas not supported
@@ -194,9 +194,8 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   };
 
   return (
-    <section id="rsvp" className="anchor-section relative min-h-[calc(100svh-76px)] overflow-hidden bg-transparent px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
-      <div className="paper-grain pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
-      <div className="relative z-10 mx-auto max-w-6xl">
+    <section id="rsvp" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-transparent px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
+      <div className="mx-auto max-w-[1440px]">
         <Reveal className="relative z-10 mb-8 max-w-2xl">
           <p className="eyebrow flex items-center gap-2">
             <TulipDuo size={22} className="drop-shadow-sm" />
@@ -211,12 +210,12 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
         {!household ? (
           <Reveal delay={100} className="relative z-10 grid overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-[0_24px_80px_rgba(64,48,39,0.09)] lg:grid-cols-[0.78fr_1.22fr]">
             <TulipCorner position="top-right" className="z-10 hidden sm:block" />
-            <div className="relative min-h-64 overflow-hidden bg-[#485143] p-8 text-white sm:p-10">
+            <div className="relative min-h-64 overflow-hidden bg-gradient-to-br from-[#6b7b68] to-[#556353] p-8 text-white sm:p-10">
               <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full border border-white/10" />
               <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full border border-white/10" />
-              <LockKeyhole className="relative h-8 w-8 text-[#d9c8b4]" />
+              <LockKeyhole className="relative h-8 w-8 text-[#fce4ec]" />
               <h3 className="relative mt-16 max-w-xs font-display text-4xl leading-tight">A private moment, made simple.</h3>
-              <p className="relative mt-4 max-w-sm text-sm leading-7 text-white/[0.68]">
+              <p className="relative mt-4 max-w-sm text-sm leading-7 text-white/[0.80]">
                 Your code securely connects you to the correct household and guest list. There is no public name search or self-registration.
               </p>
             </div>
@@ -265,7 +264,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   <button
                     type="button"
                     onClick={() => { setCode('CA-VENUESTAY'); void findInvitation('CA-VENUESTAY'); }}
-                    className="rounded-full bg-[#f2eae4] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#704b3d] transition hover:bg-[#e6d8ce]"
+                    className="rounded-full bg-[#fdebf0] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#b8697a] transition hover:bg-[#fadce5]"
                     title="Test VIP Stay (tag: free_venue_housing)"
                   >
                     CA-VENUESTAY (VIP Venue Stay)
@@ -273,7 +272,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   <button
                     type="button"
                     onClick={() => { setCode('CA-NOGIFTS01'); void findInvitation('CA-NOGIFTS01'); }}
-                    className="rounded-full bg-[#eaf0e6] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#596651] transition hover:bg-[#dbe6d5]"
+                    className="rounded-full bg-[#edf6ec] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#4c6b4b] transition hover:bg-[#dff0dd]"
                     title="Test No Gifts (tag: presence_is_our_gift)"
                   >
                     CA-NOGIFTS01 (No Gifts Message)
@@ -281,7 +280,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   <button
                     type="button"
                     onClick={() => { setCode('CA-CAMABBY1'); void findInvitation('CA-CAMABBY1'); }}
-                    className="rounded-full bg-[#e8eef2] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#486375] transition hover:bg-[#d7e2e8]"
+                    className="rounded-full bg-[#eaf2f8] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#486a85] transition hover:bg-[#dbe7f2]"
                     title="Test Standard Attending RSVP"
                   >
                     CA-CAMABBY1 (Cam & Abby)
@@ -289,7 +288,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   <button
                     type="button"
                     onClick={() => { setCode('CA-DAVIES27'); void findInvitation('CA-DAVIES27'); }}
-                    className="rounded-full bg-stone-100 px-2.5 py-1 font-mono text-[10px] font-semibold text-stone-600 transition hover:bg-stone-200"
+                    className="rounded-full bg-[#f3edf8] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#6d4e82] transition hover:bg-[#e8ddf1]"
                     title="Test Pending RSVP with multi-member checklist"
                   >
                     CA-DAVIES27 (Pending RSVP)
@@ -299,11 +298,11 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
             </form>
           </Reveal>
         ) : saved ? (
-          <Reveal className="relative z-10 mx-auto max-w-3xl rounded-[2rem] border border-[#aeb9a4] bg-[#eef1e9] p-8 text-center shadow-[0_20px_60px_rgba(72,81,67,0.12)] sm:p-12">
-            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#596651] text-white shadow-lg">
+          <Reveal className="relative z-10 mx-auto max-w-3xl rounded-[2rem] border border-[#b8cfb6] bg-[#edf6ec] p-8 text-center shadow-[0_20px_60px_rgba(76,107,75,0.08)] sm:p-12">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#5c7a59] text-white shadow-lg">
               <Check className="h-7 w-7" strokeWidth={2} />
             </span>
-            <p className="eyebrow mt-6 text-[#596651]">Response saved</p>
+            <p className="eyebrow mt-6 text-[#4c6b4b]">Response saved</p>
             <h3 className="mt-2 font-display text-4xl text-stone-800 sm:text-5xl">
               {response === 'attending' ? 'We can’t wait to welcome you.' : 'Thank you for letting us know.'}
             </h3>
@@ -325,8 +324,8 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
           </Reveal>
         ) : (
           <Reveal className="relative z-10 grid gap-8 rounded-[2rem] border border-stone-200 bg-white p-6 shadow-[0_24px_80px_rgba(64,48,39,0.09)] sm:p-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-12">
-            <aside className="rounded-[1.5rem] bg-[#f0ebe3] p-6 sm:p-8">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#704b3d]">
+            <aside className="rounded-[1.5rem] bg-[#fdf3f5] p-6 sm:p-8">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#c97a8b]">
                 <CheckCircle2 className="h-3.5 w-3.5" /> Invitation verified
               </span>
               <h3 className="mt-5 font-display text-3xl leading-tight text-stone-800">{household.name}</h3>
@@ -336,7 +335,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   : `${household.members.length} ${household.members.length === 1 ? 'guest' : 'guests'} included in this invitation.`}
               </p>
               {household.status !== 'pending' && (
-                <p className="mt-5 rounded-2xl border border-[#c9bba8] bg-white/70 px-4 py-3 text-xs leading-5 text-stone-600">
+                <p className="mt-5 rounded-2xl border border-pink-200/80 bg-white/70 px-4 py-3 text-xs leading-5 text-stone-600">
                   A response is already saved. Submitting this form will update it.
                 </p>
               )}
@@ -382,7 +381,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                             type="checkbox"
                             checked={checked}
                             onChange={() => toggleMember(member.id)}
-                            className="h-4 w-4 rounded border-stone-300 text-[#596651] focus:ring-[#7a8870]"
+                            className="h-4 w-4 rounded border-pink-200 text-[#5c7a59] focus:ring-[#9cb59b]"
                           />
                           <span className="flex-1 text-sm font-medium text-stone-700">{member.name}</span>
                           <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">{checked ? 'Attending' : 'Not attending'}</span>
@@ -392,18 +391,18 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   </div>
 
                   {household.isPlusOneAllowed && (
-                    <div className="mt-3 rounded-2xl border border-[#d9cebe] bg-[#fbf9f6] p-4 transition-all">
+                    <div className="mt-3 rounded-2xl border border-pink-100 bg-[#fdfafb] p-4 transition-all">
                       <label className="flex cursor-pointer items-center gap-3">
                         <input
                           type="checkbox"
                           checked={plusOneAttending}
                           onChange={e => setPlusOneAttending(e.target.checked)}
-                          className="h-4 w-4 rounded border-stone-300 text-[#596651] focus:ring-[#7a8870]"
+                          className="h-4 w-4 rounded border-pink-200 text-[#5c7a59] focus:ring-[#9cb59b]"
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-semibold text-stone-800">Bring a Guest (+1 Companion)</span>
-                            <span className="rounded bg-[#eedecf] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#704b3d]">+1 Included</span>
+                            <span className="rounded bg-[#fdebf0] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#b8697a]">+1 Included</span>
                           </div>
                           <p className="text-[11px] text-stone-500">Your invitation allows an accompanying guest.</p>
                         </div>
@@ -413,7 +412,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                       </label>
 
                       {plusOneAttending && (
-                        <div className="mt-3 border-t border-[#ebd8c8] pt-3">
+                        <div className="mt-3 border-t border-pink-100 pt-3">
                           <label className="block text-xs font-semibold text-stone-700">
                             Companion Full Name <span className="font-normal text-stone-400">(optional)</span>
                             <input

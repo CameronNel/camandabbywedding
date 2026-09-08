@@ -14,14 +14,14 @@ export function Footer({ onNavigate }: FooterProps) {
   const date = site.dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(site.weddingDate, { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <footer className="relative z-10 bg-[#242722] px-5 py-14 text-white sm:px-8">
+    <footer className="relative z-10 bg-[#252024] px-5 py-14 text-white sm:px-8">
       <div className="mx-auto max-w-[1440px]">
         <div className="mb-10 flex justify-center opacity-85">
           <TulipGardenRow />
         </div>
         <div className="grid gap-10 border-b border-white/10 pb-10 md:grid-cols-[1fr_auto] md:items-end">
           <div>
-            <p className="font-display text-4xl font-semibold tracking-tight">{site.groomName} <span className="font-script font-normal text-[#d9c8b4]">&amp;</span> {site.brideName}</p>
+            <p className="font-display text-4xl font-semibold tracking-tight">{site.groomName} <span className="font-script font-normal text-[#f4c2cf]">&amp;</span> {site.brideName}</p>
             <p className="mt-3 flex items-center gap-2 text-xs text-white/[0.55]"><MapPin className="h-3.5 w-3.5" /> {site.venueName}, George · {date}</p>
           </div>
           <nav className="flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold uppercase tracking-[0.14em] text-white/60" aria-label="Footer navigation">

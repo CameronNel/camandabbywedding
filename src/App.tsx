@@ -76,7 +76,7 @@ export function AppContent() {
   }, []);
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-[#f8f5ef] text-stone-800">
+    <div className="min-h-screen overflow-x-clip bg-[#fcf9f9] text-stone-800">
       <a className="skip-link" href="#main-content">Skip to content</a>
       <SakuraPetals />
       <Navbar activeSection={activeSection} onNavigate={navigate} />

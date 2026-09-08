@@ -30,19 +30,19 @@ export function Hero({ onNavigate }: HeroProps) {
 
       <div className="relative mx-auto flex w-full min-h-[calc(100svh-76px)] max-w-[1440px] items-center px-5 py-16 sm:px-8 lg:px-14">
         <div className="max-w-3xl">
-          <p className="hero-enter mb-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-[#e5d7c7]">
-            <span className="h-px w-10 bg-[#d7c2aa]" />
+          <p className="hero-enter mb-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-[#fce4ec]">
+            <span className="h-px w-10 bg-[#f8b4c4]" />
             We’re getting married
           </p>
           <h1 className="hero-enter hero-enter-delay font-display text-[clamp(4.6rem,12vw,10.5rem)] font-medium leading-[0.72] tracking-[-0.055em] text-[#fffdf8]">
             {site.groomName}
-            <span className="mx-[0.08em] inline-block font-script text-[0.54em] font-normal tracking-normal text-[#e8c5b2]">&amp;</span>
+            <span className="mx-[0.08em] inline-block font-script text-[0.54em] font-normal tracking-normal text-[#f8b4c4]">&amp;</span>
             {site.brideName}
           </h1>
 
           <div className="hero-enter hero-enter-delay-2 mt-10 grid max-w-2xl gap-5 border-y border-white/20 py-6 text-sm text-white/[0.86] sm:grid-cols-2">
             <div className="flex items-start gap-3">
-              <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-[#e8c5b2]" />
+              <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-[#f8b4c4]" />
               <div>
                 <span className="block text-[10px] font-semibold uppercase tracking-[0.22em] text-white/[0.55]">The date</span>
                 <time dateTime={site.dateIsTbc ? undefined : site.weddingDate.slice(0, 10)} className="mt-1 block font-display text-xl">{formattedDate}</time>
@@ -50,7 +50,7 @@ export function Hero({ onNavigate }: HeroProps) {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#e8c5b2]" />
+              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#f8b4c4]" />
               <div>
                 <span className="block text-[10px] font-semibold uppercase tracking-[0.22em] text-white/[0.55]">The place</span>
                 <span className="mt-1 block font-display text-xl">{site.venueName}</span>
