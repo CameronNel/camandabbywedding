@@ -89,7 +89,7 @@ export function AppContent() {
         {/* Sky Blue (#C7E0FF), Lilac (#CFCFFF) & Periwinkle (#BAC3FF) Lower Glow */}
         <div className="absolute top-[68%] -left-24 h-[670px] w-[670px] rounded-full bg-[#C7E0FF]/38 blur-[130px]" />
         <div className="absolute top-[80%] -right-20 h-[700px] w-[700px] rounded-full bg-[#CFCFFF]/42 blur-[135px]" />
-        <div className="absolute -bottom-20 left-1/3 h-[620px] w-[620px] rounded-full bg-[#BAC3FF]/38 blur-[130px]" />
+        <div className="absolute -bottom-20 left-1/3 h-[620px] w-[620px] rounded-full bg-[#E4F0C9]/45 blur-[130px]" />
       </div>
 
       <SakuraPetals />
