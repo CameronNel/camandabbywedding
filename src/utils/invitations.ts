@@ -208,12 +208,12 @@ export const createInvitationPdf = async (
     ? config.ceremonyVenue.time
     : '15:00';
 
-  // 1. Soft pastel pink background
-  pdf.setFillColor(254, 240, 244);
+  // 1. Plain clean white background
+  pdf.setFillColor(255, 255, 255);
   pdf.rect(0, 0, PDF_WIDTH, PDF_HEIGHT, 'F');
 
-  // 2. Romantic dual hairline border in soft pastel pink
-  pdf.setDrawColor(243, 178, 191);
+  // 2. Romantic dual hairline border in soft pastel pink accent
+  pdf.setDrawColor(241, 170, 183);
   pdf.setLineWidth(1.4);
   pdf.roundedRect(14, 14, PDF_WIDTH - 28, PDF_HEIGHT - 28, 8, 8, 'S');
 
@@ -329,15 +329,15 @@ export const createInvitationPdf = async (
   }
 
   // 6. Bottom Section: RSVP Box & Scannable QR Code
-  pdf.setDrawColor(246, 195, 206);
+  pdf.setDrawColor(248, 204, 213);
   pdf.setLineWidth(0.6);
   pdf.line(26, 376, PDF_WIDTH - 26, 376);
 
   if (variant === 'official') {
-    // RSVP Callout Box
-    pdf.setFillColor(255, 255, 255);
+    // RSVP Callout Box with subtle pastel pink accent
+    pdf.setFillColor(255, 248, 249);
     pdf.roundedRect(30, 386, PDF_WIDTH - 60, 24, 6, 6, 'F');
-    pdf.setDrawColor(243, 178, 191);
+    pdf.setDrawColor(241, 170, 183);
     pdf.setLineWidth(0.5);
     pdf.roundedRect(30, 386, PDF_WIDTH - 60, 24, 6, 6, 'S');
 

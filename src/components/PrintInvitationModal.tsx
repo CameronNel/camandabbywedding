@@ -185,7 +185,7 @@ const isFieldTbc = (config: Record<string, unknown>, field: string): boolean => 
       const canvas = await html2canvas(cardRef.current, {
         scale: 3,
         useCORS: true,
-        backgroundColor: '#fdebee',
+        backgroundColor: '#ffffff',
         logging: false,
       });
       const link = document.createElement('a');
@@ -342,15 +342,15 @@ const isFieldTbc = (config: Record<string, unknown>, field: string): boolean => 
               </div>
             )}
 
-            {/* Cute, Clean & Simple 5x7 Card in Dreamy Pastel Pink */}
+            {/* Cute, Clean & Simple 5x7 Card — Plain White with Pastel Pink Accents */}
             <div
               ref={cardRef}
               id="printable-invitation-card"
-              className="relative mx-auto flex aspect-[5/7] w-full max-w-[430px] flex-col overflow-hidden rounded-[1.6rem] border-2 border-[#f3b2bf] bg-gradient-to-b from-[#fff5f8] via-[#fdebee] to-[#fce4ec] p-6 text-center shadow-[0_20px_50px_-20px_rgba(180,90,110,0.3)] sm:p-8"
+              className="relative mx-auto flex aspect-[5/7] w-full max-w-[430px] flex-col overflow-hidden rounded-[1.6rem] border-[1.5px] border-[#f1aab7] bg-white p-6 text-center shadow-[0_20px_50px_-20px_rgba(70,42,35,0.15)] sm:p-8"
               style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
             >
               {/* Subtle inner hairline border in soft pastel pink */}
-              <div className="pointer-events-none absolute inset-2.5 rounded-[1.2rem] border border-[#f8ccd5]" />
+              <div className="pointer-events-none absolute inset-2.5 rounded-[1.2rem] border border-[#f8ccd5]/70" />
 
               <div className="relative z-10 flex h-full flex-col justify-between">
                 {/* TOP HEADER */}
@@ -361,14 +361,14 @@ const isFieldTbc = (config: Record<string, unknown>, field: string): boolean => 
                   </div>
 
                   <div className="mx-auto mb-1 flex items-center justify-center gap-2">
-                    <span className="h-px w-8 bg-[#f3b2bf]" />
+                    <span className="h-px w-8 bg-[#f1aab7]" />
                     <p className="font-sans text-[10px] font-bold uppercase tracking-[0.25em] text-[#9c3353]">
                       {variant === 'save-the-date' ? 'Save the Date' : 'Wedding Invitation'}
                     </p>
-                    <span className="h-px w-8 bg-[#f3b2bf]" />
+                    <span className="h-px w-8 bg-[#f1aab7]" />
                   </div>
                   {addressee && (
-                    <div className="mx-auto mt-1 inline-block rounded-full bg-white/85 border border-[#f3b2bf] px-3.5 py-0.5 font-sans text-[10px] font-bold tracking-wider text-[#9c3353] uppercase shadow-xs">
+                    <div className="mx-auto mt-1 inline-block rounded-full bg-[#fff5f7] border border-[#f1aab7]/60 px-3.5 py-0.5 font-sans text-[10px] font-bold tracking-wider text-[#9c3353] uppercase shadow-xs">
                       For {addressee}
                     </div>
                   )}
@@ -429,11 +429,11 @@ const isFieldTbc = (config: Record<string, unknown>, field: string): boolean => 
                 </div>
 
                 {/* BOTTOM SECTION */}
-                <div className="mt-auto border-t border-[#f6c3ce] pt-3 font-sans">
+                <div className="mt-auto border-t border-[#f8ccd5] pt-3 font-sans">
                   {variant === 'official' ? (
                     <>
                       {/* Explicit instruction to RSVP on website */}
-                      <div className="mb-2 rounded-xl bg-white/90 border border-[#f3b2bf] px-3 py-1.5 text-center shadow-xs">
+                      <div className="mb-2 rounded-xl bg-[#fff8f9] border border-[#f1aab7] px-3 py-1.5 text-center shadow-xs">
                         <p className="text-[11px] font-bold text-[#9c3353]">
                           ✉️ Please RSVP on our website
                         </p>
@@ -462,7 +462,7 @@ const isFieldTbc = (config: Record<string, unknown>, field: string): boolean => 
                             <img
                               src={qrDataUrl}
                               alt="Scan QR code to RSVP"
-                              className="h-16 w-16 rounded-xl bg-white p-1 border border-[#f3b2bf] shadow-xs"
+                              className="h-16 w-16 rounded-xl bg-white p-1 border border-[#f1aab7]/70 shadow-xs"
                             />
                             <p className="mt-0.5 text-[8px] font-bold text-[#9c3353]">
                               Scan to RSVP
@@ -493,7 +493,7 @@ const isFieldTbc = (config: Record<string, unknown>, field: string): boolean => 
                           <img
                             src={qrDataUrl}
                             alt="Scan QR code to visit website"
-                            className="h-16 w-16 rounded-xl bg-white p-1 border border-[#f3b2bf] shadow-xs"
+                            className="h-16 w-16 rounded-xl bg-white p-1 border border-[#f1aab7]/70 shadow-xs"
                           />
                           <p className="mt-0.5 text-[8px] font-bold text-[#9c3353]">
                             Scan to visit
