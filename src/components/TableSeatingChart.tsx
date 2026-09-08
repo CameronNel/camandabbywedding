@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Wine, Check, Users, Info, RotateCcw, Sparkles, Heart, Dices } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Wine, Check, Users, Info, RotateCcw, Sparkles, Heart, Dices, Maximize2, Minimize2 } from 'lucide-react';
 import type { HouseholdInvitation } from '../types/wedding';
 
 export interface TableConfig {
@@ -14,13 +14,13 @@ export interface TableConfig {
 
 // Exactly 7 round tables arranged in a horseshoe curve matching user's sketch
 const TABLES: TableConfig[] = [
-  { id: 1, name: 'Table 1', theme: 'Protea', cx: 170, cy: 230, capacity: 8, shape: 'round' },
-  { id: 2, name: 'Table 2', theme: 'Rose', cx: 150, cy: 415, capacity: 8, shape: 'round' },
-  { id: 3, name: 'Table 3', theme: 'Lavender', cx: 270, cy: 565, capacity: 8, shape: 'round' },
-  { id: 4, name: 'Table 4', theme: 'Fynbos', cx: 480, cy: 575, capacity: 8, shape: 'round' },
-  { id: 5, name: 'Table 5', theme: 'Outeniqua', cx: 690, cy: 565, capacity: 8, shape: 'round' },
-  { id: 6, name: 'Table 6', theme: 'Garden Route', cx: 810, cy: 415, capacity: 8, shape: 'round' },
-  { id: 7, name: 'Table 7', theme: 'Tsitsikamma', cx: 790, cy: 230, capacity: 8, shape: 'round' },
+  { id: 1, name: 'Table 1', theme: 'Protea', cx: 175, cy: 220, capacity: 8, shape: 'round' },
+  { id: 2, name: 'Table 2', theme: 'Rose', cx: 150, cy: 410, capacity: 8, shape: 'round' },
+  { id: 3, name: 'Table 3', theme: 'Lavender', cx: 270, cy: 555, capacity: 8, shape: 'round' },
+  { id: 4, name: 'Table 4', theme: 'Fynbos', cx: 480, cy: 565, capacity: 8, shape: 'round' },
+  { id: 5, name: 'Table 5', theme: 'Outeniqua', cx: 690, cy: 555, capacity: 8, shape: 'round' },
+  { id: 6, name: 'Table 6', theme: 'Garden Route', cx: 810, cy: 410, capacity: 8, shape: 'round' },
+  { id: 7, name: 'Table 7', theme: 'Tsitsikamma', cx: 785, cy: 220, capacity: 8, shape: 'round' },
 ];
 
 interface SeatOccupant {
@@ -138,7 +138,31 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
   } | null>(null);
 
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+  // Keyboard shortcut (Escape) to exit full-screen view
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
+
+  // Lock background scrolling when full screen is active
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isFullscreen]);
 
   // Build the map of occupied seats from all OTHER households
   const occupiedSeatsMap = useMemo(() => {
@@ -301,6 +325,551 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
 
   const seatsRemaining = Math.max(0, attendingCount - selectedSeatIds.length);
 
+  const renderFloorPlanContent = (isModal = false) => (
+    <div className={`relative mx-auto w-full ${isModal ? 'max-w-6xl' : 'max-w-5xl'} select-none`}>
+      {/* Top-Right Full Screen / Minimize Button */}
+      {!isModal ? (
+        <button
+          type="button"
+          onClick={() => setIsFullscreen(true)}
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 inline-flex items-center gap-1.5 rounded-xl border border-stone-200/90 bg-white/95 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:text-[#b8697a] hover:bg-white hover:border-pink-200 shadow-xs backdrop-blur-xs transition cursor-pointer"
+          title="Open Seating Chart in Full Screen"
+        >
+          <Maximize2 className="h-3.5 w-3.5 text-[#b8697a]" />
+          <span className="hidden sm:inline">Full Screen View</span>
+          <span className="sm:hidden">Full Screen</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsFullscreen(false)}
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20 inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white/95 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:text-stone-950 hover:bg-white shadow-xs backdrop-blur-xs transition cursor-pointer"
+          title="Exit Full Screen View"
+        >
+          <Minimize2 className="h-3.5 w-3.5 text-[#b8697a]" />
+          <span>Exit Full Screen</span>
+        </button>
+      )}
+
+      <svg
+        viewBox="0 0 1000 730"
+        className="w-full h-auto drop-shadow-xs"
+        style={{ maxHeight: isModal ? '78vh' : '780px' }}
+      >
+        <defs>
+          <filter id={`glow-rose${isModal ? '-m' : ''}`} x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+          <radialGradient id={`table-grad${isModal ? '-m' : ''}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="70%" stopColor="#fbf6f7" />
+            <stop offset="100%" stopColor="#eddce0" />
+          </radialGradient>
+          <linearGradient id={`bar-wood${isModal ? '-m' : ''}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#8d6255" />
+            <stop offset="100%" stopColor="#6e473b" />
+          </linearGradient>
+          <linearGradient id={`buffet-wood${isModal ? '-m' : ''}`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#7a554a" />
+            <stop offset="100%" stopColor="#5d3b32" />
+          </linearGradient>
+          <linearGradient id={`ca-table-grad${isModal ? '-m' : ''}`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#fdf4f7" />
+            <stop offset="50%" stopColor="#ffffff" />
+            <stop offset="100%" stopColor="#fbf0f4" />
+          </linearGradient>
+        </defs>
+
+        {/* ROOM BOUNDARY OUTLINE */}
+        <rect
+          x="18"
+          y="18"
+          width="964"
+          height="662"
+          rx="24"
+          fill="none"
+          stroke="#e2cbd1"
+          strokeWidth="2"
+          strokeDasharray="6 4"
+        />
+
+        {/* 1. TOP-LEFT BAR (Matching sketch - clean with generous clearance, no stool circles) */}
+        <g className="cursor-default">
+          <rect
+            x="28"
+            y="24"
+            width="148"
+            height="56"
+            rx="10"
+            fill={`url(#bar-wood${isModal ? '-m' : ''})`}
+            stroke="#57362c"
+            strokeWidth="2"
+            className="drop-shadow-sm"
+          />
+          <rect
+            x="33"
+            y="29"
+            width="138"
+            height="46"
+            rx="7"
+            fill="#faf2ee"
+            stroke="#c7a79a"
+            strokeWidth="1.2"
+          />
+          <foreignObject x="34" y="30" width="136" height="44">
+            <div className="flex h-full flex-col items-center justify-center text-center text-[#57362c]">
+              <div className="flex items-center gap-1.5 font-display text-sm font-bold tracking-wide text-[#3b231c]">
+                <Wine className="h-3.5 w-3.5 text-[#8d6255]" />
+                <span>Bar</span>
+              </div>
+              <span className="text-[9.5px] uppercase font-bold text-[#5c382d] tracking-wider">
+                Drinks &amp; Refreshments
+              </span>
+            </div>
+          </foreignObject>
+        </g>
+
+        {/* 2. BRIDAL TABLE: "C & A" (Top Center, Sweetheart Table with 2 Seats for Cam & Abby) */}
+        <g className="cursor-default">
+          {/* Romantic floral arch above table */}
+          <path
+            d="M 390 40 Q 480 14, 570 40"
+            fill="none"
+            stroke="#d8bfc6"
+            strokeWidth="2"
+            strokeDasharray="4 2"
+          />
+          {/* Table Top (Pill matching "C & A" in sketch) */}
+          <rect
+            x="395"
+            y="28"
+            width="170"
+            height="48"
+            rx="24"
+            fill={`url(#ca-table-grad${isModal ? '-m' : ''})`}
+            stroke="#c97a8b"
+            strokeWidth="2.5"
+            className="drop-shadow-sm"
+          />
+          {/* "C & A" Lettering (Matching user's sketch) */}
+          <text
+            x="480"
+            y="60"
+            textAnchor="middle"
+            fill="#8a384b"
+            fontSize="22"
+            fontWeight="bold"
+            className="font-display tracking-widest select-none"
+          >
+            C &amp; A
+          </text>
+
+          {/* Cam's Seat (Seat 1) */}
+          <g
+            className="cursor-pointer"
+            onClick={() => handleSeatClick(0, 1)}
+            onMouseEnter={() =>
+              setHoveredSeat({
+                id: 'T0-S1',
+                tableId: 0,
+                tableName: 'C & A Sweetheart Table',
+                seatNumber: 1,
+                x: 445,
+                y: 100,
+                status: 'bridal',
+                occupantName: 'Cameron Nel (Groom)',
+              })
+            }
+            onMouseLeave={() => setHoveredSeat(null)}
+          >
+            <circle cx="445" cy="100" r="14" fill="#c97a8b" stroke="#8a384b" strokeWidth="2" />
+            <text
+              x="445"
+              y="104.5"
+              textAnchor="middle"
+              fill="#ffffff"
+              fontSize="12"
+              fontWeight="bold"
+              className="font-display select-none"
+            >
+              C
+            </text>
+          </g>
+
+          {/* Abby's Seat (Seat 2) */}
+          <g
+            className="cursor-pointer"
+            onClick={() => handleSeatClick(0, 2)}
+            onMouseEnter={() =>
+              setHoveredSeat({
+                id: 'T0-S2',
+                tableId: 0,
+                tableName: 'C & A Sweetheart Table',
+                seatNumber: 2,
+                x: 515,
+                y: 100,
+                status: 'bridal',
+                occupantName: 'Abby (Bride)',
+              })
+            }
+            onMouseLeave={() => setHoveredSeat(null)}
+          >
+            <circle cx="515" cy="100" r="14" fill="#c97a8b" stroke="#8a384b" strokeWidth="2" />
+            <text
+              x="515"
+              y="104.5"
+              textAnchor="middle"
+              fill="#ffffff"
+              fontSize="12"
+              fontWeight="bold"
+              className="font-display select-none"
+            >
+              A
+            </text>
+          </g>
+        </g>
+
+        {/* 3. RIGHT WALL: FOOD BUFFET (Matching sketch - well-spaced platters with clear space for label) */}
+        <g className="cursor-default">
+          <rect
+            x="925"
+            y="26"
+            width="48"
+            height="605"
+            rx="12"
+            fill={`url(#buffet-wood${isModal ? '-m' : ''})`}
+            stroke="#4e3128"
+            strokeWidth="2"
+            className="drop-shadow-sm"
+          />
+          <rect
+            x="930"
+            y="31"
+            width="38"
+            height="595"
+            rx="8"
+            fill="#faf2ee"
+            stroke="#cfb0a3"
+            strokeWidth="1.2"
+          />
+          {/* Buffet platter motifs top */}
+          <ellipse cx="949" cy="90" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+          <ellipse cx="949" cy="165" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+
+          {/* Decorative separator line above FOOD label */}
+          <line x1="937" y1="230" x2="961" y2="230" stroke="#cfb0a3" strokeWidth="1.2" strokeDasharray="3 2" />
+
+          {/* Vertical Food Label */}
+          <text
+            x="949"
+            y="328"
+            fill="#3b231c"
+            fontSize="17"
+            fontWeight="bold"
+            letterSpacing="6"
+            textAnchor="middle"
+            transform="rotate(90, 949, 328)"
+            className="font-display select-none uppercase"
+          >
+            FOOD
+          </text>
+
+          {/* Decorative separator line below FOOD label */}
+          <line x1="937" y1="426" x2="961" y2="426" stroke="#cfb0a3" strokeWidth="1.2" strokeDasharray="3 2" />
+
+          {/* Buffet platter motifs bottom */}
+          <ellipse cx="949" cy="490" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+          <ellipse cx="949" cy="565" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+        </g>
+
+        {/* 4. DANCE FLOOR (In the middle of the horseshoe) */}
+        <g opacity="0.85" pointerEvents="none">
+          <ellipse
+            cx="480"
+            cy="335"
+            rx="105"
+            ry="68"
+            fill="none"
+            stroke="#c97a8b"
+            strokeWidth="1.8"
+            strokeDasharray="5 5"
+          />
+          <text
+            x="480"
+            y="330"
+            textAnchor="middle"
+            fill="#9e475a"
+            fontSize="13"
+            fontWeight="bold"
+            letterSpacing="4"
+            className="font-display select-none uppercase"
+          >
+            DANCE FLOOR
+          </text>
+          <Heart className="h-4 w-4 text-[#b8697a]" x="472" y="342" />
+        </g>
+
+        {/* 5. SEVEN ROUND BANQUET TABLES (Arranged in U-shape horseshoe from sketch) */}
+        {TABLES.map(table => {
+          const radiusOrbit = 66;
+          const tableRadius = 43;
+          const seatRadius = 14;
+
+          const occupiedAtTable = Array.from({ length: table.capacity }).filter((_, i) =>
+            occupiedSeatsMap.has(`T${table.id}-S${i + 1}`),
+          ).length;
+          const selectedAtTable = Array.from({ length: table.capacity }).filter((_, i) =>
+            selectedSeatIds.includes(`T${table.id}-S${i + 1}`),
+          ).length;
+
+          return (
+            <g key={table.id}>
+              {/* Table Surface */}
+              <circle
+                cx={table.cx}
+                cy={table.cy}
+                r={tableRadius}
+                fill={`url(#table-grad${isModal ? '-m' : ''})`}
+                stroke="#bca1a8"
+                strokeWidth="1.8"
+                className="drop-shadow-xs"
+              />
+
+              {/* Floral Inner Ring */}
+              <circle
+                cx={table.cx}
+                cy={table.cy}
+                r={tableRadius - 13}
+                fill="none"
+                stroke="#eedee2"
+                strokeWidth="1.2"
+                strokeDasharray="3 2"
+              />
+
+              {/* Table Label */}
+              <text
+                x={table.cx}
+                y={table.cy - 9}
+                textAnchor="middle"
+                fill="#1c1917"
+                fontSize="14"
+                fontWeight="bold"
+                className="font-display select-none"
+              >
+                {table.name}
+              </text>
+              <text
+                x={table.cx}
+                y={table.cy + 6}
+                textAnchor="middle"
+                fill="#9e475a"
+                fontSize="11"
+                fontWeight="bold"
+                letterSpacing="0.5"
+                className="select-none"
+              >
+                {table.theme}
+              </text>
+              <text
+                x={table.cx}
+                y={table.cy + 20}
+                textAnchor="middle"
+                fill="#57534e"
+                fontSize="10"
+                fontWeight="600"
+                className="select-none"
+              >
+                {occupiedAtTable + selectedAtTable}/{table.capacity}
+              </text>
+
+              {/* 8 SEATS AROUND EACH TABLE (at 45 degree intervals) */}
+              {Array.from({ length: table.capacity }).map((_, seatIdx) => {
+                const seatNum = seatIdx + 1;
+                const seatId = `T${table.id}-S${seatNum}`;
+                const angle = (seatIdx * 45 - 90) * (Math.PI / 180);
+                const sx = table.cx + radiusOrbit * Math.cos(angle);
+                const sy = table.cy + radiusOrbit * Math.sin(angle);
+
+                const isOccupied = occupiedSeatsMap.has(seatId);
+                const occupant = occupiedSeatsMap.get(seatId);
+                const isSelected = selectedSeatIds.includes(seatId);
+
+                const selectedIndex = selectedSeatIds.indexOf(seatId);
+                const assignedMemberName = isSelected
+                  ? attendingMembers[selectedIndex] || `Guest ${selectedIndex + 1}`
+                  : undefined;
+
+                return (
+                  <g
+                    key={seatId}
+                    className="group cursor-pointer transition-transform duration-150"
+                    onClick={() => handleSeatClick(table.id, seatNum)}
+                    onMouseEnter={() =>
+                      setHoveredSeat({
+                        id: seatId,
+                        tableId: table.id,
+                        tableName: table.name,
+                        seatNumber: seatNum,
+                        x: sx,
+                        y: sy,
+                        status: isSelected ? 'selected' : isOccupied ? 'occupied' : 'available',
+                        occupantName: isSelected
+                          ? assignedMemberName
+                          : isOccupied
+                            ? occupant?.householdName
+                            : undefined,
+                      })
+                    }
+                    onMouseLeave={() => setHoveredSeat(null)}
+                  >
+                    <circle cx={sx} cy={sy} r={seatRadius + 7} fill="transparent" />
+
+                    {isSelected ? (
+                      <g filter={`url(#glow-rose${isModal ? '-m' : ''})`}>
+                        <circle
+                          cx={sx}
+                          cy={sy}
+                          r={seatRadius}
+                          fill="#c97a8b"
+                          stroke="#8a384b"
+                          strokeWidth="2.5"
+                        />
+                        <Check
+                          className="h-3.5 w-3.5 text-white pointer-events-none"
+                          x={sx - 7}
+                          y={sy - 7}
+                        />
+                      </g>
+                    ) : isOccupied ? (
+                      <g>
+                        <circle
+                          cx={sx}
+                          cy={sy}
+                          r={seatRadius}
+                          fill="#f1f5f9"
+                          stroke="#94a3b8"
+                          strokeWidth="1.5"
+                        />
+                        <text
+                          x={sx}
+                          y={sy + 4}
+                          textAnchor="middle"
+                          fill="#475569"
+                          fontSize="12"
+                          fontWeight="bold"
+                          className="select-none pointer-events-none font-mono"
+                        >
+                          ×
+                        </text>
+                      </g>
+                    ) : (
+                      <g>
+                        <circle
+                          cx={sx}
+                          cy={sy}
+                          r={seatRadius}
+                          fill="#ffffff"
+                          stroke="#a88890"
+                          strokeWidth="1.8"
+                          className="group-hover:fill-[#fcebf0] group-hover:stroke-[#c97a8b] transition-colors"
+                        />
+                        <text
+                          x={sx}
+                          y={sy + 4}
+                          textAnchor="middle"
+                          fill="#1c1917"
+                          fontSize="11"
+                          fontWeight="bold"
+                          className="select-none pointer-events-none font-mono group-hover:fill-[#b8697a]"
+                        >
+                          {seatNum}
+                        </text>
+                      </g>
+                    )}
+                  </g>
+                );
+              })}
+            </g>
+          );
+        })}
+
+        {/* ENTRANCE INDICATION & GARDEN PATIO (Clear architectural doorway pill box) */}
+        <g>
+          <rect
+            x="300"
+            y="665"
+            width="360"
+            height="34"
+            rx="12"
+            fill="#ffffff"
+            stroke="#cfb0a3"
+            strokeWidth="1.8"
+            className="drop-shadow-xs"
+          />
+          <text
+            x="480"
+            y="687"
+            textAnchor="middle"
+            fill="#523933"
+            fontSize="11"
+            fontWeight="bold"
+            letterSpacing="3"
+            className="uppercase select-none font-display"
+          >
+            ▼ MAIN ENTRANCE &amp; GARDEN PATIO ▼
+          </text>
+        </g>
+      </svg>
+
+      {/* Hover Tooltip Overlay */}
+      {hoveredSeat && (
+        <div
+          className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-full pb-3 animate-in fade-in zoom-in-95 duration-150"
+          style={{
+            left: `${(hoveredSeat.x / 1000) * 100}%`,
+            top: `${(hoveredSeat.y / 730) * 100}%`,
+          }}
+        >
+          <div className="rounded-xl border border-stone-200/80 bg-stone-900/90 backdrop-blur-md px-3 py-2 text-center text-white shadow-xl min-w-[150px]">
+            <p className="text-[11px] font-bold text-pink-200">
+              {hoveredSeat.tableName} • Seat {hoveredSeat.seatNumber}
+            </p>
+            {hoveredSeat.status === 'bridal' ? (
+              <div className="mt-0.5">
+                <p className="text-xs font-semibold text-pink-300 flex items-center justify-center gap-1">
+                  <Heart className="h-3 w-3 text-pink-400" />
+                  {hoveredSeat.occupantName}
+                </p>
+                <p className="text-[9px] text-stone-300">Bride &amp; Groom Table</p>
+              </div>
+            ) : hoveredSeat.status === 'selected' ? (
+              <div className="mt-0.5">
+                <p className="text-xs font-semibold text-white flex items-center justify-center gap-1">
+                  <Check className="h-3 w-3 text-pink-400" />
+                  {hoveredSeat.occupantName || 'Your Party'}
+                </p>
+                <p className="text-[9px] text-stone-300">Click to unselect</p>
+              </div>
+            ) : hoveredSeat.status === 'occupied' ? (
+              <div className="mt-0.5">
+                <p className="text-[10px] text-stone-400 uppercase tracking-wider">Reserved by</p>
+                <p className="text-xs font-semibold text-amber-200">
+                  {hoveredSeat.occupantName}
+                </p>
+              </div>
+            ) : (
+              <div className="mt-0.5">
+                <p className="text-xs font-medium text-emerald-300">Available</p>
+                <p className="text-[9px] text-stone-300">Click to choose seat</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Header & Instructions */}
@@ -367,7 +936,17 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
             <span className="font-medium text-stone-700">Cam &amp; Abby (Bride &amp; Groom)</span>
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-3">
+            {viewMode === 'map' && (
+              <button
+                type="button"
+                onClick={() => setIsFullscreen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-pink-200 bg-white px-3 py-1 text-[11px] font-semibold text-[#b8697a] hover:bg-pink-50 shadow-2xs cursor-pointer transition"
+              >
+                <Maximize2 className="h-3 w-3" />
+                <span>Full Screen</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')}
@@ -402,524 +981,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
           {/* Subtle room floor watermark */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#eedade_1px,transparent_1px)] [background-size:20px_20px] opacity-40" />
 
-          {/* SVG Map Container */}
-          <div className="relative mx-auto w-full max-w-5xl select-none">
-            <svg
-              viewBox="0 0 1000 700"
-              className="w-full h-auto drop-shadow-xs"
-              style={{ maxHeight: '720px' }}
-            >
-              <defs>
-                <filter id="glow-rose" x="-30%" y="-30%" width="160%" height="160%">
-                  <feGaussianBlur stdDeviation="3" result="blur" />
-                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                </filter>
-                <radialGradient id="table-grad" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#ffffff" />
-                  <stop offset="70%" stopColor="#fbf6f7" />
-                  <stop offset="100%" stopColor="#eddce0" />
-                </radialGradient>
-                <linearGradient id="bar-wood" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#8d6255" />
-                  <stop offset="100%" stopColor="#6e473b" />
-                </linearGradient>
-                <linearGradient id="buffet-wood" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#7a554a" />
-                  <stop offset="100%" stopColor="#5d3b32" />
-                </linearGradient>
-                <linearGradient id="ca-table-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#fdf4f7" />
-                  <stop offset="50%" stopColor="#ffffff" />
-                  <stop offset="100%" stopColor="#fbf0f4" />
-                </linearGradient>
-              </defs>
-
-              {/* ROOM BOUNDARY OUTLINE */}
-              <rect
-                x="18"
-                y="18"
-                width="964"
-                height="664"
-                rx="24"
-                fill="none"
-                stroke="#e2cbd1"
-                strokeWidth="2.5"
-                strokeDasharray="6 4"
-              />
-
-              {/* 1. TOP-LEFT BAR (Matching sketch - clean with generous clearance, no stool circles) */}
-              <g className="cursor-default">
-                <rect
-                  x="28"
-                  y="24"
-                  width="148"
-                  height="56"
-                  rx="10"
-                  fill="url(#bar-wood)"
-                  stroke="#57362c"
-                  strokeWidth="2"
-                  className="drop-shadow-sm"
-                />
-                <rect
-                  x="33"
-                  y="29"
-                  width="138"
-                  height="46"
-                  rx="7"
-                  fill="#faf2ee"
-                  stroke="#c7a79a"
-                  strokeWidth="1.2"
-                />
-                <foreignObject x="34" y="30" width="136" height="44">
-                  <div className="flex h-full flex-col items-center justify-center text-center text-[#57362c]">
-                    <div className="flex items-center gap-1.5 font-display text-xs sm:text-sm font-bold tracking-wide">
-                      <Wine className="h-3.5 w-3.5 text-[#8d6255]" />
-                      <span>Bar</span>
-                    </div>
-                    <span className="text-[8.5px] uppercase font-semibold text-[#8d6255]/80 tracking-wider">
-                      Drinks &amp; Refreshments
-                    </span>
-                  </div>
-                </foreignObject>
-              </g>
-
-              {/* 2. BRIDAL TABLE: "C & A" (Top Center, Sweetheart Table with 2 Seats for Cam & Abby) */}
-              <g className="cursor-default">
-                {/* Romantic floral arch above table */}
-                <path
-                  d="M 390 42 Q 480 14, 570 42"
-                  fill="none"
-                  stroke="#d8bfc6"
-                  strokeWidth="2"
-                  strokeDasharray="4 2"
-                />
-                {/* Table Top (Pill matching "C & A" in sketch) */}
-                <rect
-                  x="400"
-                  y="32"
-                  width="160"
-                  height="46"
-                  rx="23"
-                  fill="url(#ca-table-grad)"
-                  stroke="#c97a8b"
-                  strokeWidth="2.5"
-                  className="drop-shadow-sm"
-                />
-                {/* "C & A" Lettering (Matching user's sketch) */}
-                <text
-                  x="480"
-                  y="61"
-                  textAnchor="middle"
-                  fill="#9e475a"
-                  fontSize="20"
-                  fontWeight="bold"
-                  className="font-display tracking-widest select-none"
-                >
-                  C &amp; A
-                </text>
-
-                {/* Cam's Seat (Seat 1) */}
-                <g
-                  className="cursor-pointer"
-                  onClick={() => handleSeatClick(0, 1)}
-                  onMouseEnter={() =>
-                    setHoveredSeat({
-                      id: 'T0-S1',
-                      tableId: 0,
-                      tableName: 'C & A Sweetheart Table',
-                      seatNumber: 1,
-                      x: 450,
-                      y: 100,
-                      status: 'bridal',
-                      occupantName: 'Cameron Nel (Groom)',
-                    })
-                  }
-                  onMouseLeave={() => setHoveredSeat(null)}
-                >
-                  <circle cx="450" cy="100" r="13" fill="#c97a8b" stroke="#9e475a" strokeWidth="2" />
-                  <text
-                    x="450"
-                    y="104"
-                    textAnchor="middle"
-                    fill="#ffffff"
-                    fontSize="10"
-                    fontWeight="bold"
-                    className="font-display select-none"
-                  >
-                    C
-                  </text>
-                </g>
-
-                {/* Abby's Seat (Seat 2) */}
-                <g
-                  className="cursor-pointer"
-                  onClick={() => handleSeatClick(0, 2)}
-                  onMouseEnter={() =>
-                    setHoveredSeat({
-                      id: 'T0-S2',
-                      tableId: 0,
-                      tableName: 'C & A Sweetheart Table',
-                      seatNumber: 2,
-                      x: 510,
-                      y: 100,
-                      status: 'bridal',
-                      occupantName: 'Abby (Bride)',
-                    })
-                  }
-                  onMouseLeave={() => setHoveredSeat(null)}
-                >
-                  <circle cx="510" cy="100" r="13" fill="#c97a8b" stroke="#9e475a" strokeWidth="2" />
-                  <text
-                    x="510"
-                    y="104"
-                    textAnchor="middle"
-                    fill="#ffffff"
-                    fontSize="10"
-                    fontWeight="bold"
-                    className="font-display select-none"
-                  >
-                    A
-                  </text>
-                </g>
-                <text
-                  x="480"
-                  y="122"
-                  textAnchor="middle"
-                  fill="#b8697a"
-                  fontSize="9"
-                  fontWeight="600"
-                  className="select-none tracking-wide"
-                >
-                  Cam &amp; Abby 💕
-                </text>
-              </g>
-
-              {/* 3. RIGHT WALL: FOOD BUFFET (Matching sketch - well-spaced platters with clear space for label) */}
-              <g className="cursor-default">
-                <rect
-                  x="925"
-                  y="26"
-                  width="48"
-                  height="605"
-                  rx="12"
-                  fill="url(#buffet-wood)"
-                  stroke="#4e3128"
-                  strokeWidth="2"
-                  className="drop-shadow-sm"
-                />
-                <rect
-                  x="930"
-                  y="31"
-                  width="38"
-                  height="595"
-                  rx="8"
-                  fill="#faf2ee"
-                  stroke="#cfb0a3"
-                  strokeWidth="1.2"
-                />
-                {/* Buffet platter motifs top */}
-                <ellipse cx="949" cy="90" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
-                <ellipse cx="949" cy="165" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
-
-                {/* Decorative separator line above FOOD label */}
-                <line x1="937" y1="230" x2="961" y2="230" stroke="#cfb0a3" strokeWidth="1.2" strokeDasharray="3 2" />
-
-                {/* Vertical Food Label - completely clear dedicated zone, zero overlap */}
-                <text
-                  x="949"
-                  y="328"
-                  fill="#5d3b32"
-                  fontSize="16"
-                  fontWeight="bold"
-                  letterSpacing="6"
-                  textAnchor="middle"
-                  transform="rotate(90, 949, 328)"
-                  className="font-display select-none uppercase"
-                >
-                  FOOD
-                </text>
-
-                {/* Decorative separator line below FOOD label */}
-                <line x1="937" y1="426" x2="961" y2="426" stroke="#cfb0a3" strokeWidth="1.2" strokeDasharray="3 2" />
-
-                {/* Buffet platter motifs bottom */}
-                <ellipse cx="949" cy="490" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
-                <ellipse cx="949" cy="565" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
-              </g>
-
-              {/* 4. DANCE FLOOR (In the middle of the horseshoe) */}
-              <g opacity="0.35" pointerEvents="none">
-                <ellipse
-                  cx="480"
-                  cy="335"
-                  rx="100"
-                  ry="65"
-                  fill="none"
-                  stroke="#c97a8b"
-                  strokeWidth="1.5"
-                  strokeDasharray="4 4"
-                />
-                <text
-                  x="480"
-                  y="330"
-                  textAnchor="middle"
-                  fill="#b8697a"
-                  fontSize="11"
-                  fontWeight="bold"
-                  letterSpacing="3"
-                  className="font-display select-none uppercase"
-                >
-                  DANCE FLOOR
-                </text>
-                <Heart className="h-4 w-4 text-[#c97a8b]" x="472" y="342" />
-              </g>
-
-              {/* 5. SEVEN ROUND BANQUET TABLES (Arranged in U-shape horseshoe from sketch) */}
-              {TABLES.map(table => {
-                const radiusOrbit = 62;
-                const tableRadius = 39;
-                const seatRadius = 13;
-
-                const occupiedAtTable = Array.from({ length: table.capacity }).filter((_, i) =>
-                  occupiedSeatsMap.has(`T${table.id}-S${i + 1}`),
-                ).length;
-                const selectedAtTable = Array.from({ length: table.capacity }).filter((_, i) =>
-                  selectedSeatIds.includes(`T${table.id}-S${i + 1}`),
-                ).length;
-
-                return (
-                  <g key={table.id}>
-                    {/* Table Surface */}
-                    <circle
-                      cx={table.cx}
-                      cy={table.cy}
-                      r={tableRadius}
-                      fill="url(#table-grad)"
-                      stroke="#bca1a8"
-                      strokeWidth="1.5"
-                      className="drop-shadow-xs"
-                    />
-
-                    {/* Floral Inner Ring */}
-                    <circle
-                      cx={table.cx}
-                      cy={table.cy}
-                      r={tableRadius - 14}
-                      fill="none"
-                      stroke="#eedee2"
-                      strokeWidth="1.2"
-                      strokeDasharray="3 2"
-                    />
-
-                    {/* Table Label */}
-                    <text
-                      x={table.cx}
-                      y={table.cy - 7}
-                      textAnchor="middle"
-                      fill="#3d2c31"
-                      fontSize="12"
-                      fontWeight="bold"
-                      className="font-display select-none"
-                    >
-                      {table.name}
-                    </text>
-                    <text
-                      x={table.cx}
-                      y={table.cy + 6}
-                      textAnchor="middle"
-                      fill="#b8697a"
-                      fontSize="9"
-                      fontWeight="600"
-                      className="select-none tracking-wide"
-                    >
-                      {table.theme}
-                    </text>
-                    <text
-                      x={table.cx}
-                      y={table.cy + 19}
-                      textAnchor="middle"
-                      fill="#786469"
-                      fontSize="8"
-                      fontWeight="500"
-                      className="select-none"
-                    >
-                      {occupiedAtTable + selectedAtTable}/{table.capacity}
-                    </text>
-
-                    {/* 8 SEATS AROUND EACH TABLE (at 45 degree intervals) */}
-                    {Array.from({ length: table.capacity }).map((_, seatIdx) => {
-                      const seatNum = seatIdx + 1;
-                      const seatId = `T${table.id}-S${seatNum}`;
-                      const angle = (seatIdx * 45 - 90) * (Math.PI / 180);
-                      const sx = table.cx + radiusOrbit * Math.cos(angle);
-                      const sy = table.cy + radiusOrbit * Math.sin(angle);
-
-                      const isOccupied = occupiedSeatsMap.has(seatId);
-                      const occupant = occupiedSeatsMap.get(seatId);
-                      const isSelected = selectedSeatIds.includes(seatId);
-
-                      const selectedIndex = selectedSeatIds.indexOf(seatId);
-                      const assignedMemberName = isSelected
-                        ? attendingMembers[selectedIndex] || `Guest ${selectedIndex + 1}`
-                        : undefined;
-
-                      return (
-                        <g
-                          key={seatId}
-                          className="group cursor-pointer transition-transform duration-150"
-                          onClick={() => handleSeatClick(table.id, seatNum)}
-                          onMouseEnter={() =>
-                            setHoveredSeat({
-                              id: seatId,
-                              tableId: table.id,
-                              tableName: table.name,
-                              seatNumber: seatNum,
-                              x: sx,
-                              y: sy,
-                              status: isSelected ? 'selected' : isOccupied ? 'occupied' : 'available',
-                              occupantName: isSelected
-                                ? assignedMemberName
-                                : isOccupied
-                                  ? occupant?.householdName
-                                  : undefined,
-                            })
-                          }
-                          onMouseLeave={() => setHoveredSeat(null)}
-                        >
-                          <circle cx={sx} cy={sy} r={seatRadius + 7} fill="transparent" />
-
-                          {isSelected ? (
-                            <g filter="url(#glow-rose)">
-                              <circle
-                                cx={sx}
-                                cy={sy}
-                                r={seatRadius}
-                                fill="#c97a8b"
-                                stroke="#9e475a"
-                                strokeWidth="2.5"
-                              />
-                              <Check
-                                className="h-3 w-3 text-white pointer-events-none"
-                                x={sx - 6}
-                                y={sy - 6}
-                              />
-                            </g>
-                          ) : isOccupied ? (
-                            <g>
-                              <circle
-                                cx={sx}
-                                cy={sy}
-                                r={seatRadius}
-                                fill="#e2e8f0"
-                                stroke="#cbd5e1"
-                                strokeWidth="1.5"
-                              />
-                              <text
-                                x={sx}
-                                y={sy + 3.5}
-                                textAnchor="middle"
-                                fill="#64748b"
-                                fontSize="9"
-                                fontWeight="bold"
-                                className="select-none pointer-events-none font-mono"
-                              >
-                                ×
-                              </text>
-                            </g>
-                          ) : (
-                            <g>
-                              <circle
-                                cx={sx}
-                                cy={sy}
-                                r={seatRadius}
-                                fill="#ffffff"
-                                stroke="#dfcbd0"
-                                strokeWidth="2"
-                                className="group-hover:fill-[#fcebf0] group-hover:stroke-[#c97a8b] transition-colors"
-                              />
-                              <text
-                                x={sx}
-                                y={sy + 3.5}
-                                textAnchor="middle"
-                                fill="#8a6f75"
-                                fontSize="9"
-                                fontWeight="600"
-                                className="select-none pointer-events-none font-mono group-hover:fill-[#b8697a]"
-                              >
-                                {seatNum}
-                              </text>
-                            </g>
-                          )}
-                        </g>
-                      );
-                    })}
-                  </g>
-                );
-              })}
-
-              {/* ENTRANCE INDICATION */}
-              <g opacity="0.6">
-                <text
-                  x="480"
-                  y="684"
-                  textAnchor="middle"
-                  fill="#786469"
-                  fontSize="10"
-                  fontWeight="bold"
-                  letterSpacing="3"
-                  className="uppercase select-none font-display"
-                >
-                  ▼ MAIN ENTRANCE &amp; GARDEN PATIO ▼
-                </text>
-              </g>
-            </svg>
-
-            {/* Hover Tooltip Overlay */}
-            {hoveredSeat && (
-              <div
-                className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full pb-3 animate-in fade-in zoom-in-95 duration-150"
-                style={{
-                  left: `${(hoveredSeat.x / 1000) * 100}%`,
-                  top: `${(hoveredSeat.y / 700) * 100}%`,
-                }}
-              >
-                <div className="rounded-xl border border-stone-200/80 bg-stone-900/90 backdrop-blur-md px-3 py-2 text-center text-white shadow-xl min-w-[150px]">
-                  <p className="text-[11px] font-bold text-pink-200">
-                    {hoveredSeat.tableName} • Seat {hoveredSeat.seatNumber}
-                  </p>
-                  {hoveredSeat.status === 'bridal' ? (
-                    <div className="mt-0.5">
-                      <p className="text-xs font-semibold text-pink-300 flex items-center justify-center gap-1">
-                        <Heart className="h-3 w-3 text-pink-400" />
-                        {hoveredSeat.occupantName}
-                      </p>
-                      <p className="text-[9px] text-stone-300">Bride &amp; Groom Table</p>
-                    </div>
-                  ) : hoveredSeat.status === 'selected' ? (
-                    <div className="mt-0.5">
-                      <p className="text-xs font-semibold text-white flex items-center justify-center gap-1">
-                        <Check className="h-3 w-3 text-pink-400" />
-                        {hoveredSeat.occupantName || 'Your Party'}
-                      </p>
-                      <p className="text-[9px] text-stone-300">Click to unselect</p>
-                    </div>
-                  ) : hoveredSeat.status === 'occupied' ? (
-                    <div className="mt-0.5">
-                      <p className="text-[10px] text-stone-400 uppercase tracking-wider">Reserved by</p>
-                      <p className="text-xs font-semibold text-amber-200">
-                        {hoveredSeat.occupantName}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mt-0.5">
-                      <p className="text-xs font-medium text-emerald-300">Available</p>
-                      <p className="text-[9px] text-stone-300">Click to choose seat</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          {renderFloorPlanContent(false)}
         </div>
       )}
 
@@ -1143,6 +1205,58 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
           </button>
         </div>
       </div>
+
+      {/* FULL-SCREEN MODAL OVERLAY */}
+      {isFullscreen && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col bg-stone-950/85 backdrop-blur-md p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full screen seating chart"
+        >
+          {/* Modal Header */}
+          <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 pb-3 text-white">
+            <div className="flex items-center gap-2.5">
+              <div className="rounded-full bg-pink-500/20 p-2 text-pink-300">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="font-display text-base sm:text-lg font-bold text-white leading-tight">
+                  Arendsrus Dining Room Seating
+                </h3>
+                <p className="text-[11px] text-stone-300">
+                  Click seats to choose where your party will sit
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-pink-400/30 bg-pink-950/60 px-3.5 py-1 text-xs text-pink-200">
+                <Users className="h-3.5 w-3.5" />
+                <span>Party: <strong>{attendingCount}</strong></span>
+                <span className="text-pink-400/50">•</span>
+                <span>{selectedSeatIds.length} of {attendingCount} chosen</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsFullscreen(false)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-stone-600 bg-stone-800 hover:bg-stone-700 px-3.5 py-2 text-xs font-semibold text-white shadow-md cursor-pointer transition"
+              >
+                <Minimize2 className="h-4 w-4 text-pink-300" />
+                <span>Exit Full Screen</span>
+                <kbd className="hidden md:inline-block ml-1 rounded bg-stone-900 px-1.5 py-0.5 text-[10px] text-stone-400">Esc</kbd>
+              </button>
+            </div>
+          </div>
+
+          {/* Modal Map Card */}
+          <div className="relative mx-auto my-auto w-full max-w-6xl overflow-hidden rounded-3xl border border-[#e8d5d9] bg-gradient-to-br from-[#faf6f7] via-[#fffdfd] to-[#f8f2f4] p-3 sm:p-6 shadow-2xl">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#eedade_1px,transparent_1px)] [background-size:20px_20px] opacity-40" />
+            {renderFloorPlanContent(true)}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
