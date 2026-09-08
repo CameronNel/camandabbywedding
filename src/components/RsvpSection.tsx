@@ -48,7 +48,7 @@ const WEDDING_FAVOUR_OPTIONS = [
   {
     id: 'Nothing',
     label: 'Nothing',
-    description: 'Your presence is the only gift we need!',
+    description: "We don't want anything",
     emoji: '🤍',
   },
 ] as const;
