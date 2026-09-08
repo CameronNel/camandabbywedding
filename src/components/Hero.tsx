@@ -18,63 +18,66 @@ export function Hero({ onNavigate }: HeroProps) {
   const formattedDate = site.dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(site.weddingDate);
 
   return (
-    <section id="home" className="anchor-section relative z-10 min-h-screen min-h-[100svh] overflow-hidden bg-[#faf3f5] pt-[76px] text-stone-800 flex flex-col justify-center">
+    <section id="home" className="anchor-section relative z-10 min-h-screen min-h-[100svh] overflow-hidden bg-[#1a1c18] pt-[76px] text-white flex flex-col justify-center">
       <img
         src={`${import.meta.env.BASE_URL}images/hero-arendsrus.jpg`}
         alt="ArendsRus Country Lodge in George"
         className="absolute inset-0 h-full w-full object-cover object-center"
         fetchPriority="high"
       />
+      {/* Natural cinematic left shadow to make typography crystal clear while fountain & garden stay bright */}
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(18,20,16,0.82)_0%,rgba(18,20,16,0.58)_36%,rgba(18,20,16,0.12)_68%,transparent_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(16,18,14,0.45)_0%,transparent_32%)]" />
 
-      <div className="relative mx-auto flex w-full min-h-[calc(100svh-76px)] max-w-[1440px] items-center px-5 py-16 sm:px-8 lg:px-14">
-        <div className="max-w-3xl">
-          <p className="hero-enter mb-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-[#8a384b] drop-shadow-[0_1px_8px_rgba(255,255,255,0.9)]">
-            <span className="h-px w-10 bg-[#e597a8]" />
+      <div className="relative mx-auto flex w-full min-h-[calc(100svh-76px)] max-w-[1440px] items-center px-5 py-14 sm:px-8 lg:px-14">
+        <div className="max-w-2xl">
+          <p className="hero-enter mb-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-[#fce4ec]">
+            <span className="h-px w-10 bg-[#f8b4c4]" />
             We’re getting married
           </p>
-          <h1 className="hero-enter hero-enter-delay font-display text-[clamp(4.6rem,12vw,10.5rem)] font-medium leading-[0.72] tracking-[-0.055em] text-stone-900 drop-shadow-[0_2px_24px_rgba(255,255,255,0.85)]">
+          <h1 className="hero-enter hero-enter-delay font-display text-[clamp(4.2rem,11vw,9.5rem)] font-medium leading-[0.74] tracking-[-0.055em] text-[#fffdf8] drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]">
             {site.groomName}
-            <span className="mx-[0.08em] inline-block font-script text-[0.54em] font-normal tracking-normal text-[#c97a8b] drop-shadow-none">&amp;</span>
+            <span className="mx-[0.08em] inline-block font-script text-[0.54em] font-normal tracking-normal text-[#f8b4c4]">&amp;</span>
             {site.brideName}
           </h1>
 
-          <div className="hero-enter hero-enter-delay-2 mt-10 grid max-w-2xl gap-5 rounded-2xl border-2 border-[#eed5dc] bg-white/85 p-6 backdrop-blur-md shadow-[0_12px_32px_rgba(0,0,0,0.1)] sm:grid-cols-2">
+          <div className="hero-enter hero-enter-delay-2 mt-8 grid max-w-xl gap-5 border-y border-white/25 py-5 text-sm sm:grid-cols-2">
             <div className="flex items-start gap-3.5">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fdeef2] text-[#b85b73] shadow-xs">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15 text-[#f8b4c4] backdrop-blur-xs">
                 <CalendarDays className="h-5 w-5" />
               </div>
               <div>
-                <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#8a384b]">The date</span>
-                <time dateTime={site.dateIsTbc ? undefined : site.weddingDate.slice(0, 10)} className="mt-1 block font-display text-xl font-bold text-stone-900">{formattedDate}</time>
-                <span className="mt-0.5 block text-xs font-medium text-stone-600">{site.ceremonyIsTbc || !site.ceremonyTime ? 'Ceremony time to be confirmed' : site.ceremonyTime}</span>
+                <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#f8b4c4]">The date</span>
+                <time dateTime={site.dateIsTbc ? undefined : site.weddingDate.slice(0, 10)} className="mt-0.5 block font-display text-xl font-medium text-white">{formattedDate}</time>
+                <span className="mt-0.5 block text-xs text-white/75">{site.ceremonyIsTbc || !site.ceremonyTime ? 'Ceremony time to be confirmed' : site.ceremonyTime}</span>
               </div>
             </div>
             <div className="flex items-start gap-3.5">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#edf5e6] text-[#4a6b2c] shadow-xs">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15 text-[#e4f0c9] backdrop-blur-xs">
                 <MapPin className="h-5 w-5" />
               </div>
               <div>
-                <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#4a6b2c]">The place</span>
-                <span className="mt-1 block font-display text-xl font-bold text-stone-900">{site.venueName}</span>
-                <span className="mt-0.5 block text-xs font-medium text-stone-600">George, Western Cape</span>
+                <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#e4f0c9]">The place</span>
+                <span className="mt-0.5 block font-display text-xl font-medium text-white">{site.venueName}</span>
+                <span className="mt-0.5 block text-xs text-white/75">George, Western Cape</span>
               </div>
             </div>
           </div>
 
-          <div className="hero-enter hero-enter-delay-3 mt-8 flex flex-wrap items-center gap-4">
-            <button type="button" onClick={() => onNavigate('rsvp')} className="button-primary min-h-12 px-7 shadow-md">
+          <div className="hero-enter hero-enter-delay-3 mt-7 flex flex-wrap items-center gap-4">
+            <button type="button" onClick={() => onNavigate('rsvp')} className="button-primary min-h-12 px-7 shadow-lg">
               {activeHousehold ? 'Review your RSVP' : 'Open your invitation'}
             </button>
-            <button type="button" onClick={() => onNavigate('details')} className="button-secondary min-h-12 px-6 bg-white/85 backdrop-blur-md shadow-md">
+            <button type="button" onClick={() => onNavigate('details')} className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/40 bg-white/15 px-6 text-sm font-semibold text-white backdrop-blur-sm shadow-md transition-colors hover:border-white hover:bg-white/25">
               Explore the venue
-              <ArrowDown className="h-4 w-4 text-[#c97a8b] transition-transform group-hover:translate-y-1" />
+              <ArrowDown className="h-4 w-4 text-[#f8b4c4] transition-transform group-hover:translate-y-1" />
             </button>
           </div>
         </div>
 
-        {daysRemaining !== null && <div className="absolute bottom-8 right-6 hidden text-right text-stone-800 md:block lg:right-14 drop-shadow-[0_2px_12px_rgba(255,255,255,0.85)]">
-          <span className="block font-display text-5xl font-medium leading-none text-stone-900">{daysRemaining}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-stone-600">days to go</span>
+        {daysRemaining !== null && <div className="absolute bottom-8 right-6 hidden text-right text-white/90 md:block lg:right-14 drop-shadow-[0_2px_10px_rgba(0,0,0,0.4)]">
+          <span className="block font-display text-5xl font-medium leading-none text-white">{daysRemaining}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/70">days to go</span>
         </div>}
       </div>
     </section>
