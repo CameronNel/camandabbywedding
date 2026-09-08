@@ -98,6 +98,7 @@ export interface HouseholdRsvpInput {
   mealSelection?: string;
   songRequest?: string;
   message?: string;
+  tableNumber?: string;
 }
 
 export interface StoryMilestone {

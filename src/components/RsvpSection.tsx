@@ -18,6 +18,7 @@ import {
 import type { SectionId } from './Navbar';
 import { Reveal } from './Reveal';
 import { type HouseholdView, useGuestExperience } from './guestExperience';
+import { TableSeatingChart } from './TableSeatingChart';
 import { TulipDuo, TulipCorner } from './decorations/TulipAccents';
 
 interface RsvpSectionProps {
@@ -60,6 +61,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     lookupInvitation,
     submitHouseholdRsvp,
     clearInvitation,
+    households,
   } = useGuestExperience();
   const [lookupResult, setLookupResult] = useState<HouseholdView | null>(null);
   const household = activeHousehold ?? lookupResult;
@@ -78,6 +80,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   const [dietaryDetails, setDietaryDetails] = useState('');
   const [foodDrinkPreferences, setFoodDrinkPreferences] = useState('');
   const [weddingFavour, setWeddingFavour] = useState<string>('Stroopwaffels');
+  const [tableNumber, setTableNumber] = useState('');
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -109,6 +112,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     if (household.songRequest) {
       setWeddingFavour(household.songRequest);
     }
+    setTableNumber(household.tableNumber || '');
     setMessage(household.message || '');
     setSaved(false);
     setCurrentStep(1);
@@ -154,6 +158,17 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     ? selectedMembers.length + (household?.isPlusOneAllowed && plusOneAttending ? 1 : 0)
     : 0;
   const selectedMemberSet = useMemo(() => new Set(selectedMembers), [selectedMembers]);
+
+  const attendingMemberNames = useMemo(() => {
+    if (!household || response !== 'attending') return [];
+    const names = household.members
+      .filter(m => selectedMemberSet.has(m.id))
+      .map(m => m.name);
+    if (household.isPlusOneAllowed && plusOneAttending) {
+      names.push(plusOneName.trim() || `${household.name}'s Guest (+1)`);
+    }
+    return names;
+  }, [household, response, selectedMemberSet, plusOneAttending, plusOneName]);
 
   const toggleMember = (id: string) => {
     setSelectedMembers(current =>
@@ -217,6 +232,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
         mealSelection: foodDrinkPreferences.trim() || undefined,
         songRequest: weddingFavour || undefined,
         message: message.trim() || undefined,
+        tableNumber: response === 'attending' ? tableNumber.trim() || undefined : undefined,
         members: submittedMembers,
       });
       if (result === false) throw new Error('RSVP was not saved');
@@ -247,6 +263,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     setLookupResult(null);
     setCode('');
     setLookupError('');
+    setTableNumber('');
     setSaved(false);
     const cleanUrl = `${window.location.pathname}#rsvp`;
     window.history.replaceState(null, '', cleanUrl);
@@ -717,29 +734,34 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
               {/* SLIDE 3: Table Seating & Final Confirmation */}
               {currentStep === 3 && (
                 <div className="space-y-6">
-                  {/* Table Seating Placeholder Card */}
-                  <div className="rounded-[1.75rem] border border-pink-100 bg-gradient-to-br from-[#fdfafb] to-[#fcf5f7] p-6 sm:p-8 text-center shadow-sm">
-                    <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#fdebf0] text-[#c97a8b] shadow-sm">
-                      <Utensils className="h-6 w-6" />
-                    </div>
-                    <h4 className="mt-4 font-display text-2xl font-semibold text-stone-800 sm:text-3xl">
-                      Table Seating
-                    </h4>
-                    {household.tableNumber ? (
-                      <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#9cb59b] bg-[#edf6ec] px-4 py-1.5 text-xs font-semibold text-[#3b543a]">
-                        <Check className="h-3.5 w-3.5" /> Assigned: Table {household.tableNumber}
+                  {response === 'attending' ? (
+                    <TableSeatingChart
+                      currentHouseholdId={household.id}
+                      currentHouseholdName={household.name}
+                      attendingCount={attendingCount}
+                      attendingMembers={attendingMemberNames}
+                      households={households}
+                      value={tableNumber}
+                      onChange={setTableNumber}
+                    />
+                  ) : (
+                    <div className="rounded-[1.75rem] border border-pink-100 bg-gradient-to-br from-[#fdfafb] to-[#fcf5f7] p-6 sm:p-8 text-center shadow-sm">
+                      <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#fdebf0] text-[#c97a8b] shadow-sm">
+                        <Utensils className="h-6 w-6" />
                       </div>
-                    ) : (
+                      <h4 className="mt-4 font-display text-2xl font-semibold text-stone-800 sm:text-3xl">
+                        Table Seating
+                      </h4>
                       <p className="mx-auto mt-3 max-w-md text-xs leading-6 text-stone-600 sm:text-sm">
-                        Table arrangements and seating placement are being carefully curated by Abby &amp; Cameron.
-                        Seating details will be published here as the wedding day approaches!
+                        Since you let us know that you are unable to attend, no table seating selection is needed.
+                        We will miss you dearly on our special day!
                       </p>
-                    )}
-                    <div className="mt-5 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#b8697a]">
-                      <TulipDuo size={18} />
-                      <span>Seating to follow</span>
+                      <div className="mt-5 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#b8697a]">
+                        <TulipDuo size={18} />
+                        <span>Sending warm love</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Summary of RSVP choices */}
                   <div className="rounded-2xl border border-stone-200 bg-white p-5 text-xs text-stone-600 space-y-2.5">
@@ -752,6 +774,12 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                     </div>
                     {response === 'attending' && (
                       <>
+                        <div className="flex justify-between border-b border-stone-100 pb-2">
+                          <span className="text-stone-500">Table &amp; Seats:</span>
+                          <span className="font-semibold text-[#c97a8b]">
+                            {tableNumber ? tableNumber : 'Abby & Cam to assign'}
+                          </span>
+                        </div>
                         <div className="flex justify-between border-b border-stone-100 pb-2">
                           <span className="text-stone-500">Wedding Favour:</span>
                           <span className="font-semibold text-[#c97a8b]">{weddingFavour}</span>

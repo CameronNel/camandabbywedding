@@ -431,6 +431,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         mealSelection: input.mealSelection,
         songRequest: input.songRequest,
         message: input.message,
+        tableNumber: input.tableNumber !== undefined ? input.tableNumber : activeHousehold.tableNumber,
         respondedAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };

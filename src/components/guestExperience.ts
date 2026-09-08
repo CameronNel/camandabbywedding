@@ -221,6 +221,7 @@ export function useGuestExperience() {
     adminOpen: context.isAdminOpen,
     lookupInvitation,
     submitHouseholdRsvp,
+    households: context.households,
     clearInvitation: () => context.setActiveHousehold(null),
     openAdmin: () => context.setIsAdminOpen(true),
   };
