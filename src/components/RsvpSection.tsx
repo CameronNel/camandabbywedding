@@ -24,6 +24,7 @@ import { type HouseholdView, useGuestExperience } from './guestExperience';
 import { TableSeatingChart } from './TableSeatingChart';
 import { TulipDuo, TulipCorner } from './decorations/TulipAccents';
 import { WEDDING_FAVOUR_OPTIONS } from '../utils/seatingConstants';
+import { DIETARY_OPTIONS, normalizeDietary } from '../utils/dietary';
 
 interface RsvpSectionProps {
   onNavigate: (section: SectionId) => void;
@@ -54,7 +55,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [plusOneAttending, setPlusOneAttending] = useState(false);
   const [plusOneName, setPlusOneName] = useState('');
-  const [dietaryDetails, setDietaryDetails] = useState('');
+  const [memberDietary, setMemberDietary] = useState<Record<string, { restrictions: string[]; details: string }>>({});
   const [foodDrinkPreferences, setFoodDrinkPreferences] = useState('');
   const [weddingFavour, setWeddingFavour] = useState<string>('Stroopwaffels');
   const [tableNumber, setTableNumber] = useState('');
@@ -84,7 +85,26 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     );
     setPlusOneAttending(hasCompanion);
     setPlusOneName(companionName);
-    setDietaryDetails(household.dietaryDetails || '');
+
+    // Initialize dietary state per member with intelligent normalization
+    const householdNorm = normalizeDietary(household.dietaryRestrictions, household.dietaryDetails);
+    const initialDietaryMap: Record<string, { restrictions: string[]; details: string }> = {};
+
+    household.members.forEach(m => {
+      const mNorm = normalizeDietary(m.dietaryRestrictions, m.dietaryDetails);
+      const restrictions = mNorm.tags.length > 0
+        ? mNorm.tags.map(t => t.id)
+        : householdNorm.tags.map(t => t.id);
+      const details = mNorm.notes || (mNorm.tags.length === 0 ? householdNorm.notes || '' : '');
+      initialDietaryMap[m.id] = { restrictions, details };
+    });
+
+    initialDietaryMap['plus-one'] = {
+      restrictions: [],
+      details: '',
+    };
+
+    setMemberDietary(initialDietaryMap);
     setFoodDrinkPreferences(household.mealSelection || '');
     if (household.songRequest) {
       setWeddingFavour(household.songRequest);
@@ -94,6 +114,60 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     setSaved(false);
     setCurrentStep(1);
   }, [household]);
+
+  const toggleDietaryRestriction = (key: string, restrictionId: string) => {
+    setMemberDietary(prev => {
+      const current = prev[key] || { restrictions: [], details: '' };
+      const exists = current.restrictions.includes(restrictionId);
+      const updatedRestrictions = exists
+        ? current.restrictions.filter(r => r !== restrictionId)
+        : [...current.restrictions, restrictionId];
+      return {
+        ...prev,
+        [key]: {
+          ...current,
+          restrictions: updatedRestrictions,
+        },
+      };
+    });
+  };
+
+  const clearDietaryRestrictions = (key: string) => {
+    setMemberDietary(prev => ({
+      ...prev,
+      [key]: {
+        restrictions: [],
+        details: '',
+      },
+    }));
+  };
+
+  const updateDietaryDetails = (key: string, details: string) => {
+    setMemberDietary(prev => {
+      const current = prev[key] || { restrictions: [], details: '' };
+      return {
+        ...prev,
+        [key]: {
+          ...current,
+          details,
+        },
+      };
+    });
+  };
+
+  const copyDietaryToAll = (fromKey: string) => {
+    const source = memberDietary[fromKey] || { restrictions: [], details: '' };
+    setMemberDietary(prev => {
+      const next: Record<string, { restrictions: string[]; details: string }> = {};
+      for (const k of Object.keys(prev)) {
+        next[k] = {
+          restrictions: [...source.restrictions],
+          details: source.details,
+        };
+      }
+      return next;
+    });
+  };
 
   const findInvitation = useCallback(async (invitationCode: string) => {
     const cleanCode = invitationCode.trim();
@@ -147,6 +221,25 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     return names;
   }, [household, response, selectedMemberSet, plusOneAttending, plusOneName]);
 
+  const attendingGuestsList = useMemo(() => {
+    if (!household || response !== 'attending') return [];
+    const list: Array<{ key: string; name: string; isPrimary: boolean; isPlusOne?: boolean }> = [];
+    household.members.forEach(m => {
+      if (selectedMemberSet.has(m.id)) {
+        list.push({ key: m.id, name: m.name, isPrimary: Boolean(m.isPrimary) });
+      }
+    });
+    if (household.isPlusOneAllowed && plusOneAttending) {
+      list.push({
+        key: 'plus-one',
+        name: plusOneName.trim() || `${household.name}'s Guest (+1)`,
+        isPrimary: false,
+        isPlusOne: true,
+      });
+    }
+    return list;
+  }, [household, response, selectedMemberSet, plusOneAttending, plusOneName]);
+
   const toggleMember = (id: string) => {
     setSelectedMembers(current =>
       current.includes(id) ? current.filter(memberId => memberId !== id) : [...current, id],
@@ -190,28 +283,51 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     setSubmitting(true);
     setSubmitError('');
     try {
-      const submittedMembers: Array<{ id?: string; memberId?: string; name: string; attending: boolean; dietaryDetails?: string }> = household.members.map(member => ({
-        id: member.id,
-        memberId: member.id,
-        name: member.name,
-        attending: response === 'attending' && selectedMemberSet.has(member.id),
-        dietaryDetails: dietaryDetails.trim() || undefined,
-      }));
+      const submittedMembers: Array<{
+        id?: string;
+        memberId?: string;
+        name: string;
+        attending: boolean;
+        dietaryRestrictions?: string[];
+        dietaryDetails?: string;
+      }> = household.members.map(member => {
+        const isAttending = response === 'attending' && selectedMemberSet.has(member.id);
+        const diet = memberDietary[member.id] || { restrictions: [], details: '' };
+        return {
+          id: member.id,
+          memberId: member.id,
+          name: member.name,
+          attending: isAttending,
+          dietaryRestrictions: isAttending ? diet.restrictions : [],
+          dietaryDetails: isAttending && diet.details.trim() ? diet.details.trim() : undefined,
+        };
+      });
 
       if (household.isPlusOneAllowed && plusOneAttending && response === 'attending') {
+        const plusOneDiet = memberDietary['plus-one'] || { restrictions: [], details: '' };
         submittedMembers.push({
           name: plusOneName.trim() || `${household.name}'s Guest (+1)`,
           attending: true,
-          dietaryDetails: dietaryDetails.trim() || undefined,
+          dietaryRestrictions: plusOneDiet.restrictions,
+          dietaryDetails: plusOneDiet.details.trim() || undefined,
         });
       }
+
+      const attendingSubmitted = submittedMembers.filter(m => m.attending);
+      const allHouseholdRestrictions = Array.from(
+        new Set(attendingSubmitted.flatMap(m => m.dietaryRestrictions || []))
+      );
+      const allHouseholdDetails = Array.from(
+        new Set(attendingSubmitted.map(m => m.dietaryDetails).filter(Boolean))
+      ).join(', ');
 
       const result = await submitHouseholdRsvp(household.id, {
         rsvpStatus: response,
         attendingCount,
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
-        dietaryDetails: dietaryDetails.trim() || undefined,
+        dietaryRestrictions: allHouseholdRestrictions,
+        dietaryDetails: allHouseholdDetails || undefined,
         mealSelection: foodDrinkPreferences.trim() || undefined,
         songRequest: weddingFavour || undefined,
         message: message.trim() || undefined,
@@ -580,18 +696,121 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                 <div className="space-y-6">
                   {response === 'attending' && (
                     <>
-                      {/* Dietary requirements */}
-                      <div>
-                        <label className="block text-xs font-semibold text-stone-700">
-                          Dietary requirements or allergies <span className="font-normal text-stone-400">(optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={dietaryDetails}
-                          onChange={e => setDietaryDetails(e.target.value)}
-                          placeholder="e.g. Vegetarian, Gluten-free, Nut allergy, Halal, None"
-                          className="form-field mt-1.5 text-xs"
-                        />
+                      {/* Dietary requirements & allergies */}
+                      <div className="rounded-2xl border border-[#9bbeab]/40 bg-gradient-to-br from-[#f8faf9] to-[#edf6f1]/40 p-4 sm:p-5 shadow-2xs space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-stone-200/60 pb-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="grid h-6 w-6 place-items-center rounded-lg bg-[#9bbeab]/20 text-[#214f38] text-xs">
+                                🥗
+                              </span>
+                              <h5 className="text-xs font-bold text-stone-800 uppercase tracking-wider">
+                                Dietary Requirements &amp; Allergies
+                              </h5>
+                              <span className="text-[11px] font-normal text-stone-400">(optional)</span>
+                            </div>
+                            <p className="mt-1 text-xs text-stone-600">
+                              Tick any dietary preferences or allergies below so our caterers can prepare a wonderful meal for you.
+                            </p>
+                          </div>
+                          {attendingGuestsList.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => copyDietaryToAll(attendingGuestsList[0]?.key || '')}
+                              className="shrink-0 text-[11px] font-semibold text-[#8a384b] hover:text-[#6f2537] hover:underline self-start sm:self-auto cursor-pointer"
+                              title="Copy first guest's dietary settings to all guests"
+                            >
+                              📋 Copy to all guests
+                            </button>
+                          )}
+                        </div>
+
+                        {/* List of attending guests */}
+                        <div className="space-y-4">
+                          {attendingGuestsList.map((guest, gIdx) => {
+                            const diet = memberDietary[guest.key] || { restrictions: [], details: '' };
+                            const hasMultiple = attendingGuestsList.length > 1;
+
+                            return (
+                              <div
+                                key={guest.key}
+                                className={`space-y-3 ${
+                                  hasMultiple
+                                    ? 'rounded-2xl border border-stone-200/80 bg-white p-3.5 sm:p-4 shadow-2xs'
+                                    : ''
+                                }`}
+                              >
+                                {hasMultiple && (
+                                  <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
+                                    <div className="flex items-center gap-2">
+                                      <span className="grid h-5 w-5 place-items-center rounded-full bg-pink-100 text-[#8a384b] text-[11px] font-bold">
+                                        {gIdx + 1}
+                                      </span>
+                                      <span className="text-xs font-bold text-stone-800">{guest.name}</span>
+                                      {guest.isPlusOne && (
+                                        <span className="rounded-md bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-600 font-medium">
+                                          +1 Guest
+                                        </span>
+                                      )}
+                                    </div>
+                                    {(diet.restrictions.length > 0 || diet.details) && (
+                                      <button
+                                        type="button"
+                                        onClick={() => clearDietaryRestrictions(guest.key)}
+                                        className="text-[10px] font-semibold text-stone-400 hover:text-red-600 cursor-pointer"
+                                      >
+                                        Clear
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Buttons they can tick */}
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-stone-700 mb-2">
+                                    {hasMultiple ? `Requirements for ${guest.name}:` : 'Select all that apply:'}
+                                  </label>
+                                  <div className="flex flex-wrap gap-2">
+                                    {DIETARY_OPTIONS.map(opt => {
+                                      const isSelected = diet.restrictions.includes(opt.id);
+                                      return (
+                                        <button
+                                          key={opt.id}
+                                          type="button"
+                                          onClick={() => toggleDietaryRestriction(guest.key, opt.id)}
+                                          aria-pressed={isSelected}
+                                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all border shadow-2xs cursor-pointer select-none ${
+                                            isSelected
+                                              ? `${opt.activeBg} ring-2 ring-offset-1 ring-[#9bbeab]/40 scale-[1.02]`
+                                              : 'border-stone-200 bg-white text-stone-700 hover:border-[#9bbeab] hover:bg-[#edf6f1]/60'
+                                          }`}
+                                        >
+                                          <span className="text-sm leading-none">{opt.icon}</span>
+                                          <span>{opt.label}</span>
+                                          {isSelected && <Check className="h-3.5 w-3.5 stroke-[2.5]" />}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+
+                                {/* Extra bar for Other */}
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-stone-700">
+                                    Other dietary requirements, allergies, or notes <span className="font-normal text-stone-400">(optional)</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={diet.details}
+                                    onChange={e => updateDietaryDetails(guest.key, e.target.value)}
+                                    placeholder="e.g. No mushrooms, allium allergy, pregnancy, carries EpiPen..."
+                                    className="form-field mt-1.5 text-xs bg-white"
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
 
                       {/* Food & Drinks preferences */}
@@ -918,8 +1137,8 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                       </div>
                     )}
 
-                    {/* 4. Dietary & Food Wishes (if attending and provided) */}
-                    {response === 'attending' && (dietaryDetails || foodDrinkPreferences) && (
+                    {/* 4. Dietary & Food Wishes (if attending) */}
+                    {response === 'attending' && (
                       <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
                         <div className="flex items-center justify-between border-b border-pink-50 pb-3">
                           <div className="flex items-center gap-2.5">
@@ -939,17 +1158,42 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                             Edit
                           </button>
                         </div>
-                        <div className="mt-3.5 space-y-2 text-xs">
-                          {dietaryDetails && (
-                            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1">
-                              <span className="font-semibold text-stone-700 min-w-[130px]">Allergies / Dietary:</span>
-                              <span className="text-stone-800 bg-stone-50 rounded-lg px-2.5 py-1 border border-stone-100 font-medium">{dietaryDetails}</span>
-                            </div>
-                          )}
+                        <div className="mt-3.5 space-y-3 text-xs">
+                          {attendingGuestsList.map(guest => {
+                            const diet = memberDietary[guest.key] || { restrictions: [], details: '' };
+                            const norm = normalizeDietary(diet.restrictions, diet.details);
+                            return (
+                              <div key={guest.key} className="flex flex-col sm:flex-row sm:items-baseline gap-1.5">
+                                <span className="font-semibold text-stone-700 min-w-[120px]">{guest.name}:</span>
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  {norm.tags.length > 0 ? (
+                                    norm.tags.map(tag => (
+                                      <span
+                                        key={tag.id}
+                                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${tag.badgeBg} ${tag.badgeText} ${tag.badgeBorder}`}
+                                      >
+                                        <span>{tag.icon}</span>
+                                        <span>{tag.label}</span>
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-stone-400 italic text-[11px]">Standard menu</span>
+                                  )}
+                                  {norm.notes && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-700 border border-stone-200">
+                                      📝 {norm.notes}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                           {foodDrinkPreferences && (
-                            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1">
-                              <span className="font-semibold text-stone-700 min-w-[130px]">Food &amp; Drinks Wish:</span>
-                              <span className="text-stone-800 bg-stone-50 rounded-lg px-2.5 py-1 border border-stone-100 font-medium">{foodDrinkPreferences}</span>
+                            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 pt-2 border-t border-stone-100">
+                              <span className="font-semibold text-stone-700 min-w-[120px]">Drinks &amp; Treats:</span>
+                              <span className="text-stone-800 bg-stone-50 rounded-lg px-2.5 py-1 border border-stone-100 font-medium">
+                                {foodDrinkPreferences}
+                              </span>
                             </div>
                           )}
                         </div>

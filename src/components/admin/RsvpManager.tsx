@@ -22,6 +22,7 @@ import {
   parseSeatsFromTableNumber,
 } from '../../utils/seatingConstants';
 import { exportGuestsToCsv } from '../../utils/storage';
+import { normalizeDietary, type NormalizedDietary } from '../../utils/dietary';
 import { Button, inputClass } from './AdminPrimitives';
 
 interface RsvpManagerProps {
@@ -45,6 +46,7 @@ interface SeatDetail {
   householdName?: string;
   householdId?: string;
   dietary?: string;
+  dietaryNormalized?: NormalizedDietary;
   favour?: string;
 }
 
@@ -81,6 +83,7 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
     occupantName: string;
     householdName: string;
     dietary?: string;
+    dietaryNormalized?: NormalizedDietary;
     favour?: string;
     x: number;
     y: number;
@@ -209,7 +212,11 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
           const occupantName = guestNames[guestIdx] || `${h.name} Guest ${guestIdx + 1}`;
           guestIdx++;
 
-          const memberDietary = h.members?.find(m => m.name.toLowerCase() === occupantName.toLowerCase())?.dietaryDetails || h.dietaryDetails;
+          const memberObj = h.members?.find(m => m.name.toLowerCase() === occupantName.toLowerCase());
+          const memberRestrictions = memberObj?.dietaryRestrictions || (memberObj ? [] : h.dietaryRestrictions);
+          const memberDetails = memberObj?.dietaryDetails || h.dietaryDetails;
+          const dietaryNormalized = normalizeDietary(memberRestrictions, memberDetails);
+          const dietarySummary = dietaryNormalized.tags.map(t => t.label).concat(dietaryNormalized.notes ? [dietaryNormalized.notes] : []).join(', ');
 
           map.set(key, {
             tableId: item.tableId,
@@ -222,7 +229,8 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
             occupantName,
             householdName: h.name,
             householdId: h.id,
-            dietary: memberDietary,
+            dietary: dietarySummary,
+            dietaryNormalized,
             favour: h.songRequest,
           });
         }
@@ -238,6 +246,7 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
       id: string;
       householdName: string;
       guestName: string;
+      dietaryNormalized: NormalizedDietary;
       dietary: string;
       preferences?: string;
       table: string;
@@ -257,24 +266,20 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
       if (h.members && h.members.length > 0) {
         h.members.forEach((m, mIdx) => {
           if (m.attending === false) return;
-          const parts: string[] = [];
-          if (m.dietaryRestrictions && m.dietaryRestrictions.length > 0) {
-            parts.push(m.dietaryRestrictions.join(', '));
-          }
-          if (m.dietaryDetails && m.dietaryDetails.trim()) {
-            parts.push(m.dietaryDetails.trim());
-          }
-          // Fallback to household dietary if member is blank
-          if (parts.length === 0 && h.dietaryDetails && h.dietaryDetails.trim()) {
-            parts.push(h.dietaryDetails.trim());
-          }
+          const restrictions = (m.dietaryRestrictions && m.dietaryRestrictions.length > 0)
+            ? m.dietaryRestrictions
+            : (h.dietaryRestrictions || []);
+          const details = m.dietaryDetails || h.dietaryDetails;
+          const normalized = normalizeDietary(restrictions, details);
 
-          if (parts.length > 0 || (h.mealSelection && h.mealSelection.trim())) {
+          if (normalized.tags.length > 0 || normalized.notes || (h.mealSelection && h.mealSelection.trim())) {
+            const summaryText = normalized.tags.map(t => t.label).concat(normalized.notes ? [normalized.notes] : []).join(', ');
             list.push({
               id: `${h.id}-${m.id || mIdx}`,
               householdName: h.name,
               guestName: m.name,
-              dietary: parts.join(' — ') || 'None specified',
+              dietaryNormalized: normalized,
+              dietary: summaryText || 'None specified',
               preferences: h.mealSelection,
               table: tableLabel,
               tableId,
@@ -284,12 +289,15 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
         });
       } else {
         // Household level only
-        if ((h.dietaryDetails && h.dietaryDetails.trim()) || (h.mealSelection && h.mealSelection.trim())) {
+        const normalized = normalizeDietary(h.dietaryRestrictions, h.dietaryDetails);
+        if (normalized.tags.length > 0 || normalized.notes || (h.mealSelection && h.mealSelection.trim())) {
+          const summaryText = normalized.tags.map(t => t.label).concat(normalized.notes ? [normalized.notes] : []).join(', ');
           list.push({
             id: h.id,
             householdName: h.name,
             guestName: h.name,
-            dietary: h.dietaryDetails?.trim() || 'None specified',
+            dietaryNormalized: normalized,
+            dietary: summaryText || 'None specified',
             preferences: h.mealSelection,
             table: tableLabel,
             tableId,
@@ -308,7 +316,14 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
       if (dietaryCategoryFilter !== 'all') {
         const cat = DIETARY_CATEGORIES.find(c => c.id === dietaryCategoryFilter);
         if (cat?.keywords) {
-          const match = cat.keywords.some(kw => item.dietary.toLowerCase().includes(kw));
+          const match = cat.keywords.some(kw => {
+            const lowerKw = kw.toLowerCase();
+            const tagMatch = item.dietaryNormalized.tags.some(t =>
+              t.id.toLowerCase().includes(lowerKw) || t.label.toLowerCase().includes(lowerKw)
+            );
+            const notesMatch = item.dietaryNormalized.notes?.toLowerCase().includes(lowerKw);
+            return tagMatch || notesMatch || item.dietary.toLowerCase().includes(lowerKw);
+          });
           if (!match) return false;
         }
       }
@@ -321,6 +336,7 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
           item.guestName.toLowerCase().includes(q) ||
           item.householdName.toLowerCase().includes(q) ||
           item.dietary.toLowerCase().includes(q) ||
+          (item.dietaryNormalized.notes && item.dietaryNormalized.notes.toLowerCase().includes(q)) ||
           (item.preferences && item.preferences.toLowerCase().includes(q)) ||
           item.table.toLowerCase().includes(q)
         );
@@ -881,6 +897,7 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                                     occupantName: occupant.occupantName || occupant.householdName || 'Reserved Guest',
                                     householdName: occupant.householdName || 'Guest Household',
                                     dietary: occupant.dietary,
+                                    dietaryNormalized: occupant.dietaryNormalized,
                                     favour: occupant.favour,
                                     x: sx,
                                     y: sy,
@@ -960,9 +977,24 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                       <p className="text-[10px] text-stone-500">
                         Party of: {hoveredSeat.householdName}
                       </p>
-                      {hoveredSeat.dietary && (
-                        <div className="mt-1 rounded-lg bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] text-amber-800 text-left">
-                          ⚠️ {hoveredSeat.dietary}
+                      {hoveredSeat.dietaryNormalized && (hoveredSeat.dietaryNormalized.tags.length > 0 || hoveredSeat.dietaryNormalized.notes) && (
+                        <div className="mt-1.5 space-y-1 text-left">
+                          <div className="flex flex-wrap gap-1 justify-center">
+                            {hoveredSeat.dietaryNormalized.tags.map(tag => (
+                              <span
+                                key={tag.id}
+                                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${tag.badgeBg} ${tag.badgeText} ${tag.badgeBorder}`}
+                              >
+                                <span>{tag.icon}</span>
+                                <span>{tag.label}</span>
+                              </span>
+                            ))}
+                          </div>
+                          {hoveredSeat.dietaryNormalized.notes && (
+                            <p className="text-[10px] text-stone-700 bg-stone-50 rounded-md px-2 py-0.5 border border-stone-200 text-center">
+                              <span className="font-semibold text-stone-500">Note:</span> {hoveredSeat.dietaryNormalized.notes}
+                            </p>
+                          )}
                         </div>
                       )}
                       {hoveredSeat.favour && (
@@ -1104,13 +1136,27 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
 
                               {occupant && (
                                 <div className="flex items-center gap-1.5 shrink-0">
-                                  {occupant.dietary && (
-                                    <span
-                                      className="rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-800 truncate max-w-[120px]"
-                                      title={occupant.dietary}
-                                    >
-                                      ⚠️ {occupant.dietary}
-                                    </span>
+                                  {occupant.dietaryNormalized && (occupant.dietaryNormalized.tags.length > 0 || occupant.dietaryNormalized.notes) && (
+                                    <div className="flex flex-wrap items-center gap-1 max-w-[160px] justify-end">
+                                      {occupant.dietaryNormalized.tags.map(tag => (
+                                        <span
+                                          key={tag.id}
+                                          className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[9px] font-bold border ${tag.badgeBg} ${tag.badgeText} ${tag.badgeBorder}`}
+                                          title={tag.label}
+                                        >
+                                          <span>{tag.icon}</span>
+                                          <span>{tag.label}</span>
+                                        </span>
+                                      ))}
+                                      {occupant.dietaryNormalized.notes && (
+                                        <span
+                                          className="rounded-md bg-stone-100 border border-stone-200 px-1.5 py-0.5 text-[9px] font-medium text-stone-600 truncate max-w-[80px]"
+                                          title={occupant.dietaryNormalized.notes}
+                                        >
+                                          📝 {occupant.dietaryNormalized.notes}
+                                        </span>
+                                      )}
+                                    </div>
                                   )}
                                   {occupant.favour && (
                                     <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] text-purple-700 font-medium hidden sm:inline">
@@ -1335,9 +1381,30 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                           </span>
                         </td>
                         <td className="px-4 py-3.5">
-                          <span className="inline-flex items-center gap-1 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-semibold text-amber-900">
-                            ⚠️ {item.dietary}
-                          </span>
+                          <div className="space-y-1.5 max-w-md">
+                            {item.dietaryNormalized.tags.length > 0 && (
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                {item.dietaryNormalized.tags.map(tag => (
+                                  <span
+                                    key={tag.id}
+                                    className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-bold border shadow-2xs ${tag.badgeBg} ${tag.badgeText} ${tag.badgeBorder}`}
+                                  >
+                                    <span className="text-sm">{tag.icon}</span>
+                                    <span>{tag.label}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {item.dietaryNormalized.notes && (
+                              <div className="inline-flex items-center gap-1.5 text-xs text-stone-700 bg-stone-50 border border-stone-200/90 rounded-lg px-2.5 py-1">
+                                <span className="font-semibold text-stone-500">Note:</span>
+                                <span>{item.dietaryNormalized.notes}</span>
+                              </div>
+                            )}
+                            {item.dietaryNormalized.tags.length === 0 && !item.dietaryNormalized.notes && (
+                              <span className="text-stone-400 text-xs italic">None specified</span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3.5 text-stone-600">
                           {item.preferences ? (

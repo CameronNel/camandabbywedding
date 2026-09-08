@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import type { HouseholdInvitation, WeddingConfig } from '../../types/wedding';
 import { exportGuestsToCsv } from '../../utils/storage';
+import { normalizeDietary, type NormalizedDietary } from '../../utils/dietary';
 import { Button, inputClass } from './AdminPrimitives';
 
 interface MasterWeddingReportModalProps {
@@ -28,15 +29,8 @@ interface MasterWeddingReportModalProps {
 
 type ReportTab = 'all' | 'seating' | 'dietary' | 'accommodations';
 
-const getMemberDietary = (m: { dietaryRestrictions?: string[]; dietaryDetails?: string }): string => {
-  const parts: string[] = [];
-  if (m.dietaryRestrictions && m.dietaryRestrictions.length) {
-    parts.push(m.dietaryRestrictions.join(', '));
-  }
-  if (m.dietaryDetails && m.dietaryDetails.trim()) {
-    parts.push(m.dietaryDetails.trim());
-  }
-  return parts.join(' — ');
+const getMemberDietary = (m: { dietaryRestrictions?: string[]; dietaryDetails?: string }): NormalizedDietary => {
+  return normalizeDietary(m.dietaryRestrictions, m.dietaryDetails);
 };
 
 export const MasterWeddingReportModal: React.FC<MasterWeddingReportModalProps> = ({
@@ -68,16 +62,24 @@ export const MasterWeddingReportModal: React.FC<MasterWeddingReportModalProps> =
     const totalSeatedGuests = seatedHouseholds.reduce((sum, h) => sum + (h.attendingCount || h.members?.length || h.partySize || 1), 0);
 
     // Dietary
-    const dietaryMembers: Array<{ guestName: string; householdName: string; dietary: string; table: string }> = [];
+    const dietaryMembers: Array<{
+      guestName: string;
+      householdName: string;
+      dietaryNormalized: NormalizedDietary;
+      dietary: string;
+      table: string;
+    }> = [];
     households.forEach(h => {
       if (h.members && h.members.length) {
         h.members.forEach(m => {
-          const dietaryStr = getMemberDietary(m);
-          if (dietaryStr && m.attending !== false) {
+          const norm = getMemberDietary(m);
+          if ((norm.tags.length > 0 || norm.notes) && m.attending !== false) {
+            const summary = norm.tags.map(t => t.label).concat(norm.notes ? [norm.notes] : []).join(', ');
             dietaryMembers.push({
               guestName: m.name,
               householdName: h.name,
-              dietary: dietaryStr,
+              dietaryNormalized: norm,
+              dietary: summary,
               table: h.tableNumber || 'Unassigned',
             });
           }
@@ -123,7 +125,14 @@ export const MasterWeddingReportModal: React.FC<MasterWeddingReportModalProps> =
       h.name.toLowerCase().includes(q) ||
       h.inviteCode.toLowerCase().includes(q) ||
       (h.tableNumber && h.tableNumber.toLowerCase().includes(q)) ||
-      h.members?.some(m => m.name.toLowerCase().includes(q) || getMemberDietary(m).toLowerCase().includes(q))
+      h.members?.some(m => {
+        const norm = getMemberDietary(m);
+        return (
+          m.name.toLowerCase().includes(q) ||
+          norm.tags.some(t => t.label.toLowerCase().includes(q)) ||
+          Boolean(norm.notes && norm.notes.toLowerCase().includes(q))
+        );
+      })
     );
   }, [households, search]);
 
@@ -342,15 +351,23 @@ RSVP & GUEST SUMMARY:
                             {household.members && household.members.length ? (
                               <div className="space-y-1">
                                 {household.members.map((m, idx) => {
-                                  const dietaryStr = getMemberDietary(m);
+                                  const norm = getMemberDietary(m);
                                   return (
-                                    <div key={idx} className="flex items-center gap-1.5">
+                                    <div key={idx} className="flex flex-wrap items-center gap-1.5">
                                       <span className={m.attending === false ? 'line-through text-stone-400' : 'font-medium text-stone-800'}>
                                         {m.name}
                                       </span>
-                                      {dietaryStr && (
-                                        <span className="rounded bg-purple-50 px-1.5 py-0.2 text-[9px] font-semibold text-purple-700 border border-purple-200">
-                                          🥗 {dietaryStr}
+                                      {norm.tags.map(t => (
+                                        <span
+                                          key={t.id}
+                                          className={`rounded px-1.5 py-0.5 text-[9px] font-bold border ${t.badgeBg} ${t.badgeText} ${t.badgeBorder}`}
+                                        >
+                                          {t.icon} {t.label}
+                                        </span>
+                                      ))}
+                                      {norm.notes && (
+                                        <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[9px] font-medium text-stone-600 border border-stone-200">
+                                          📝 {norm.notes}
                                         </span>
                                       )}
                                     </div>
@@ -451,10 +468,23 @@ RSVP & GUEST SUMMARY:
                           <td className="px-3 py-2.5 font-bold text-stone-900">{item.guestName}</td>
                           <td className="px-3 py-2.5 text-stone-600">{item.householdName}</td>
                           <td className="px-3 py-2.5 font-semibold text-blue-800">{item.table}</td>
-                          <td className="px-3 py-2.5 font-semibold text-purple-800">
-                            <span className="rounded bg-purple-50 px-2 py-1 border border-purple-200">
-                              {item.dietary}
-                            </span>
+                          <td className="px-3 py-2.5">
+                            <div className="flex flex-wrap items-center gap-1">
+                              {item.dietaryNormalized.tags.map(tag => (
+                                <span
+                                  key={tag.id}
+                                  className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold border ${tag.badgeBg} ${tag.badgeText} ${tag.badgeBorder}`}
+                                >
+                                  <span>{tag.icon}</span>
+                                  <span>{tag.label}</span>
+                                </span>
+                              ))}
+                              {item.dietaryNormalized.notes && (
+                                <span className="inline-flex items-center gap-1 rounded-md bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-700 border border-stone-200">
+                                  📝 {item.dietaryNormalized.notes}
+                                </span>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
