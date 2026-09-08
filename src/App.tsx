@@ -32,6 +32,8 @@ export function AppContent() {
     return isSectionId(initial) ? initial : 'home';
   });
   const isNavigatingRef = useRef(false);
+  const isSoftSnappingRef = useRef(false);
+  const cancelSnapRef = useRef<(() => void) | null>(null);
 
   const navigate = useCallback((section: SectionId, behavior: ScrollBehavior = 'smooth') => {
     isNavigatingRef.current = true;
@@ -44,14 +46,7 @@ export function AppContent() {
       if (!target) {
         window.scrollTo({ top: 0, behavior });
       } else {
-        const nav = document.querySelector('.site-nav') as HTMLElement | null;
-        const navHeight = nav ? nav.offsetHeight : 76;
-        const elementPosition = target.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.scrollY - navHeight;
-        window.scrollTo({
-          top: Math.max(0, Math.round(offsetPosition)),
-          behavior,
-        });
+        target.scrollIntoView({ behavior, block: 'center' });
       }
     }
     const nextUrl = `${window.location.pathname}${window.location.search}#${section}`;
@@ -165,6 +160,145 @@ export function AppContent() {
       window.removeEventListener('resize', handleScroll);
     };
   }, [isPartyView]);
+
+  // Soft center snap: after the user pauses mid-scroll past the halfway point,
+  // glide the nearest section into the middle. Never holds/locks scrolling —
+  // any new wheel, touch, key, or click cancels the glide immediately.
+  useEffect(() => {
+    if (isPartyView || adminOpen) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const sectionIds: SectionId[] = ['home', 'rsvp', 'details', 'gallery', 'gifts'];
+    let scrollEndTimer = 0;
+    let rafId = 0;
+
+    const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+    const cancelGlide = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
+      if (isSoftSnappingRef.current) {
+        isSoftSnappingRef.current = false;
+        document.documentElement.style.scrollBehavior = '';
+      }
+      cancelSnapRef.current = null;
+    };
+
+    const glideTo = (targetY: number) => {
+      cancelGlide();
+      const startY = window.scrollY;
+      const distance = targetY - startY;
+      if (Math.abs(distance) < 8) return;
+      // Longer glides get a touch more time so the motion stays smooth, never snappy.
+      const duration = Math.min(750, Math.max(450, 420 + Math.abs(distance) * 0.35));
+      const startTime = performance.now();
+      isSoftSnappingRef.current = true;
+      // Force instant stepping inside the animation so CSS smooth doesn't double-smooth each frame.
+      document.documentElement.style.scrollBehavior = 'auto';
+
+      const step = (now: number) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const eased = easeInOutCubic(progress);
+        window.scrollTo(0, Math.round(startY + distance * eased));
+        if (progress < 1 && isSoftSnappingRef.current) {
+          rafId = requestAnimationFrame(step);
+        } else {
+          isSoftSnappingRef.current = false;
+          document.documentElement.style.scrollBehavior = '';
+          rafId = 0;
+          cancelSnapRef.current = null;
+        }
+      };
+      rafId = requestAnimationFrame(step);
+      cancelSnapRef.current = cancelGlide;
+    };
+
+    const getSnapTargetY = (element: HTMLElement) => {
+      const nav = document.querySelector('.site-nav') as HTMLElement | null;
+      const navHeight = nav ? nav.offsetHeight : 76;
+      const viewportHeight = window.innerHeight;
+      const absoluteTop = element.getBoundingClientRect().top + window.scrollY;
+      // Short sections land dead-center in the visible area below the fixed nav.
+      if (element.offsetHeight <= viewportHeight * 1.05) {
+        const visibleCenter = navHeight + (viewportHeight - navHeight) / 2;
+        return Math.max(0, Math.round(absoluteTop + element.offsetHeight / 2 - visibleCenter));
+      }
+      // Tall sections (RSVP form, venue lists) align just below the nav so
+      // their heading stays readable instead of getting center-cropped.
+      return Math.max(0, Math.round(absoluteTop - navHeight - 12));
+    };
+
+    const isInteractiveContext = () => {
+      const active = document.activeElement as HTMLElement | null;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable)) {
+        return true;
+      }
+      // Lightbox, invitation modal, or admin overlay open — don't yank the page.
+      if (document.querySelector('[role="dialog"]')) return true;
+      return false;
+    };
+
+    const attemptSoftSnap = () => {
+      if (isNavigatingRef.current || isSoftSnappingRef.current) return;
+      if (isInteractiveContext()) return;
+      const viewportHeight = window.innerHeight;
+      const scrollY = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight;
+      // Let the very bottom (footer) rest naturally instead of pulling it up.
+      if (scrollY + viewportHeight >= docHeight - 80) return;
+
+      let bestTarget: number | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      for (const id of sectionIds) {
+        const element = document.getElementById(id);
+        if (!element) continue;
+        const targetY = getSnapTargetY(element);
+        const distance = Math.abs(targetY - scrollY);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestTarget = targetY;
+        }
+      }
+
+      // Halfway rule: only pull when the nearest section's resting place is
+      // within half a viewport — i.e. the user has scrolled past halfway.
+      // Capped radius also protects long reads deep inside tall sections.
+      if (bestTarget !== null && bestDistance > 8 && bestDistance < viewportHeight * 0.5) {
+        glideTo(bestTarget);
+      }
+    };
+
+    const scheduleSnap = () => {
+      if (isNavigatingRef.current || isSoftSnappingRef.current) return;
+      window.clearTimeout(scrollEndTimer);
+      // Wait until scrolling pauses, then glide — no hold while moving.
+      scrollEndTimer = window.setTimeout(attemptSoftSnap, 140);
+    };
+
+    const cancelOnUserInput = () => {
+      window.clearTimeout(scrollEndTimer);
+      cancelGlide();
+    };
+
+    window.addEventListener('scroll', scheduleSnap, { passive: true });
+    window.addEventListener('wheel', cancelOnUserInput, { passive: true });
+    window.addEventListener('touchmove', cancelOnUserInput, { passive: true });
+    window.addEventListener('keydown', cancelOnUserInput);
+    window.addEventListener('mousedown', cancelOnUserInput);
+
+    return () => {
+      window.clearTimeout(scrollEndTimer);
+      cancelGlide();
+      window.removeEventListener('scroll', scheduleSnap);
+      window.removeEventListener('wheel', cancelOnUserInput);
+      window.removeEventListener('touchmove', cancelOnUserInput);
+      window.removeEventListener('keydown', cancelOnUserInput);
+      window.removeEventListener('mousedown', cancelOnUserInput);
+    };
+  }, [isPartyView, adminOpen]);
 
   return (
     <div className="relative min-h-screen overflow-x-clip bg-[#faf3f5] text-stone-800">

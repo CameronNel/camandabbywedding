@@ -211,7 +211,7 @@ export function isWeddingRoleTag(tagId: string): boolean {
 
 export function isBestManOrGroomsmanTag(tagId: string): boolean {
   const norm = (tagId || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
-  return norm === 'best_man' || norm === 'groomsman' || norm === 'groomsmen';
+  return norm === 'best_man' || norm === 'groomsman';
 }
 
 export function isBestManOrGroomsmanHousehold(
@@ -225,12 +225,7 @@ export function isBestManOrGroomsmanHousehold(
 
 export function isMaidOfHonorOrBridesmaidTag(tagId: string): boolean {
   const norm = (tagId || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
-  return (
-    norm === 'maid_of_honor' ||
-    norm === 'bridesmaid' ||
-    norm === 'bridesmaids' ||
-    norm === 'matron_of_honor'
-  );
+  return norm === 'maid_of_honor' || norm === 'bridesmaid';
 }
 
 export function isMaidOfHonorOrBridesmaidHousehold(

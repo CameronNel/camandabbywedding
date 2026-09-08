@@ -45,7 +45,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
     seatNumber: number;
     x: number;
     y: number;
-    status: 'available' | 'selected' | 'occupied' | 'bridal';
+    status: 'available' | 'selected' | 'occupied';
     occupantName?: string;
   } | null>(null);
 
@@ -78,19 +78,19 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
   const occupiedSeatsMap = useMemo(() => {
     const map = new Map<string, SeatOccupant>();
 
-    // Permanently reserve C & A bridal table seats 1 & 2 for Cameron & Abby
-    map.set('T0-S1', {
+    // Cam & Abby sit with everyone else at Table 1, Seats 1 & 2 (no head table)
+    map.set('T1-S1', {
       householdId: 'household-cam-abby',
       householdName: 'Cameron & Abby',
       guestNames: ['Cameron Nel'],
-      tableId: 0,
+      tableId: 1,
       seatNumber: 1,
     });
-    map.set('T0-S2', {
+    map.set('T1-S2', {
       householdId: 'household-cam-abby',
       householdName: 'Cameron & Abby',
       guestNames: ['Abby'],
-      tableId: 0,
+      tableId: 1,
       seatNumber: 2,
     });
 
@@ -131,16 +131,14 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
     setAlertMessage(null);
     const seatId = `T${tableId}-S${seatNumber}`;
 
-    // 1. Bridal Table (C & A) check: Always reserved for Cam & Abby
-    if (tableId === 0) {
-      setAlertMessage('The C & A table is exclusively reserved for the bride & groom, Cam and Abby! 💕');
-      return;
-    }
-
-    // 2. Is this seat occupied by someone else?
+    // 1. Is this seat occupied by someone else?
     const occupied = occupiedSeatsMap.get(seatId);
     if (occupied) {
-      setAlertMessage(`Seat ${seatNumber} at Table ${tableId} is already reserved by ${occupied.householdName}.`);
+      if (occupied.householdId === 'household-cam-abby') {
+        setAlertMessage('Seats 1 & 2 at Table 1 are reserved for the bride & groom, Cam and Abby! 💕');
+      } else {
+        setAlertMessage(`Seat ${seatNumber} at Table ${tableId} is already reserved by ${occupied.householdName}.`);
+      }
       return;
     }
 
@@ -173,7 +171,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
     setAlertMessage(null);
     const countNeeded = attendingCount > 0 ? attendingCount : 1;
 
-    // Find all available guest seats across all 7 guest tables (exclude bridal table 0)
+    // Find all available guest seats across all 8 guest tables
     const tablesWithFreeSeats: { tableId: number; freeSeatNums: number[] }[] = [];
     const allFreeSeatIds: string[] = [];
 
@@ -271,13 +269,9 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
             <feGaussianBlur stdDeviation="3" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
-          {TABLES.map(t => (
-            <radialGradient key={t.id} id={`table-grad-${t.id}${isModal ? '-m' : ''}`} cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="55%" stopColor={t.bgTint} />
-              <stop offset="100%" stopColor={t.color} />
-            </radialGradient>
-          ))}
+          <filter id={`table-soft-shadow${isModal ? '-m' : ''}`} x="-40%" y="-40%" width="180%" height="180%">
+            <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#8a6f66" floodOpacity="0.28" />
+          </filter>
           <linearGradient id={`bar-wood${isModal ? '-m' : ''}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#8d6255" />
             <stop offset="100%" stopColor="#6e473b" />
@@ -285,11 +279,6 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
           <linearGradient id={`buffet-wood${isModal ? '-m' : ''}`} x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#7a554a" />
             <stop offset="100%" stopColor="#5d3b32" />
-          </linearGradient>
-          <linearGradient id={`ca-table-grad${isModal ? '-m' : ''}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#EDC9D4" />
-            <stop offset="50%" stopColor="#ffffff" />
-            <stop offset="100%" stopColor="#FFD3C9" />
           </linearGradient>
         </defs>
 
@@ -342,107 +331,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
           </foreignObject>
         </g>
 
-        {/* 2. BRIDAL TABLE: "C & A" (Top Center, Sweetheart Table with 2 Seats for Cam & Abby) */}
-        <g className="cursor-default">
-          {/* Romantic floral arch above table */}
-          <path
-            d="M 390 40 Q 480 14, 570 40"
-            fill="none"
-            stroke="#d8bfc6"
-            strokeWidth="2"
-            strokeDasharray="4 2"
-          />
-          {/* Table Top (Pill matching "C & A" in sketch) */}
-          <rect
-            x="395"
-            y="28"
-            width="170"
-            height="48"
-            rx="24"
-            fill={`url(#ca-table-grad${isModal ? '-m' : ''})`}
-            stroke="#c97a8b"
-            strokeWidth="2.5"
-            className="drop-shadow-sm"
-          />
-          {/* "C & A" Lettering (Matching user's sketch) */}
-          <text
-            x="480"
-            y="60"
-            textAnchor="middle"
-            fill="#8a384b"
-            fontSize="22"
-            fontWeight="bold"
-            className="font-display tracking-widest select-none"
-          >
-            C &amp; A
-          </text>
-
-          {/* Cam's Seat (Seat 1) */}
-          <g
-            className="cursor-pointer"
-            onClick={() => handleSeatClick(0, 1)}
-            onMouseEnter={() =>
-              setHoveredSeat({
-                id: 'T0-S1',
-                tableId: 0,
-                tableName: 'C & A Sweetheart Table',
-                seatNumber: 1,
-                x: 445,
-                y: 100,
-                status: 'bridal',
-                occupantName: 'Cameron Nel (Groom)',
-              })
-            }
-            onMouseLeave={() => setHoveredSeat(null)}
-          >
-            <circle cx="445" cy="100" r="14" fill="#c97a8b" stroke="#8a384b" strokeWidth="2" />
-            <text
-              x="445"
-              y="104.5"
-              textAnchor="middle"
-              fill="#ffffff"
-              fontSize="12"
-              fontWeight="bold"
-              className="font-display select-none"
-            >
-              C
-            </text>
-          </g>
-
-          {/* Abby's Seat (Seat 2) */}
-          <g
-            className="cursor-pointer"
-            onClick={() => handleSeatClick(0, 2)}
-            onMouseEnter={() =>
-              setHoveredSeat({
-                id: 'T0-S2',
-                tableId: 0,
-                tableName: 'C & A Sweetheart Table',
-                seatNumber: 2,
-                x: 515,
-                y: 100,
-                status: 'bridal',
-                occupantName: 'Abby (Bride)',
-              })
-            }
-            onMouseLeave={() => setHoveredSeat(null)}
-          >
-            <circle cx="515" cy="100" r="14" fill="#c97a8b" stroke="#8a384b" strokeWidth="2" />
-            <text
-              x="515"
-              y="104.5"
-              textAnchor="middle"
-              fill="#ffffff"
-              fontSize="12"
-              fontWeight="bold"
-              className="font-display select-none"
-            >
-              A
-            </text>
-          </g>
-        </g>
-
-        {/* 3. RIGHT WALL: FOOD BUFFET (Matching sketch - well-spaced platters with clear space for label) */}
+        {/* 2. RIGHT WALL: FOOD BUFFET (Matching sketch - well-spaced platters with clear space for label) */}
         <g className="cursor-default">
           <rect
             x="925"
@@ -495,21 +384,22 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
           <ellipse cx="949" cy="565" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
         </g>
 
-        {/* 4. DANCE FLOOR (In the middle of the horseshoe) */}
-        <g opacity="0.85" pointerEvents="none">
+        {/* 3. DANCE FLOOR (In the middle of the horseshoe) */}
+        <g opacity="0.9" pointerEvents="none">
           <ellipse
             cx="480"
-            cy="335"
+            cy="350"
             rx="105"
             ry="68"
-            fill="none"
-            stroke="#c97a8b"
+            fill="#fdf2f5"
+            fillOpacity="0.55"
+            stroke="#dfaeb9"
             strokeWidth="1.8"
             strokeDasharray="5 5"
           />
           <text
             x="480"
-            y="330"
+            y="345"
             textAnchor="middle"
             fill="#9e475a"
             fontSize="13"
@@ -519,14 +409,14 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
           >
             DANCE FLOOR
           </text>
-          <Heart className="h-4 w-4 text-[#b8697a]" x="472" y="342" />
+          <Heart className="h-4 w-4 text-[#df8b9d]" x="472" y="357" />
         </g>
 
-        {/* 5. SEVEN ROUND BANQUET TABLES (Arranged in U-shape horseshoe from sketch) */}
+        {/* 4. EIGHT ROUND BANQUET TABLES (horseshoe around the dance floor, no head table) */}
         {TABLES.map(table => {
-          const radiusOrbit = 66;
-          const tableRadius = 43;
-          const seatRadius = 14;
+          const radiusOrbit = 78;
+          const tableRadius = 50;
+          const seatRadius = 16;
 
           const occupiedAtTable = Array.from({ length: table.capacity }).filter((_, i) =>
             occupiedSeatsMap.has(`T${table.id}-S${i + 1}`),
@@ -537,35 +427,55 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
 
           return (
             <g key={table.id}>
-              {/* Table Surface */}
+              {/* Cottage tablecloth with a soft lifelike shadow */}
               <circle
                 cx={table.cx}
                 cy={table.cy}
                 r={tableRadius}
-                fill={`url(#table-grad-${table.id}${isModal ? '-m' : ''})`}
+                fill="#fffdf9"
                 stroke={table.borderTint}
-                strokeWidth="2"
-                className="drop-shadow-xs"
+                strokeWidth="1.5"
+                strokeOpacity="0.85"
+                filter={`url(#table-soft-shadow${isModal ? '-m' : ''})`}
               />
-
-              {/* Floral Inner Ring */}
+              {/* Table runner ring in the table's brand tint */}
               <circle
                 cx={table.cx}
                 cy={table.cy}
-                r={tableRadius - 13}
+                r={tableRadius - 11}
                 fill="none"
-                stroke={table.borderTint}
-                strokeWidth="1.2"
-                strokeDasharray="3 2"
+                stroke={table.color}
+                strokeWidth="6"
+                opacity="0.4"
               />
-
+              {/* Cottage tablecloth with a soft lifelike shadow */}
+              <circle
+                cx={table.cx}
+                cy={table.cy}
+                r={tableRadius}
+                fill={table.bgTint}
+                stroke={table.borderTint}
+                strokeWidth="1.5"
+                strokeOpacity="0.85"
+                filter={`url(#table-soft-shadow${isModal ? '-m' : ''})`}
+              />
+              {/* Table runner ring in the table's brand tint */}
+              <circle
+                cx={table.cx}
+                cy={table.cy}
+                r={tableRadius - 12}
+                fill="none"
+                stroke={table.color}
+                strokeWidth="7"
+                opacity="0.45"
+              />
               {/* Table Label */}
               <text
                 x={table.cx}
-                y={table.cy - 9}
+                y={table.cy - 12}
                 textAnchor="middle"
                 fill="#1c1917"
-                fontSize="14"
+                fontSize="15"
                 fontWeight="bold"
                 className="font-display select-none"
               >
@@ -573,19 +483,21 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
               </text>
               <text
                 x={table.cx}
-                y={table.cy + 6}
+                y={table.cy + 5}
                 textAnchor="middle"
                 fill={table.textTint}
-                fontSize="11"
+                fontSize="10.5"
                 fontWeight="bold"
                 letterSpacing="0.5"
                 className="select-none"
+                textLength={table.theme.length > 9 ? 86 : undefined}
+                lengthAdjust="spacingAndGlyphs"
               >
                 {table.theme}
               </text>
               <text
                 x={table.cx}
-                y={table.cy + 20}
+                y={table.cy + 21}
                 textAnchor="middle"
                 fill="#57534e"
                 fontSize="10"
@@ -615,7 +527,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                 return (
                   <g
                     key={seatId}
-                    className="group cursor-pointer transition-transform duration-150"
+                    className="group cursor-pointer"
                     onClick={() => handleSeatClick(table.id, seatNum)}
                     onMouseEnter={() =>
                       setHoveredSeat({
@@ -643,8 +555,8 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                           cx={sx}
                           cy={sy}
                           r={seatRadius}
-                          fill="#c97a8b"
-                          stroke="#8a384b"
+                          fill="#df8b9d"
+                          stroke="#c47b8b"
                           strokeWidth="2.5"
                         />
                         <Check
@@ -659,15 +571,15 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                           cx={sx}
                           cy={sy}
                           r={seatRadius}
-                          fill="#f1f5f9"
-                          stroke="#94a3b8"
+                          fill="#e9e2d8"
+                          stroke="#c0af9e"
                           strokeWidth="1.5"
                         />
                         <text
                           x={sx}
                           y={sy + 4}
                           textAnchor="middle"
-                          fill="#475569"
+                          fill="#9c8b7a"
                           fontSize="12"
                           fontWeight="bold"
                           className="select-none pointer-events-none font-mono"
@@ -681,19 +593,19 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                           cx={sx}
                           cy={sy}
                           r={seatRadius}
-                          fill="#ffffff"
-                          stroke="#a88890"
-                          strokeWidth="1.8"
-                          className="group-hover:fill-[#fcebf0] group-hover:stroke-[#c97a8b] transition-colors"
+                          fill="#fff8fa"
+                          stroke="#dfaeb9"
+                          strokeWidth="1.6"
+                          className="group-hover:fill-[#fdeef3] group-hover:stroke-[#df8b9d] transition-colors"
                         />
                         <text
                           x={sx}
                           y={sy + 4}
                           textAnchor="middle"
-                          fill="#1c1917"
+                          fill="#7a6a70"
                           fontSize="11"
                           fontWeight="bold"
-                          className="select-none pointer-events-none font-mono group-hover:fill-[#b8697a]"
+                          className="select-none pointer-events-none font-mono group-hover:fill-[#a84b61]"
                         >
                           {seatNum}
                         </text>
@@ -747,15 +659,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
             <p className="text-[11px] font-bold text-[#8a384b]">
               {hoveredSeat.tableName} • Seat {hoveredSeat.seatNumber}
             </p>
-            {hoveredSeat.status === 'bridal' ? (
-              <div className="mt-0.5">
-                <p className="text-xs font-semibold text-[#c97a8b] flex items-center justify-center gap-1">
-                  <Heart className="h-3 w-3 text-[#c97a8b] fill-current" />
-                  {hoveredSeat.occupantName}
-                </p>
-                <p className="text-[9px] text-stone-500">Bride &amp; Groom Table</p>
-              </div>
-            ) : hoveredSeat.status === 'selected' ? (
+            {hoveredSeat.status === 'selected' ? (
               <div className="mt-0.5">
                 <p className="text-xs font-semibold text-emerald-700 flex items-center justify-center gap-1">
                   <Check className="h-3 w-3 text-emerald-600" />
@@ -796,7 +700,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
               Choose Your Table &amp; Seats
             </h4>
             <p className="mt-1 text-xs text-stone-600 max-w-xl leading-relaxed">
-              There are <strong>7 round tables</strong> (8 seats each) surrounding the floor, with the <strong>C &amp; A Sweetheart Table</strong> at the top center. Click on any free seat to reserve it!
+              There are <strong>8 round tables</strong> (8 seats each, 64 seats for our 60 guests) gathered around the dance floor — no head table, Cam &amp; Abby are seated at <strong>Table 1</strong>. Click on any free seat to reserve it!
             </p>
           </div>
 
@@ -824,28 +728,22 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
         {/* Legend */}
         <div className="mt-5 flex flex-wrap items-center gap-4 sm:gap-6 border-t border-pink-50 pt-4 text-xs text-stone-600">
           <div className="flex items-center gap-2">
-            <span className="grid h-5 w-5 place-items-center rounded-full border-2 border-[#e7d8dc] bg-white font-mono text-[10px] font-bold text-stone-500 shadow-xs">
+            <span className="grid h-5 w-5 place-items-center rounded-full border border-[#dfaeb9] bg-[#fff8fa] font-mono text-[10px] font-bold text-[#7a6a70] shadow-xs">
               1
             </span>
             <span>Available Seat</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="grid h-5 w-5 place-items-center rounded-full border border-[#a85065] bg-[#c97a8b] text-white shadow-xs">
+            <span className="grid h-5 w-5 place-items-center rounded-full border border-[#c47b8b] bg-[#df8b9d] text-white shadow-xs">
               <Check className="h-3 w-3" />
             </span>
-            <span className="font-semibold text-[#a85065]">Your Selection</span>
+            <span className="font-semibold text-[#a84b61]">Your Selection</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="grid h-5 w-5 place-items-center rounded-full border border-slate-300 bg-slate-200 text-[10px] font-bold text-slate-500 shadow-xs">
+            <span className="grid h-5 w-5 place-items-center rounded-full border border-[#c0af9e] bg-[#e9e2d8] text-[10px] font-bold text-[#9c8b7a] shadow-xs">
               ×
             </span>
-            <span>Reserved (Other Guests)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="grid h-5 w-5 place-items-center rounded-full border border-pink-300 bg-pink-100 text-[#b8697a] shadow-xs">
-              <Heart className="h-3 w-3" />
-            </span>
-            <span className="font-medium text-stone-700">Cam &amp; Abby (Bride &amp; Groom)</span>
+            <span>Reserved (Other Guests, incl. Cam &amp; Abby at Table 1)</span>
           </div>
 
           <div className="ml-auto flex items-center gap-3">
@@ -900,35 +798,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
       {/* VIEW MODE: TABLE CARDS (Alternate list view for mobile screens) */}
       {viewMode === 'list' && (
         <div className="space-y-4">
-          {/* C & A Bridal Card */}
-          <div className="rounded-2xl border-2 border-pink-200 bg-gradient-to-r from-pink-50/70 via-white to-pink-50/70 p-5 shadow-xs">
-            <div className="flex items-center justify-between border-b border-pink-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-[#c97a8b]" />
-                <div>
-                  <h5 className="font-display text-base font-bold text-stone-800">
-                    C &amp; A Sweetheart Table
-                  </h5>
-                  <p className="text-[11px] text-stone-500">2 seats • Cam &amp; Abby</p>
-                </div>
-              </div>
-              <span className="rounded-full bg-pink-100 px-3 py-1 text-xs font-bold text-[#b8697a]">
-                Bride &amp; Groom
-              </span>
-            </div>
-            <div className="mt-3 flex gap-3">
-              <div className="flex-1 rounded-xl border border-pink-300 bg-pink-100/60 p-2.5 text-center">
-                <p className="text-xs font-bold text-[#b8697a]">Cam (Groom)</p>
-                <p className="text-[10px] text-stone-600">Reserved</p>
-              </div>
-              <div className="flex-1 rounded-xl border border-pink-300 bg-pink-100/60 p-2.5 text-center">
-                <p className="text-xs font-bold text-[#b8697a]">Abby (Bride)</p>
-                <p className="text-[10px] text-stone-600">Reserved</p>
-              </div>
-            </div>
-          </div>
-
-          {/* 7 Round Guest Tables */}
+          {/* 8 Round Guest Tables */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {TABLES.map(table => {
               return (
@@ -971,9 +841,9 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                           onClick={() => handleSeatClick(table.id, seatNum)}
                           className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition cursor-pointer ${
                             isSelected
-                              ? 'border-[#a85065] bg-[#c97a8b] text-white shadow-xs'
+                              ? 'border-[#c47b8b] bg-[#df8b9d] text-white shadow-xs'
                               : isOccupied
-                                ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                                ? 'border-[#d8cfc6] bg-[#ece7e0] text-[#8a7f74] cursor-not-allowed'
                                 : 'border-stone-200 bg-stone-50 hover:bg-pink-50 hover:border-pink-300 text-stone-700'
                           }`}
                         >

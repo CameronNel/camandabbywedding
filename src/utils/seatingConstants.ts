@@ -32,15 +32,18 @@ export interface TableConfig {
   shape?: 'round' | 'head';
 }
 
-// Exactly 7 round tables arranged in a horseshoe curve, assigned to the official wedding brand colors
+// Exactly 8 round tables (8 seats each = 64 seats for 60 guests) arranged in a
+// horseshoe curve, assigned to the official wedding brand colors. No head table:
+// Cam & Abby sit at Table 1, Seats 1 & 2.
 export const TABLES: TableConfig[] = [
-  { id: 1, name: 'Table 1', theme: 'Protea', cx: 175, cy: 220, capacity: 8, color: '#E4AEB5', bgTint: '#fdf5f6', borderTint: '#e4aeb5', textTint: '#8a424e', shape: 'round' },
-  { id: 2, name: 'Table 2', theme: 'Eucalyptus', cx: 150, cy: 410, capacity: 8, color: '#9BBEAB', bgTint: '#f4f8f5', borderTint: '#9bbeab', textTint: '#385e49', shape: 'round' },
-  { id: 3, name: 'Table 3', theme: 'Seafoam', cx: 270, cy: 555, capacity: 8, color: '#C0DCCC', bgTint: '#f6faf8', borderTint: '#c0dccc', textTint: '#3b6b55', shape: 'round' },
-  { id: 4, name: 'Table 4', theme: 'Peach Blossom', cx: 480, cy: 565, capacity: 8, color: '#F5D0C6', bgTint: '#fef7f5', borderTint: '#f5d0c6', textTint: '#8e4c3d', shape: 'round' },
-  { id: 5, name: 'Table 5', theme: 'Warm Linen', cx: 690, cy: 555, capacity: 8, color: '#ECE3DF', bgTint: '#faf7f5', borderTint: '#ece3df', textTint: '#6b5850', shape: 'round' },
-  { id: 6, name: 'Table 6', theme: 'Terracotta Clay', cx: 810, cy: 410, capacity: 8, color: '#E7AF9E', bgTint: '#fdf5f2', borderTint: '#e7af9e', textTint: '#854231', shape: 'round' },
-  { id: 7, name: 'Table 7', theme: 'Garden Sage', cx: 785, cy: 220, capacity: 8, color: '#9BBEAB', bgTint: '#f4f8f5', borderTint: '#9bbeab', textTint: '#385e49', shape: 'round' },
+  { id: 1, name: 'Table 1', theme: 'Protea', cx: 170, cy: 200, capacity: 8, color: '#E4AEB5', bgTint: '#fdf5f6', borderTint: '#e4aeb5', textTint: '#8a424e', shape: 'round' },
+  { id: 2, name: 'Table 2', theme: 'Eucalyptus', cx: 145, cy: 400, capacity: 8, color: '#9BBEAB', bgTint: '#f4f8f5', borderTint: '#9bbeab', textTint: '#385e49', shape: 'round' },
+  { id: 3, name: 'Table 3', theme: 'Seafoam', cx: 270, cy: 548, capacity: 8, color: '#C0DCCC', bgTint: '#f6faf8', borderTint: '#c0dccc', textTint: '#3b6b55', shape: 'round' },
+  { id: 4, name: 'Table 4', theme: 'Peach Blossom', cx: 480, cy: 552, capacity: 8, color: '#F5D0C6', bgTint: '#fef7f5', borderTint: '#f5d0c6', textTint: '#8e4c3d', shape: 'round' },
+  { id: 5, name: 'Table 5', theme: 'Warm Linen', cx: 690, cy: 548, capacity: 8, color: '#ECE3DF', bgTint: '#faf7f5', borderTint: '#ece3df', textTint: '#6b5850', shape: 'round' },
+  { id: 6, name: 'Table 6', theme: 'Terracotta Clay', cx: 815, cy: 400, capacity: 8, color: '#E7AF9E', bgTint: '#fdf5f2', borderTint: '#e7af9e', textTint: '#854231', shape: 'round' },
+  { id: 7, name: 'Table 7', theme: 'Garden Sage', cx: 790, cy: 200, capacity: 8, color: '#9BBEAB', bgTint: '#f4f8f5', borderTint: '#9bbeab', textTint: '#385e49', shape: 'round' },
+  { id: 8, name: 'Table 8', theme: 'Blushing Bride', cx: 480, cy: 170, capacity: 8, color: '#E4AEB5', bgTint: '#fdf5f6', borderTint: '#e4aeb5', textTint: '#8a424e', shape: 'round' },
 ];
 
 export interface SeatOccupant {
@@ -58,6 +61,7 @@ export function parseSeatsFromTableNumber(
   if (!str || !str.trim()) return [];
   const results: { tableId: number; seatNumbers: number[] }[] = [];
 
+  // Legacy: previously saved "Bridal Table" values still parse so old selections display instead of vanishing.
   const regex = /(?:(Bridal|Head|C\s*&\s*A)\s*Table|Table\s*(\d+))\s*(?:\((?:Seats? )?([0-9,\s]+)\))?/gi;
   let match: RegExpExecArray | null;
   while ((match = regex.exec(str)) !== null) {
@@ -80,7 +84,7 @@ export function parseSeatsFromTableNumber(
   // Fallback: if just a digit like "1" or "2"
   if (results.length === 0) {
     const num = parseInt(str.trim(), 10);
-    if (!isNaN(num) && num >= 1 && num <= 7) {
+    if (!isNaN(num) && num >= 1 && num <= 8) {
       results.push({
         tableId: num,
         seatNumbers: Array.from({ length: defaultCount }, (_, i) => i + 1),

@@ -449,12 +449,23 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         inviteCodesMatch(household.inviteCode, normalized)
       ) ?? null;
 
-      if (match) {
-        setActiveHouseholdState(match);
+      // Universal preview code: 4321 always opens the bundled demo invitation
+      // (Cam & Abby) so there is one easy code for testing. It is checked last
+      // so any real household code always wins, and it only ever exposes
+      // bundled preview data — never real guest records.
+      let resolvedMatch = match;
+      if (!resolvedMatch && normalized.replace(/\D/g, '') === '4321') {
+        const previewGuest = initialGuests.find((guest) => inviteCodesMatch(guest.inviteCode, 'Cam-101'))
+          ?? initialGuests[0];
+        if (previewGuest) resolvedMatch = normalizeHousehold(previewGuest, config);
+      }
+
+      if (resolvedMatch) {
+        setActiveHouseholdState(resolvedMatch);
         setAccommodations((curr) => curr.length > 0 ? curr : initialAccommodations);
         setServices((curr) => curr.length > 0 ? curr : initialServices);
         setRegistryItems((curr) => curr.length > 0 ? curr : initialRegistry);
-        return match;
+        return resolvedMatch;
       }
       return null;
     } catch (error) {

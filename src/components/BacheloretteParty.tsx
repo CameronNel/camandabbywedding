@@ -75,7 +75,7 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
     e.preventDefault();
     const clean = unlockCode.trim();
     if (!clean) {
-      setUnlockError('Please enter your invitation code (e.g. Anr-658)');
+      setUnlockError('Please enter your invitation code.');
       return;
     }
 
@@ -231,7 +231,7 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
               Enter Your Personal Invite Code
             </h2>
             <p className="mt-1 text-xs text-stone-500">
-              Check your wedding invitation card (e.g. <strong className="text-stone-700">Anr-658</strong>)
+              Check your wedding invitation card for your personal code
             </p>
 
             <form onSubmit={handleUnlock} className="mt-4 flex flex-col sm:flex-row gap-2.5">
@@ -239,7 +239,7 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
                 type="text"
                 value={unlockCode}
                 onChange={e => { setUnlockCode(e.target.value); setUnlockError(''); }}
-                placeholder="e.g. Anr-658"
+                placeholder="Your invitation code"
                 className="flex-1 rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-mono font-bold uppercase tracking-wider text-stone-900 placeholder:normal-case placeholder:font-sans placeholder:font-normal placeholder:text-stone-400 focus:border-[#9c2743] focus:outline-none focus:ring-2 focus:ring-[#9c2743]"
                 spellCheck={false}
                 autoComplete="one-time-code"

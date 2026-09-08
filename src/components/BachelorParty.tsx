@@ -72,7 +72,7 @@ export function BachelorParty({ onNavigate }: BachelorPartyProps) {
     e.preventDefault();
     const clean = unlockCode.trim();
     if (!clean) {
-      setUnlockError('Please enter your invitation code (e.g. Anr-658)');
+      setUnlockError('Please enter your invitation code.');
       return;
     }
 
@@ -264,7 +264,7 @@ export function BachelorParty({ onNavigate }: BachelorPartyProps) {
                     setUnlockCode(e.target.value);
                     setUnlockError('');
                   }}
-                  placeholder="e.g. Anr-658"
+                  placeholder="Your invitation code"
                   className="flex-1 rounded-xl border border-[#a2ac94]/40 bg-[#242920]/90 px-4 py-2.5 text-sm font-mono font-bold uppercase tracking-wider text-[#f5f6f2] placeholder:normal-case placeholder:font-sans placeholder:font-normal placeholder:text-[#a2ac94]/70 focus:outline-none focus:ring-2 focus:ring-[#a2ac94]"
                 />
                 <button
@@ -281,20 +281,6 @@ export function BachelorParty({ onNavigate }: BachelorPartyProps) {
                   {unlockError}
                 </p>
               )}
-
-              <div className="pt-2 text-center text-[11px] text-[#cbccbc]">
-                <span>Sample code: </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUnlockCode('Anr-658');
-                    setUnlockError('');
-                  }}
-                  className="font-mono text-[#d4c9c1] underline hover:text-white"
-                >
-                  Anr-658 (Henk · Best Man)
-                </button>
-              </div>
             </form>
           )}
         </div>
