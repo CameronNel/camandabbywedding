@@ -269,12 +269,12 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
         {!household ? (
           <Reveal delay={100} className="relative z-10 grid overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-[0_24px_80px_rgba(64,48,39,0.09)] lg:grid-cols-[0.78fr_1.22fr]">
             <TulipCorner position="top-right" className="z-10 hidden sm:block" />
-            <div className="relative min-h-64 overflow-hidden bg-gradient-to-br from-[#6b7b68] to-[#556353] p-8 text-white sm:p-10">
-              <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full border border-white/10" />
-              <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full border border-white/10" />
-              <LockKeyhole className="relative h-8 w-8 text-[#fce4ec]" />
-              <h3 className="relative mt-16 max-w-xs font-display text-4xl leading-tight">A private moment, made simple.</h3>
-              <p className="relative mt-4 max-w-sm text-sm leading-7 text-white/[0.80]">
+            <div className="relative min-h-64 overflow-hidden bg-gradient-to-br from-[#fdf5f7] via-[#fff8fa] to-[#fff5f2] p-8 text-stone-800 sm:p-10 border-b border-stone-200/60 lg:border-b-0 lg:border-r">
+              <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full border border-pink-200/30" />
+              <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full border border-pink-200/30" />
+              <LockKeyhole className="relative h-8 w-8 text-[#c97a8b]" />
+              <h3 className="relative mt-16 max-w-xs font-display text-4xl leading-tight text-stone-900">A private moment, made simple.</h3>
+              <p className="relative mt-4 max-w-sm text-sm leading-7 text-stone-600">
                 Your code securely connects you to the correct household and guest list. There is no public name search or self-registration.
               </p>
             </div>

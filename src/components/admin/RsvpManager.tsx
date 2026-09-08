@@ -950,23 +950,23 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                       top: `${(hoveredSeat.y / 730) * 100}%`,
                     }}
                   >
-                    <div className="rounded-xl border border-stone-700 bg-stone-900/95 backdrop-blur-md px-3.5 py-2.5 text-center text-white shadow-xl min-w-[180px] max-w-xs">
-                      <p className="text-[11px] font-bold text-pink-200">
+                    <div className="rounded-xl border border-[#f0d5de] bg-white/95 backdrop-blur-md px-3.5 py-2.5 text-center text-stone-800 shadow-xl min-w-[180px] max-w-xs">
+                      <p className="text-[11px] font-bold text-[#8a384b]">
                         {hoveredSeat.tableName} • Seat {hoveredSeat.seatNumber}
                       </p>
-                      <p className="text-xs font-bold text-white mt-0.5">
+                      <p className="text-xs font-bold text-stone-900 mt-0.5">
                         {hoveredSeat.occupantName}
                       </p>
-                      <p className="text-[10px] text-stone-300">
+                      <p className="text-[10px] text-stone-500">
                         Party of: {hoveredSeat.householdName}
                       </p>
                       {hoveredSeat.dietary && (
-                        <div className="mt-1 rounded bg-amber-500/20 border border-amber-400/30 px-2 py-0.5 text-[10px] text-amber-200 text-left">
+                        <div className="mt-1 rounded-lg bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] text-amber-800 text-left">
                           ⚠️ {hoveredSeat.dietary}
                         </div>
                       )}
                       {hoveredSeat.favour && (
-                        <p className="mt-1 text-[10px] text-purple-200">
+                        <p className="mt-1 text-[10px] font-medium text-purple-700">
                           🎁 Favour: {hoveredSeat.favour}
                         </p>
                       )}
@@ -1133,24 +1133,24 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
           {/* Full Screen Floor Plan Modal */}
           {isFullscreenMap && (
             <div
-              className="fixed inset-0 z-[100001] flex flex-col bg-stone-950/85 backdrop-blur-md p-3 sm:p-6 overflow-y-auto animate-in fade-in"
+              className="fixed inset-0 z-[100001] flex flex-col bg-[#fdf8fa]/95 backdrop-blur-xl p-3 sm:p-6 overflow-y-auto animate-in fade-in text-stone-800"
               role="dialog"
               aria-modal="true"
             >
-              <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 pb-3 text-white">
+              <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 pb-3 text-stone-800">
                 <div className="flex items-center gap-2.5">
-                  <Sparkles className="h-5 w-5 text-pink-300" />
+                  <Sparkles className="h-5 w-5 text-[#c97a8b]" />
                   <div>
-                    <h3 className="font-serif text-lg font-bold">Arendsrus Dining Room Seating Map</h3>
-                    <p className="text-xs text-stone-300">Live guest floor plan and table allocations</p>
+                    <h3 className="font-serif text-lg font-bold text-stone-900">Arendsrus Dining Room Seating Map</h3>
+                    <p className="text-xs text-stone-500">Live guest floor plan and table allocations</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsFullscreenMap(false)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-stone-600 bg-stone-800 hover:bg-stone-700 px-3.5 py-2 text-xs font-semibold text-white shadow-md cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-pink-200 bg-white hover:bg-pink-50 px-3.5 py-2 text-xs font-semibold text-stone-800 shadow-sm cursor-pointer transition"
                 >
-                  <Minimize2 className="h-4 w-4 text-pink-300" />
+                  <Minimize2 className="h-4 w-4 text-[#c97a8b]" />
                   <span>Exit Full Screen</span>
                 </button>
               </div>

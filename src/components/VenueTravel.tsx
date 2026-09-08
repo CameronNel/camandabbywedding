@@ -64,13 +64,16 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
   const { site, activeHousehold, accommodations, services } = useGuestExperience();
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [copiedHex, setCopiedHex] = useState<string | null>(null);
+  const [swatchIconMode, setSwatchIconMode] = useState<'tulips' | 'cats'>('tulips');
 
-  const handleCopyHex = (hex: string) => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(hex).catch(() => {});
+  const handleCopyHex = async (hex: string) => {
+    try {
+      await navigator.clipboard.writeText(hex);
+      setCopiedHex(hex);
+      window.setTimeout(() => setCopiedHex(null), 2000);
+    } catch {
+      setCopiedHex(null);
     }
-    setCopiedHex(hex);
-    window.setTimeout(() => setCopiedHex(null), 2000);
   };
 
   const sortListings = (items: ListingView[]) => [...items].sort((a, b) => {
@@ -103,43 +106,43 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
           </p>
         </Reveal>
 
-        <Reveal delay={100} className="mt-8 overflow-hidden rounded-[2rem] bg-[#2d332d] text-white shadow-[0_30px_90px_rgba(33,38,31,0.2)] sm:mt-10">
+        <Reveal delay={100} className="mt-8 overflow-hidden rounded-[2rem] border border-[#f0d5de] bg-white text-stone-800 shadow-[0_24px_70px_rgba(201,122,139,0.08)] sm:mt-10">
           <div className="grid lg:grid-cols-[1.25fr_0.75fr]">
             <div className="relative min-h-[340px] overflow-hidden sm:min-h-[460px]">
               <img src={`${import.meta.env.BASE_URL}images/arendsrus-grounds.jpg`} alt="ArendsRus Country Lodge grounds" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-stone-900/25 via-transparent to-transparent" />
             </div>
             <div className="flex flex-col justify-between p-7 sm:p-10 lg:p-12">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#f7c8d3]">George · Western Cape</p>
-                <h3 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">{site.venueName}</h3>
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#8a384b]">George · Western Cape</p>
+                <h3 className="mt-4 font-display text-4xl font-semibold leading-tight text-stone-900 sm:text-5xl">{site.venueName}</h3>
                 <dl className="mt-9 space-y-6 text-sm">
                   <div className="flex gap-3">
-                    <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-[#f7c8d3]" />
-                    <div><dt className="text-white/50">Date</dt><dd className="mt-1 font-medium"><time dateTime={site.dateIsTbc ? undefined : site.weddingDate.slice(0, 10)}>{formattedDate}</time></dd></div>
+                    <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-[#c97a8b]" />
+                    <div><dt className="text-stone-400">Date</dt><dd className="mt-1 font-medium text-stone-800"><time dateTime={site.dateIsTbc ? undefined : site.weddingDate.slice(0, 10)}>{formattedDate}</time></dd></div>
                   </div>
                   <div className="flex gap-3">
-                    <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-[#f7c8d3]" />
-                    <div><dt className="text-white/50">Times</dt><dd className="mt-1 font-medium">{site.ceremonyIsTbc || !site.ceremonyTime ? 'To be confirmed' : site.ceremonyTime}</dd></div>
+                    <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-[#c97a8b]" />
+                    <div><dt className="text-stone-400">Times</dt><dd className="mt-1 font-medium text-stone-800">{site.ceremonyIsTbc || !site.ceremonyTime ? 'To be confirmed' : site.ceremonyTime}</dd></div>
                   </div>
                   <div className="flex gap-3">
-                    <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#f7c8d3]" />
-                    <div><dt className="text-white/50">Location</dt><dd className="mt-1 font-medium">{site.venueAddress ? `${site.venueAddress}, ` : ''}{site.venueCity}</dd></div>
+                    <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#c97a8b]" />
+                    <div><dt className="text-stone-400">Location</dt><dd className="mt-1 font-medium text-stone-800">{site.venueAddress ? `${site.venueAddress}, ` : ''}{site.venueCity}</dd></div>
                   </div>
                 </dl>
               </div>
               <div className="mt-10 flex flex-wrap gap-3">
-                <a href={site.mapUrl} target="_blank" rel="noopener noreferrer" className="button-light min-h-12 justify-center px-6">
+                <a href={site.mapUrl} target="_blank" rel="noopener noreferrer" className="button-primary min-h-12 justify-center px-6">
                   Open in maps <ArrowUpRight className="h-4 w-4" />
                 </a>
                 {!site.dateIsTbc && (
                   <button
                     type="button"
                     onClick={() => generateIcsFile(wedding.config)}
-                    className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 text-xs font-semibold uppercase tracking-[0.08em] text-white backdrop-blur-sm transition hover:bg-white hover:text-stone-900"
+                    className="inline-flex min-h-12 items-center gap-2 rounded-full border border-stone-200 bg-[#fdf5f7] px-5 text-xs font-semibold uppercase tracking-[0.08em] text-[#8a384b] transition hover:border-[#c97a8b] hover:bg-white hover:text-stone-900 shadow-2xs"
                     title="Download .ics calendar event for Apple Calendar, Outlook, and Google Calendar"
                   >
-                    <CalendarPlus className="h-4 w-4" /> Add to calendar
+                    <CalendarPlus className="h-4 w-4 text-[#c97a8b]" /> Add to calendar
                   </button>
                 )}
               </div>
@@ -165,9 +168,39 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
                 </p>
               </div>
 
-              <div className="shrink-0 flex items-center gap-2 rounded-2xl border border-pink-200/80 bg-[#fdf8fa] px-4 py-2 text-xs font-semibold text-[#8a384b]">
-                <PastelTulip color="pink" size={20} className="drop-shadow-xs" />
-                <span>{wedding.config.dressCode?.title || 'Pastel Garden Attire'}</span>
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Cute Tulips / Kitties Toggle */}
+                <div className="flex items-center rounded-full border border-pink-200/80 bg-[#fdf8fa] p-1 text-xs shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => setSwatchIconMode('tulips')}
+                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                      swatchIconMode === 'tulips'
+                        ? 'bg-[#c97a8b] text-white shadow-2xs'
+                        : 'text-stone-500 hover:text-stone-800'
+                    }`}
+                    title="Show blooming tulips"
+                  >
+                    <PastelTulip color="pink" size={15} interactive={false} /> Tulips
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSwatchIconMode('cats')}
+                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                      swatchIconMode === 'cats'
+                        ? 'bg-[#c97a8b] text-white shadow-2xs'
+                        : 'text-stone-500 hover:text-stone-800'
+                    }`}
+                    title="Show cute kitties"
+                  >
+                    <span>🐱</span> Kitties
+                  </button>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-2 rounded-2xl border border-pink-200/80 bg-[#fdf8fa] px-4 py-2 text-xs font-semibold text-[#8a384b]">
+                  <PastelTulip color="pink" size={20} className="drop-shadow-xs" />
+                  <span>{wedding.config.dressCode?.title || 'Pastel Garden Attire'}</span>
+                </div>
               </div>
             </div>
 
@@ -203,7 +236,7 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
                           {/* Glossy top-light reflection arc */}
                           <div className="pointer-events-none absolute inset-x-2 top-1.5 h-7 rounded-full bg-gradient-to-b from-white/60 via-white/20 to-transparent" />
 
-                          {/* Center cute emoji & hex indicator */}
+                          {/* Center cute tulip / kitty & hex indicator */}
                           <div className="flex flex-col items-center justify-center transition-transform duration-200 group-hover:scale-110">
                             {isCopied ? (
                               <div className="flex flex-col items-center">
@@ -212,11 +245,17 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
                               </div>
                             ) : (
                               <>
-                                <span className="text-2xl sm:text-3xl select-none filter drop-shadow-xs">
-                                  {color.emoji}
-                                </span>
+                                {swatchIconMode === 'tulips' ? (
+                                  <div className="my-0.5 flex items-center justify-center">
+                                    <PastelTulip color={color.tulipColor} size={28} interactive={false} className="filter drop-shadow-xs pointer-events-none" />
+                                  </div>
+                                ) : (
+                                  <span className="text-2xl sm:text-3xl select-none filter drop-shadow-xs">
+                                    {color.catEmoji}
+                                  </span>
+                                )}
                                 <span
-                                  className="mt-1 font-mono text-[10px] sm:text-[11px] font-extrabold tracking-wider rounded-full px-2 py-0.5 shadow-2xs backdrop-blur-xs"
+                                  className="mt-0.5 font-mono text-[10px] sm:text-[11px] font-extrabold tracking-wider rounded-full px-2 py-0.5 shadow-2xs backdrop-blur-xs"
                                   style={{
                                     backgroundColor: 'rgba(255, 255, 255, 0.92)',
                                     color: color.textTint,

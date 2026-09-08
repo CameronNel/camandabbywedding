@@ -745,37 +745,37 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
             top: `${(hoveredSeat.y / 730) * 100}%`,
           }}
         >
-          <div className="rounded-xl border border-stone-200/80 bg-stone-900/90 backdrop-blur-md px-3 py-2 text-center text-white shadow-xl min-w-[150px]">
-            <p className="text-[11px] font-bold text-pink-200">
+          <div className="rounded-xl border border-[#f0d5de] bg-white/95 backdrop-blur-md px-3.5 py-2.5 text-center text-stone-800 shadow-xl min-w-[160px]">
+            <p className="text-[11px] font-bold text-[#8a384b]">
               {hoveredSeat.tableName} • Seat {hoveredSeat.seatNumber}
             </p>
             {hoveredSeat.status === 'bridal' ? (
               <div className="mt-0.5">
-                <p className="text-xs font-semibold text-pink-300 flex items-center justify-center gap-1">
-                  <Heart className="h-3 w-3 text-pink-400" />
+                <p className="text-xs font-semibold text-[#c97a8b] flex items-center justify-center gap-1">
+                  <Heart className="h-3 w-3 text-[#c97a8b] fill-current" />
                   {hoveredSeat.occupantName}
                 </p>
-                <p className="text-[9px] text-stone-300">Bride &amp; Groom Table</p>
+                <p className="text-[9px] text-stone-500">Bride &amp; Groom Table</p>
               </div>
             ) : hoveredSeat.status === 'selected' ? (
               <div className="mt-0.5">
-                <p className="text-xs font-semibold text-white flex items-center justify-center gap-1">
-                  <Check className="h-3 w-3 text-pink-400" />
+                <p className="text-xs font-semibold text-emerald-700 flex items-center justify-center gap-1">
+                  <Check className="h-3 w-3 text-emerald-600" />
                   {hoveredSeat.occupantName || 'Your Party'}
                 </p>
-                <p className="text-[9px] text-stone-300">Click to unselect</p>
+                <p className="text-[9px] text-stone-500">Click to unselect</p>
               </div>
             ) : hoveredSeat.status === 'occupied' ? (
               <div className="mt-0.5">
                 <p className="text-[10px] text-stone-400 uppercase tracking-wider">Reserved by</p>
-                <p className="text-xs font-semibold text-amber-200">
+                <p className="text-xs font-semibold text-stone-800">
                   {hoveredSeat.occupantName}
                 </p>
               </div>
             ) : (
               <div className="mt-0.5">
-                <p className="text-xs font-medium text-emerald-300">Available</p>
-                <p className="text-[9px] text-stone-300">Click to choose seat</p>
+                <p className="text-xs font-semibold text-emerald-600">Available</p>
+                <p className="text-[9px] text-stone-500">Click to choose seat</p>
               </div>
             )}
           </div>
@@ -1131,43 +1131,43 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
       {/* FULL-SCREEN MODAL OVERLAY */}
       {isFullscreen && (
         <div
-          className="fixed inset-0 z-50 flex flex-col bg-stone-950/85 backdrop-blur-md p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex flex-col bg-[#fdf8fa]/95 backdrop-blur-xl p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200 text-stone-800"
           role="dialog"
           aria-modal="true"
           aria-label="Full screen seating chart"
         >
           {/* Modal Header */}
-          <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 pb-3 text-white">
+          <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 pb-3 text-stone-800">
             <div className="flex items-center gap-2.5">
-              <div className="rounded-full bg-pink-500/20 p-2 text-pink-300">
+              <div className="rounded-full bg-pink-100 p-2 text-[#c97a8b]">
                 <Sparkles className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="font-display text-base sm:text-lg font-bold text-white leading-tight">
+                <h3 className="font-display text-base sm:text-lg font-bold text-stone-900 leading-tight">
                   Arendsrus Dining Room Seating
                 </h3>
-                <p className="text-[11px] text-stone-300">
+                <p className="text-[11px] text-stone-500">
                   Click seats to choose where your party will sit
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-pink-400/30 bg-pink-950/60 px-3.5 py-1 text-xs text-pink-200">
-                <Users className="h-3.5 w-3.5" />
+              <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-pink-200 bg-white px-3.5 py-1 text-xs text-[#8a384b] shadow-2xs">
+                <Users className="h-3.5 w-3.5 text-[#c97a8b]" />
                 <span>Party: <strong>{attendingCount}</strong></span>
-                <span className="text-pink-400/50">•</span>
+                <span className="text-pink-300">•</span>
                 <span>{selectedSeatIds.length} of {attendingCount} chosen</span>
               </div>
 
               <button
                 type="button"
                 onClick={() => setIsFullscreen(false)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-stone-600 bg-stone-800 hover:bg-stone-700 px-3.5 py-2 text-xs font-semibold text-white shadow-md cursor-pointer transition"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-pink-200 bg-white hover:bg-pink-50 px-3.5 py-2 text-xs font-semibold text-stone-800 shadow-sm cursor-pointer transition"
               >
-                <Minimize2 className="h-4 w-4 text-pink-300" />
+                <Minimize2 className="h-4 w-4 text-[#c97a8b]" />
                 <span>Exit Full Screen</span>
-                <kbd className="hidden md:inline-block ml-1 rounded bg-stone-900 px-1.5 py-0.5 text-[10px] text-stone-400">Esc</kbd>
+                <kbd className="hidden md:inline-block ml-1 rounded bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-500 border border-stone-200">Esc</kbd>
               </button>
             </div>
           </div>
