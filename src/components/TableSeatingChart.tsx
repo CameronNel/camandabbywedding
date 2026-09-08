@@ -137,7 +137,6 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
     occupantName?: string;
   } | null>(null);
 
-  const [activeTableFilter, setActiveTableFilter] = useState<number | 'all'>('all');
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
@@ -396,39 +395,6 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
           </button>
         </div>
       )}
-
-      {/* Table Quick Filters */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500 shrink-0">Focus:</span>
-        <button
-          type="button"
-          onClick={() => setActiveTableFilter('all')}
-          className={`rounded-full px-3.5 py-1 font-medium transition cursor-pointer shrink-0 ${
-            activeTableFilter === 'all'
-              ? 'bg-[#c97a8b] text-white shadow-sm'
-              : 'bg-white text-stone-700 border border-stone-200 hover:border-pink-200'
-          }`}
-        >
-          All 7 Tables
-        </button>
-        {TABLES.map(table => {
-          const isSelected = activeTableFilter === table.id;
-          return (
-            <button
-              key={table.id}
-              type="button"
-              onClick={() => setActiveTableFilter(table.id)}
-              className={`rounded-full px-3 py-1 font-medium transition cursor-pointer shrink-0 ${
-                isSelected
-                  ? 'bg-[#c97a8b] text-white shadow-sm'
-                  : 'bg-white text-stone-700 border border-stone-200 hover:border-pink-200'
-              }`}
-            >
-              {table.name}: {table.theme}
-            </button>
-          );
-        })}
-      </div>
 
       {/* VIEW MODE: INTERACTIVE FLOOR PLAN MAP */}
       {viewMode === 'map' && (
@@ -710,7 +676,6 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
 
               {/* 5. SEVEN ROUND BANQUET TABLES (Arranged in U-shape horseshoe from sketch) */}
               {TABLES.map(table => {
-                const isFiltered = activeTableFilter !== 'all' && activeTableFilter !== table.id;
                 const radiusOrbit = 62;
                 const tableRadius = 39;
                 const seatRadius = 13;
@@ -723,11 +688,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                 ).length;
 
                 return (
-                  <g
-                    key={table.id}
-                    opacity={isFiltered ? 0.35 : 1}
-                    className="transition-opacity duration-300"
-                  >
+                  <g key={table.id}>
                     {/* Table Surface */}
                     <circle
                       cx={table.cx}
