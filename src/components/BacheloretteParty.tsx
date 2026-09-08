@@ -21,6 +21,7 @@ import type { SectionId } from './Navbar';
 import { useGuestExperience } from './guestExperience';
 import type { BachelorettePartyIdea, BachelorettePartyIdeaCategory } from '../types/wedding';
 import { isMaidOfHonorOrBridesmaidHousehold } from '../utils/guestTags';
+import { getGuestVoterId, getVotedIdeaId, togglePageVote } from '../utils/voting';
 
 interface BachelorettePartyProps {
   onNavigate: (section: SectionId) => void;
@@ -42,6 +43,7 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
   const {
     activeHousehold,
     isBridalPartyEligible,
+    adminOpen,
     isAdminLoggedIn,
     bacheloretteParty,
     updateBacheloretteParty,
@@ -96,12 +98,28 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
     }
   };
 
-  // Upvote an idea
+  // Voter identity and 1-vote-per-page tracking
+  const voterId = useMemo(() => getGuestVoterId(activeHousehold?.id), [activeHousehold?.id]);
+  const votedIdeaId = useMemo(
+    () => getVotedIdeaId('bachelorette', bacheloretteParty.ideas, voterId),
+    [bacheloretteParty.ideas, voterId],
+  );
+  const [voteFeedback, setVoteFeedback] = useState<string | null>(null);
+
+  // Upvote or switch vote (1 vote per guest)
   const handleUpvote = async (ideaId: string) => {
-    const updated = bacheloretteParty.ideas.map(i =>
-      i.id === ideaId ? { ...i, votes: (i.votes || 0) + 1 } : i,
-    );
-    await updateBacheloretteParty({ ideas: updated });
+    const result = togglePageVote('bachelorette', bacheloretteParty.ideas, ideaId, voterId);
+    await updateBacheloretteParty({ ideas: result.updatedIdeas });
+    const targetIdea = bacheloretteParty.ideas.find(i => i.id === ideaId);
+    const title = targetIdea?.title || 'Activity';
+    if (result.action === 'voted') {
+      setVoteFeedback(`Your 1 vote has been cast for "${title}"!`);
+    } else if (result.action === 'switched') {
+      setVoteFeedback(`Switched your 1 vote to "${title}"!`);
+    } else {
+      setVoteFeedback(`Removed your vote from "${title}".`);
+    }
+    window.setTimeout(() => setVoteFeedback(null), 4000);
   };
 
   // Submit suggestion
@@ -109,8 +127,21 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
     e.preventDefault();
     if (!suggestForm.title.trim()) return;
 
+    // Withdraw any previous vote so the guest maintains exactly 1 vote
+    const cleanedIdeas = bacheloretteParty.ideas.map(i => {
+      if (i.id === votedIdeaId) {
+        return {
+          ...i,
+          voterIds: (i.voterIds || []).filter(id => id !== voterId),
+          votes: Math.max(0, (i.votes || 1) - 1),
+        };
+      }
+      return i;
+    });
+
+    const newIdeaId = `idea-suggested-${Date.now()}`;
     const newIdea: BachelorettePartyIdea = {
-      id: `idea-suggested-${Date.now()}`,
+      id: newIdeaId,
       title: suggestForm.title.trim(),
       description: suggestForm.description.trim(),
       category: suggestForm.category,
@@ -119,10 +150,19 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
       suggestedBy: activeHousehold?.name || 'Bridesmaid',
       status: 'idea',
       votes: 1,
+      voterIds: [voterId],
     };
 
-    await updateBacheloretteParty({ ideas: [newIdea, ...bacheloretteParty.ideas] });
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(`wedding_voted_bachelorette_${voterId}`, newIdeaId);
+      } catch {}
+    }
+
+    await updateBacheloretteParty({ ideas: [newIdea, ...cleanedIdeas] });
     setSuggestModalOpen(false);
+    setVoteFeedback(`Suggested "${newIdea.title}" and cast your 1 vote for it!`);
+    window.setTimeout(() => setVoteFeedback(null), 4000);
     setSuggestForm({
       title: '',
       description: '',
@@ -163,12 +203,12 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
   }, [bacheloretteParty.ideas, ideaCategory]);
 
   // Is page unlocked?
-  const isUnlocked = isBridalPartyEligible || isAdminLoggedIn;
+  const isUnlocked = isBridalPartyEligible || adminOpen || isAdminLoggedIn;
 
   // GATED VIEW IF NOT UNLOCKED
   if (!isUnlocked) {
     return (
-      <div className="relative min-h-[90vh] bg-gradient-to-b from-[#faf4f6] via-[#f7ebf0] to-[#f4e2e8] pt-28 pb-20 px-4 sm:px-6 flex items-center justify-center">
+      <section id="bachelorette" className="relative min-h-[90vh] bg-gradient-to-b from-[#faf4f6] via-[#f7ebf0] to-[#f4e2e8] pt-28 pb-20 px-4 sm:px-6 flex items-center justify-center">
         <div className="relative z-10 mx-auto max-w-lg w-full text-center">
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-[#f8b4c4] to-[#c94d6e] text-white shadow-xl shadow-[#9c2743]/20">
             <Lock className="h-8 w-8 text-white" />
@@ -237,13 +277,13 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
             </div>
           </div>
         </div>
-      </div>
+      </section>
     );
   }
 
   // UNLOCKED VIEW
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#faf4f6] via-[#fcf6f8] to-[#f9edf2] text-stone-900 pt-24 pb-24">
+    <section id="bachelorette" className="min-h-screen bg-gradient-to-b from-[#faf4f6] via-[#fcf6f8] to-[#f9edf2] text-stone-900 pt-24 pb-24">
       {/* Top Hero Banner */}
       <div className="relative overflow-hidden border-b border-[#e4aeb5]/40 bg-gradient-to-br from-[#f8e3ea] via-[#faebf1] to-[#fef6f9] py-12 px-4 sm:px-6 lg:px-8 shadow-sm">
         <div className="mx-auto max-w-6xl">
@@ -440,8 +480,14 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
                 Ideas &amp; Voting ({bacheloretteParty.ideas.length})
               </h2>
               <p className="text-xs text-stone-600">
-                Vote for your favourite activities or suggest something special for Abby!
+                Vote for your favourite activity (each guest gets 1 vote) or suggest something special for Abby!
               </p>
+              {voteFeedback && (
+                <div className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-[#9c2743]/10 border border-[#9c2743]/20 px-3 py-1 text-xs font-semibold text-[#9c2743] animate-in fade-in">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>{voteFeedback}</span>
+                </div>
+              )}
             </div>
 
             <button
@@ -527,17 +573,47 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
                   </div>
 
                   <div className="mt-5 pt-3 border-t border-stone-100 flex items-center justify-between">
-                    <span className="text-xs text-stone-500">
-                      Votes: <strong className="text-stone-900">{idea.votes || 0}</strong>
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-stone-500">
+                        Votes: <strong className="text-stone-900">{idea.votes || 0}</strong>
+                      </span>
+                      {idea.id === votedIdeaId && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#9c2743]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#9c2743]">
+                          <Check className="h-3 w-3" /> Your Vote
+                        </span>
+                      )}
+                    </div>
 
                     <button
                       type="button"
                       onClick={() => handleUpvote(idea.id)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-[#e4aeb5] bg-[#fdf2f4] px-3.5 py-1.5 text-xs font-bold text-[#9c2743] hover:bg-[#fadce2] transition active:scale-95 shadow-2xs"
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition active:scale-95 shadow-2xs ${
+                        idea.id === votedIdeaId
+                          ? 'border-[#9c2743] bg-[#9c2743] text-white hover:bg-[#872039]'
+                          : votedIdeaId
+                          ? 'border-stone-200 bg-white text-stone-700 hover:border-[#e4aeb5] hover:bg-[#fdf2f4] hover:text-[#9c2743]'
+                          : 'border-[#e4aeb5] bg-[#fdf2f4] text-[#9c2743] hover:bg-[#fadce2]'
+                      }`}
+                      title={
+                        idea.id === votedIdeaId
+                          ? 'You voted for this activity. Click to remove your vote.'
+                          : votedIdeaId
+                          ? 'You have 1 vote per page. Click to switch your vote here.'
+                          : 'Vote for this activity (1 vote per guest)'
+                      }
+                      aria-pressed={idea.id === votedIdeaId}
                     >
-                      <ThumbsUp className="h-3.5 w-3.5" />
-                      Vote
+                      {idea.id === votedIdeaId ? (
+                        <>
+                          <Check className="h-3.5 w-3.5" />
+                          Voted
+                        </>
+                      ) : (
+                        <>
+                          <ThumbsUp className="h-3.5 w-3.5" />
+                          {votedIdeaId ? 'Switch' : 'Vote'}
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -691,6 +767,6 @@ export function BacheloretteParty({ onNavigate }: BachelorettePartyProps) {
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

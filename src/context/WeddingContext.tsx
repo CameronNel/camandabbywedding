@@ -302,6 +302,12 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
 
   const applyPublicBundle = useCallback((bundle: repository.PublicDataBundle) => {
     setConfig(bundle.config);
+    if (bundle.config.bachelorParty) {
+      setBachelorParty(bundle.config.bachelorParty);
+    }
+    if (bundle.config.bacheloretteParty) {
+      setBacheloretteParty(bundle.config.bacheloretteParty);
+    }
     setGalleryItems(bundle.galleryItems);
     setWishes(bundle.wishes);
     if (!adminSession && !activeHousehold) {
@@ -324,6 +330,12 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
       },
     };
     setConfig(updatedConfig);
+    if (bundle.config.bachelorParty) {
+      setBachelorParty(bundle.config.bachelorParty);
+    }
+    if (bundle.config.bacheloretteParty) {
+      setBacheloretteParty(bundle.config.bacheloretteParty);
+    }
     setHouseholds(bundle.households);
     setAccommodations(bundle.accommodations);
     setServices(bundle.services);

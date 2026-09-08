@@ -487,16 +487,27 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
           </Reveal>
         ) : saved ? (
           <Reveal className="relative z-10 mx-auto max-w-3xl rounded-[2rem] border border-[#b8cfb6] bg-[#edf6ec] p-8 text-center shadow-[0_20px_60px_rgba(76,107,75,0.08)] sm:p-12">
-            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#5c7a59] text-white shadow-lg">
-              <Check className="h-7 w-7" strokeWidth={2} />
-            </span>
-            <p className="eyebrow mt-6 text-[#4c6b4b]">Response saved</p>
+            {/* Celebratory Anne Mascot Badge */}
+            <div className="mx-auto mb-6 flex flex-col items-center">
+              <div className="relative">
+                <img
+                  src={`${import.meta.env.BASE_URL}images/anne-rsvp.png`}
+                  alt="Anne the tabby cat signing the RSVP"
+                  className="h-32 w-32 sm:h-36 sm:w-36 object-contain drop-shadow-md animate-in zoom-in-90 duration-300"
+                />
+                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#3e5f3c] px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm flex items-center gap-1.5">
+                  <span>🐾 Anne-Approved RSVP!</span>
+                </span>
+              </div>
+            </div>
+
+            <p className="eyebrow mt-4 text-[#4c6b4b]">Response saved</p>
             <h3 className="mt-2 font-display text-4xl text-stone-800 sm:text-5xl">
               {response === 'attending' ? 'We can’t wait to welcome you.' : 'Thank you for letting us know.'}
             </h3>
-            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-stone-600">
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-stone-600">
               {response === 'attending'
-                ? `${attendingCount} ${attendingCount === 1 ? 'guest is' : 'guests are'} confirmed for ${household.name}. Your private stay and gift details are now available below.`
+                ? `${attendingCount} ${attendingCount === 1 ? 'guest is' : 'guests are'} confirmed for ${household.name}. Anne has personally added your household to the guest list. See you in George!`
                 : `We’ll miss you, but we’re grateful you responded for ${household.name}.`}
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

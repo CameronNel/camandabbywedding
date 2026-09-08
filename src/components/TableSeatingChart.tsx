@@ -66,13 +66,11 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
 
   // Lock background scrolling when full screen is active
   useEffect(() => {
-    if (isFullscreen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    if (!isFullscreen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousOverflow;
     };
   }, [isFullscreen]);
 

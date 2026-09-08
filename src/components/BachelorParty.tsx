@@ -20,6 +20,7 @@ import type { SectionId } from './Navbar';
 import { useGuestExperience } from './guestExperience';
 import type { BachelorPartyIdea, BachelorPartyIdeaCategory } from '../types/wedding';
 import { isBestManOrGroomsmanHousehold } from '../utils/guestTags';
+import { getGuestVoterId, getVotedIdeaId, togglePageVote } from '../utils/voting';
 
 interface BachelorPartyProps {
   onNavigate: (section: SectionId) => void;
@@ -94,12 +95,28 @@ export function BachelorParty({ onNavigate }: BachelorPartyProps) {
     }
   };
 
-  // Upvote an idea
+  // Voter identity and 1-vote-per-page tracking
+  const voterId = useMemo(() => getGuestVoterId(activeHousehold?.id), [activeHousehold?.id]);
+  const votedIdeaId = useMemo(
+    () => getVotedIdeaId('bachelor', bachelorParty.ideas, voterId),
+    [bachelorParty.ideas, voterId],
+  );
+  const [voteFeedback, setVoteFeedback] = useState<string | null>(null);
+
+  // Upvote or switch vote (1 vote per guest)
   const handleUpvote = async (ideaId: string) => {
-    const updated = bachelorParty.ideas.map(i =>
-      i.id === ideaId ? { ...i, votes: (i.votes || 0) + 1 } : i,
-    );
-    await updateBachelorParty({ ideas: updated });
+    const result = togglePageVote('bachelor', bachelorParty.ideas, ideaId, voterId);
+    await updateBachelorParty({ ideas: result.updatedIdeas });
+    const targetIdea = bachelorParty.ideas.find(i => i.id === ideaId);
+    const title = targetIdea?.title || 'Activity';
+    if (result.action === 'voted') {
+      setVoteFeedback(`Your 1 vote has been cast for "${title}"!`);
+    } else if (result.action === 'switched') {
+      setVoteFeedback(`Switched your 1 vote to "${title}"!`);
+    } else {
+      setVoteFeedback(`Removed your vote from "${title}".`);
+    }
+    window.setTimeout(() => setVoteFeedback(null), 4000);
   };
 
   // Submit suggestion
@@ -107,8 +124,21 @@ export function BachelorParty({ onNavigate }: BachelorPartyProps) {
     e.preventDefault();
     if (!suggestForm.title.trim()) return;
 
+    // Withdraw any previous vote so the guest maintains exactly 1 vote
+    const cleanedIdeas = bachelorParty.ideas.map(i => {
+      if (i.id === votedIdeaId) {
+        return {
+          ...i,
+          voterIds: (i.voterIds || []).filter(id => id !== voterId),
+          votes: Math.max(0, (i.votes || 1) - 1),
+        };
+      }
+      return i;
+    });
+
+    const newIdeaId = `idea-suggested-${Date.now()}`;
     const newIdea: BachelorPartyIdea = {
-      id: `idea-suggested-${Date.now()}`,
+      id: newIdeaId,
       title: suggestForm.title.trim(),
       description: suggestForm.description.trim(),
       category: suggestForm.category,
@@ -117,10 +147,19 @@ export function BachelorParty({ onNavigate }: BachelorPartyProps) {
       suggestedBy: activeHousehold?.name || 'Groomsman',
       status: 'idea',
       votes: 1,
+      voterIds: [voterId],
     };
 
-    await updateBachelorParty({ ideas: [newIdea, ...bachelorParty.ideas] });
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(`wedding_voted_bachelor_${voterId}`, newIdeaId);
+      } catch {}
+    }
+
+    await updateBachelorParty({ ideas: [newIdea, ...cleanedIdeas] });
     setSuggestModalOpen(false);
+    setVoteFeedback(`Suggested "${newIdea.title}" and cast your 1 vote for it!`);
+    window.setTimeout(() => setVoteFeedback(null), 4000);
     setSuggestForm({
       title: '',
       description: '',
@@ -455,8 +494,13 @@ export function BachelorParty({ onNavigate }: BachelorPartyProps) {
                 </span>
               </div>
               <p className="mt-1 text-xs sm:text-sm text-[#d4c9c1]">
-                Curated activities for Cameron&apos;s weekend. Tap the thumbs-up to vote for what you want to do!
+                Curated activities for Cameron&apos;s weekend. Each guest gets 1 vote — tap to choose your favourite!
               </p>
+              {voteFeedback && (
+                <div className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-[#404c24] border border-[#a2ac94]/40 px-3 py-1 text-xs font-semibold text-[#f5f6f2] animate-in fade-in">
+                  <span>🎯 {voteFeedback}</span>
+                </div>
+              )}
             </div>
 
             <button
@@ -542,11 +586,35 @@ export function BachelorParty({ onNavigate }: BachelorPartyProps) {
                   <button
                     type="button"
                     onClick={() => handleUpvote(idea.id)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[#a2ac94]/50 bg-[#404c24]/80 px-3.5 py-1 text-xs font-bold text-[#d4c9c1] hover:bg-[#4d5c2c] hover:text-white transition transform active:scale-95 shadow-sm"
-                    title="Vote for this activity"
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-xs font-bold transition transform active:scale-95 shadow-sm ${
+                      idea.id === votedIdeaId
+                        ? 'border-[#8ea268] bg-[#62773b] text-white ring-2 ring-[#8ea268]/40 shadow-md'
+                        : votedIdeaId
+                        ? 'border-[#a2ac94]/30 bg-[#2b3224]/70 text-[#cbccbc] hover:border-[#a2ac94]/60 hover:bg-[#38422e] hover:text-white'
+                        : 'border-[#a2ac94]/50 bg-[#404c24]/80 text-[#d4c9c1] hover:bg-[#4d5c2c] hover:text-white'
+                    }`}
+                    title={
+                      idea.id === votedIdeaId
+                        ? 'You voted for this activity. Click to remove vote.'
+                        : votedIdeaId
+                        ? 'You have 1 vote per page. Click to switch your vote here.'
+                        : 'Vote for this activity (1 vote per guest)'
+                    }
+                    aria-pressed={idea.id === votedIdeaId}
                   >
-                    <ThumbsUp className="h-3.5 w-3.5 text-[#cbccbc]" />
-                    <span>{idea.votes || 0}</span>
+                    {idea.id === votedIdeaId ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-white" />
+                        <span>{idea.votes || 0}</span>
+                        <span className="ml-1 rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">Your Vote</span>
+                      </>
+                    ) : (
+                      <>
+                        <ThumbsUp className="h-3.5 w-3.5 text-[#cbccbc]" />
+                        <span>{idea.votes || 0}</span>
+                        {votedIdeaId && <span className="ml-1 text-[10px] opacity-75">Switch</span>}
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

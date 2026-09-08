@@ -79,10 +79,19 @@ export function PhotoGallery() {
     });
   }, [total]);
 
+  const isLightboxOpen = lightboxIndex !== null;
+
   useEffect(() => {
-    if (lightboxIndex === null) return;
+    if (!isLightboxOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isLightboxOpen]);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
     closeButtonRef.current?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -93,7 +102,6 @@ export function PhotoGallery() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [lightboxIndex, closeLightbox, moveLightbox]);

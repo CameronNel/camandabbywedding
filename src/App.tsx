@@ -9,6 +9,8 @@ import { Registry } from './components/Registry';
 import { BachelorParty } from './components/BachelorParty';
 import { BacheloretteParty } from './components/BacheloretteParty';
 import { Footer } from './components/Footer';
+import { SageHelperCat } from './components/SageHelperCat';
+import { AnnePeekingCat } from './components/AnnePeekingCat';
 import { useGuestExperience } from './components/guestExperience';
 import { SakuraPetals } from './components/decorations/SakuraPetals';
 import { TulipDivider, PastelTulip } from './components/decorations/TulipAccents';
@@ -66,10 +68,30 @@ export function AppContent() {
   }, []);
 
   useEffect(() => {
+    if (!adminOpen) {
+      document.body.style.overflow = '';
+      document.body.style.removeProperty('overflow');
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.removeProperty('overflow');
+    }
+  }, [adminOpen]);
+
+  useEffect(() => {
     const hash = window.location.hash.slice(1).toLowerCase();
     if (!isSectionId(hash) || hash === 'home') return;
     const timer = window.setTimeout(() => navigate(hash, 'auto'), 80);
     return () => window.clearTimeout(timer);
+  }, [navigate]);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1).toLowerCase();
+      if (isSectionId(hash)) {
+        navigate(hash, 'smooth');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, [navigate]);
 
   const isPartyView = activeSection === 'bachelor' || activeSection === 'bachelorette';
@@ -191,6 +213,8 @@ export function AppContent() {
         )}
       </main>
       <Footer onNavigate={navigate} />
+      <SageHelperCat onNavigate={navigate} />
+      <AnnePeekingCat />
       {adminOpen && (
         <Suspense fallback={<div className="fixed inset-0 z-[90] grid place-items-center bg-stone-950/60 text-sm font-semibold text-white backdrop-blur-sm">Opening organizer portal…</div>}>
           <AdminDashboard />

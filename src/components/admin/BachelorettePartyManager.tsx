@@ -10,6 +10,7 @@ import {
   Pencil,
   Phone,
   Plus,
+  RotateCcw,
   Search,
   ShieldAlert,
   Sparkles,
@@ -89,7 +90,7 @@ export const BachelorettePartyManager: React.FC<BachelorettePartyManagerProps> =
     estimatedCost: '',
     location: '',
     status: 'idea',
-    votes: 1,
+    votes: 0,
   });
 
   // Trip details form state
@@ -261,6 +262,17 @@ export const BachelorettePartyManager: React.FC<BachelorettePartyManagerProps> =
     }
   };
 
+  const handleResetAllVotes = async () => {
+    if (!window.confirm('Reset all bachelorette activity votes to 0?')) return;
+    try {
+      const updated = bacheloretteParty.ideas.map(i => ({ ...i, votes: 0, voterIds: [] }));
+      await onUpdate({ ideas: updated });
+      notify({ tone: 'success', message: 'All activity votes reset to 0.' });
+    } catch {
+      notify({ tone: 'error', message: 'Failed to reset votes.' });
+    }
+  };
+
   // Save idea
   const handleSaveIdea = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -280,6 +292,7 @@ export const BachelorettePartyManager: React.FC<BachelorettePartyManagerProps> =
               description: ideaForm.description.trim(),
               estimatedCost: ideaForm.estimatedCost?.trim() || undefined,
               location: ideaForm.location?.trim() || undefined,
+              votes: ideaForm.votes ?? editingIdea.votes ?? 0,
             }
           : i,
       );
@@ -292,7 +305,8 @@ export const BachelorettePartyManager: React.FC<BachelorettePartyManagerProps> =
         estimatedCost: ideaForm.estimatedCost?.trim() || undefined,
         location: ideaForm.location?.trim() || undefined,
         status: ideaForm.status,
-        votes: ideaForm.votes || 1,
+        votes: ideaForm.votes ?? 0,
+        voterIds: [],
       };
       updatedIdeas = [newIdea, ...bacheloretteParty.ideas];
     }
@@ -611,26 +625,37 @@ export const BachelorettePartyManager: React.FC<BachelorettePartyManagerProps> =
             <p className="text-xs text-stone-500">
               Brainstorm and vote on activities, venues, wine farms, spa days, and surprise events.
             </p>
-            <Button
-              tone="primary"
-              size="sm"
-              onClick={() => {
-                setEditingIdea(null);
-                setIdeaForm({
-                  title: '',
-                  description: '',
-                  category: 'wine_tasting',
-                  estimatedCost: '',
-                  location: '',
-                  status: 'idea',
-                  votes: 1,
-                });
-                setIdeaModalOpen(true);
-              }}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add Activity Idea
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                tone="secondary"
+                size="sm"
+                onClick={handleResetAllVotes}
+                title="Reset all votes on this page to 0"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Reset Votes to 0
+              </Button>
+              <Button
+                tone="primary"
+                size="sm"
+                onClick={() => {
+                  setEditingIdea(null);
+                  setIdeaForm({
+                    title: '',
+                    description: '',
+                    category: 'wine_tasting',
+                    estimatedCost: '',
+                    location: '',
+                    status: 'idea',
+                    votes: 0,
+                  });
+                  setIdeaModalOpen(true);
+                }}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add Activity Idea
+              </Button>
+            </div>
           </div>
 
           {bacheloretteParty.ideas.length === 0 ? (
@@ -689,7 +714,7 @@ export const BachelorettePartyManager: React.FC<BachelorettePartyManagerProps> =
                                 estimatedCost: idea.estimatedCost || '',
                                 location: idea.location || '',
                                 status: idea.status,
-                                votes: idea.votes || 0,
+                                votes: idea.votes ?? 0,
                               });
                               setIdeaModalOpen(true);
                             }}

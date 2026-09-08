@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   BedDouble,
@@ -63,19 +63,30 @@ export const AdminDashboard: React.FC = () => {
   const [preview, setPreview] = useState<{ household: HouseholdInvitation; variant: InvitationVariant } | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
 
+  const previewRef = useRef(preview);
   useEffect(() => {
-    if (!wedding.isAdminOpen) return;
-    const previousOverflow = document.body.style.overflow;
+    previewRef.current = preview;
+  }, [preview]);
+
+  useEffect(() => {
     document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.removeProperty('overflow');
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.removeProperty('overflow');
+    };
+  }, []);
+
+  useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !preview) setIsAdminOpen(false);
+      if (event.key === 'Escape' && !previewRef.current) setIsAdminOpen(false);
     };
     window.addEventListener('keydown', handleEscape);
     return () => {
-      document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [preview, setIsAdminOpen, wedding.isAdminOpen]);
+  }, [setIsAdminOpen]);
 
   const validIds = useMemo(() => new Set(wedding.households.map(household => household.id)), [wedding.households]);
   const activeSelectedIds = useMemo(() => new Set([...selectedIds].filter(id => validIds.has(id))), [selectedIds, validIds]);

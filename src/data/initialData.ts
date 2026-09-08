@@ -119,12 +119,13 @@ export const initialGuests: Guest[] = [
     tableNumber: '',
     isPlusOneAllowed: false,
     dietaryRestrictions: [],
-    tags: ['best_man'],
+    tags: ['best_man', 'maid_of_honor'],
     members: [
       {
         id: 'member-anri',
         householdId: 'household-anri-henk',
         name: 'Anri',
+        role: 'maid_of_honor',
         email: 'anri.henk@example.com',
         isPrimary: true,
         isInvited: true,
@@ -553,7 +554,8 @@ export const initialBachelorParty: BachelorPartyConfig = {
       estimatedCost: 'R550 pp',
       location: 'Garden Route Shooting Range',
       status: 'top_pick',
-      votes: 5,
+      votes: 0,
+      voterIds: [],
     },
     {
       id: 'idea-2',
@@ -563,7 +565,8 @@ export const initialBachelorParty: BachelorPartyConfig = {
       estimatedCost: 'R1,200 pp (2 nights)',
       location: 'Wilderness / Hoekwil',
       status: 'top_pick',
-      votes: 4,
+      votes: 0,
+      voterIds: [],
     },
     {
       id: 'idea-3',
@@ -573,7 +576,8 @@ export const initialBachelorParty: BachelorPartyConfig = {
       estimatedCost: 'R650 pp',
       location: 'Outeniqua Trail',
       status: 'idea',
-      votes: 3,
+      votes: 0,
+      voterIds: [],
     },
     {
       id: 'idea-4',
@@ -583,7 +587,8 @@ export const initialBachelorParty: BachelorPartyConfig = {
       estimatedCost: 'R450 pp',
       location: 'George Golf Club / Fancourt',
       status: 'idea',
-      votes: 2,
+      votes: 0,
+      voterIds: [],
     },
     {
       id: 'idea-5',
@@ -593,7 +598,8 @@ export const initialBachelorParty: BachelorPartyConfig = {
       estimatedCost: 'R750 pp',
       location: 'George / Old Town',
       status: 'idea',
-      votes: 3,
+      votes: 0,
+      voterIds: [],
     },
   ],
 };
@@ -633,7 +639,8 @@ export const initialBacheloretteParty: BachelorettePartyConfig = {
       estimatedCost: 'R650 pp',
       location: 'Wine Valley / Estate Tour',
       status: 'top_pick',
-      votes: 5,
+      votes: 0,
+      voterIds: [],
     },
     {
       id: 'bachelorette-idea-2',
@@ -643,7 +650,8 @@ export const initialBacheloretteParty: BachelorettePartyConfig = {
       estimatedCost: 'R950 pp',
       location: 'Fancourt / Boutique Day Spa',
       status: 'top_pick',
-      votes: 4,
+      votes: 0,
+      voterIds: [],
     },
     {
       id: 'bachelorette-idea-3',
@@ -653,7 +661,8 @@ export const initialBacheloretteParty: BachelorettePartyConfig = {
       estimatedCost: 'R1,300 pp (2 nights)',
       location: 'Plettenberg Bay / Wilderness',
       status: 'top_pick',
-      votes: 4,
+      votes: 0,
+      voterIds: [],
     },
     {
       id: 'bachelorette-idea-4',
@@ -663,7 +672,8 @@ export const initialBacheloretteParty: BachelorettePartyConfig = {
       estimatedCost: 'R420 pp',
       location: 'Country Estate Tearoom',
       status: 'idea',
-      votes: 3,
+      votes: 0,
+      voterIds: [],
     },
     {
       id: 'bachelorette-idea-5',
@@ -673,7 +683,8 @@ export const initialBacheloretteParty: BachelorettePartyConfig = {
       estimatedCost: 'R580 pp',
       location: 'Knysna Waterfront / Bay',
       status: 'idea',
-      votes: 3,
+      votes: 0,
+      voterIds: [],
     },
     {
       id: 'bachelorette-idea-6',
@@ -683,7 +694,8 @@ export const initialBacheloretteParty: BachelorettePartyConfig = {
       estimatedCost: 'R520 pp',
       location: 'Boutique Cocktail Lounge',
       status: 'idea',
-      votes: 2,
+      votes: 0,
+      voterIds: [],
     },
   ],
 };

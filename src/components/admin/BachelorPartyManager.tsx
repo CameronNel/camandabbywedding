@@ -10,6 +10,7 @@ import {
   Pencil,
   Phone,
   Plus,
+  RotateCcw,
   Search,
   ShieldAlert,
   Star,
@@ -87,7 +88,7 @@ export const BachelorPartyManager: React.FC<BachelorPartyManagerProps> = ({
     estimatedCost: '',
     location: '',
     status: 'idea',
-    votes: 1,
+    votes: 0,
   });
 
   // Trip details form state
@@ -271,7 +272,7 @@ export const BachelorPartyManager: React.FC<BachelorPartyManagerProps> = ({
       estimatedCost: '',
       location: '',
       status: 'idea',
-      votes: 1,
+      votes: 0,
     });
     setIdeaModalOpen(true);
   };
@@ -285,9 +286,20 @@ export const BachelorPartyManager: React.FC<BachelorPartyManagerProps> = ({
       estimatedCost: idea.estimatedCost || '',
       location: idea.location || '',
       status: idea.status,
-      votes: idea.votes || 1,
+      votes: idea.votes ?? 0,
     });
     setIdeaModalOpen(true);
+  };
+
+  const handleResetAllVotes = async () => {
+    if (!window.confirm('Reset all bachelor activity votes to 0?')) return;
+    try {
+      const updated = bachelorParty.ideas.map(i => ({ ...i, votes: 0, voterIds: [] }));
+      await onUpdate({ ideas: updated });
+      notify({ tone: 'success', message: 'All activity votes reset to 0.' });
+    } catch {
+      notify({ tone: 'error', message: 'Failed to reset votes.' });
+    }
   };
 
   const handleSaveIdea = async (e: React.FormEvent) => {
@@ -571,13 +583,18 @@ export const BachelorPartyManager: React.FC<BachelorPartyManagerProps> = ({
       {/* TAB 2: WHAT TO DO / IDEAS */}
       {activeTab === 'ideas' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-stone-500">
               Curate ideas and activities for Cameron's bachelor weekend. Groomsmen can also vote on and suggest activities.
             </p>
-            <Button tone="primary" onClick={handleOpenAddIdea}>
-              <Plus className="h-4 w-4" /> Add Activity Idea
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button tone="secondary" onClick={handleResetAllVotes} title="Reset all votes on this page to 0">
+                <RotateCcw className="h-4 w-4" /> Reset Votes to 0
+              </Button>
+              <Button tone="primary" onClick={handleOpenAddIdea}>
+                <Plus className="h-4 w-4" /> Add Activity Idea
+              </Button>
+            </div>
           </div>
 
           {bachelorParty.ideas.length === 0 ? (

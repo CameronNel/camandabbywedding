@@ -74,7 +74,57 @@ function safeSave<T>(key: string, value: T): void {
   }
 }
 
+const VOTES_RESET_KEY = 'wedding_votes_reset_zero_v1';
+
+export function checkAndResetVotesIfPending(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (window.localStorage.getItem(VOTES_RESET_KEY) === 'true') return;
+
+    // 1. Reset saved bachelor party ideas
+    const savedBach = safeLoad<Partial<BachelorPartyConfig>>(STORAGE_KEYS.bachelorParty, {});
+    if (savedBach.ideas) {
+      savedBach.ideas = savedBach.ideas.map(i => ({ ...i, votes: 0, voterIds: [] }));
+      safeSave(STORAGE_KEYS.bachelorParty, { ...initialBachelorParty, ...savedBach });
+    }
+
+    // 2. Reset saved bachelorette party ideas
+    const savedBachel = safeLoad<Partial<BachelorettePartyConfig>>(STORAGE_KEYS.bacheloretteParty, {});
+    if (savedBachel.ideas) {
+      savedBachel.ideas = savedBachel.ideas.map(i => ({ ...i, votes: 0, voterIds: [] }));
+      safeSave(STORAGE_KEYS.bacheloretteParty, { ...initialBacheloretteParty, ...savedBachel });
+    }
+
+    // 3. Reset config if it contains bachelor/bachelorette party ideas
+    const savedConfig = safeLoad<Partial<WeddingConfig>>(STORAGE_KEYS.config, {});
+    let configDirty = false;
+    if (savedConfig.bachelorParty?.ideas) {
+      savedConfig.bachelorParty.ideas = savedConfig.bachelorParty.ideas.map(i => ({ ...i, votes: 0, voterIds: [] }));
+      configDirty = true;
+    }
+    if (savedConfig.bacheloretteParty?.ideas) {
+      savedConfig.bacheloretteParty.ideas = savedConfig.bacheloretteParty.ideas.map(i => ({ ...i, votes: 0, voterIds: [] }));
+      configDirty = true;
+    }
+    if (configDirty) {
+      safeSave(STORAGE_KEYS.config, savedConfig);
+    }
+
+    // 4. Clear any guest voting device/status keys from localStorage
+    for (const key of Object.keys(window.localStorage)) {
+      if (key.startsWith('wedding_voted_')) {
+        window.localStorage.removeItem(key);
+      }
+    }
+
+    window.localStorage.setItem(VOTES_RESET_KEY, 'true');
+  } catch (error) {
+    console.warn('Failed to perform one-time votes reset', error);
+  }
+}
+
 export function loadConfig(): WeddingConfig {
+  checkAndResetVotesIfPending();
   const saved = safeLoad<Partial<WeddingConfig>>(STORAGE_KEYS.config, {});
   if (saved.weddingDate === '2027-01-04') {
     saved.weddingDate = '2027-08-01';
@@ -157,6 +207,7 @@ export const loadGallery = (): GalleryItem[] => safeLoad(STORAGE_KEYS.gallery, i
 export const saveGallery = (items: GalleryItem[]): void => safeSave(STORAGE_KEYS.gallery, items);
 
 export const loadBachelorParty = (): BachelorPartyConfig => {
+  checkAndResetVotesIfPending();
   const saved = safeLoad<Partial<BachelorPartyConfig>>(STORAGE_KEYS.bachelorParty, {});
   return {
     ...initialBachelorParty,
@@ -168,6 +219,7 @@ export const loadBachelorParty = (): BachelorPartyConfig => {
 export const saveBachelorParty = (data: BachelorPartyConfig): void => safeSave(STORAGE_KEYS.bachelorParty, data);
 
 export const loadBacheloretteParty = (): BachelorettePartyConfig => {
+  checkAndResetVotesIfPending();
   const saved = safeLoad<Partial<BachelorettePartyConfig>>(STORAGE_KEYS.bacheloretteParty, {});
   return {
     ...initialBacheloretteParty,
@@ -208,10 +260,11 @@ export function resetAppToFactoryDefaults(): void {
   try {
     for (const key of Object.values(STORAGE_KEYS)) window.localStorage.removeItem(key);
     for (const key of Object.keys(window.localStorage)) {
-      if (LEGACY_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+      if (LEGACY_PREFIXES.some((prefix) => key.startsWith(prefix)) || key.startsWith('wedding_voted_')) {
         window.localStorage.removeItem(key);
       }
     }
+    window.localStorage.removeItem(VOTES_RESET_KEY);
     window.sessionStorage.removeItem('wedding_admin_auth');
     window.location.reload();
   } catch (error) {

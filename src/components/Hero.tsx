@@ -101,7 +101,7 @@ export function Hero({ onNavigate }: HeroProps) {
           </div>
         </div>
 
-        {daysRemaining !== null && <div className="absolute bottom-8 right-6 hidden text-right text-white/90 md:block lg:right-14 drop-shadow-[0_2px_10px_rgba(0,0,0,0.4)]">
+        {daysRemaining !== null && <div className="absolute bottom-24 right-6 hidden text-right text-white/90 md:block lg:bottom-28 lg:right-14 drop-shadow-[0_2px_10px_rgba(0,0,0,0.4)]">
           <span className="block font-display text-5xl font-medium leading-none text-white">{daysRemaining}</span>
           <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/70">days to go</span>
         </div>}

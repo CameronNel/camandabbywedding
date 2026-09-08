@@ -383,6 +383,7 @@ export interface BachelorPartyIdea {
   suggestedBy?: string;
   status: 'idea' | 'top_pick' | 'booked';
   votes?: number;
+  voterIds?: string[];
 }
 
 export interface BachelorPartyConfig {
@@ -428,6 +429,7 @@ export interface BachelorettePartyIdea {
   suggestedBy?: string;
   status: 'idea' | 'top_pick' | 'booked';
   votes?: number;
+  voterIds?: string[];
 }
 
 export interface BachelorettePartyConfig {
