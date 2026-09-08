@@ -30,7 +30,7 @@ const WEDDING_FAVOUR_OPTIONS = [
   {
     id: 'Stroopwaffels',
     label: 'Stroopwaffels',
-    description: 'Traditional Dutch caramel syrup waffles',
+    description: 'Traditional Dutch Stroopwaffels',
     emoji: '🧇',
   },
   {
