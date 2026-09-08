@@ -3,20 +3,19 @@ export interface PaletteColor {
   name: string;
   label: string;
   emoji: string;
-  tulipColor: 'pink' | 'peach' | 'yellow' | 'sage' | 'blue' | 'lavender' | 'periwinkle';
+  tulipColor: 'pink' | 'sage' | 'mint' | 'peach' | 'cream' | 'terracotta' | 'yellow' | 'blue' | 'lavender' | 'periwinkle';
   bgTint: string;
   borderTint: string;
   textTint: string;
 }
 
 export const WEDDING_COLOR_PALETTE: PaletteColor[] = [
-  { hex: '#EDC9D4', name: 'Dusty Rose', label: 'Blush / Dusty Rose', emoji: '🌷', tulipColor: 'pink', bgTint: '#fdf6f8', borderTint: '#e8b8c6', textTint: '#8a384b' },
-  { hex: '#FFD3C9', name: 'Soft Peach', label: 'Pastel Peach', emoji: '🌷', tulipColor: 'peach', bgTint: '#fff6f4', borderTint: '#f9beaf', textTint: '#8c4333' },
-  { hex: '#FFF7CF', name: 'Buttercream', label: 'Buttercream Yellow', emoji: '🌷', tulipColor: 'yellow', bgTint: '#fffdf4', borderTint: '#fae996', textTint: '#7c6819' },
-  { hex: '#E4F0C9', name: 'Matcha Sage', label: 'Matcha / Soft Sage', emoji: '🌷', tulipColor: 'sage', bgTint: '#f7faf2', borderTint: '#cde1a4', textTint: '#4a6328' },
-  { hex: '#C7E0FF', name: 'Sky Blue', label: 'Pastel Sky Blue', emoji: '🌷', tulipColor: 'blue', bgTint: '#f3f8ff', borderTint: '#a9cffb', textTint: '#2b578c' },
-  { hex: '#CFCFFF', name: 'Lilac', label: 'Pastel Lavender / Lilac', emoji: '🌷', tulipColor: 'lavender', bgTint: '#f6f6ff', borderTint: '#b7b7fa', textTint: '#474794' },
-  { hex: '#BAC3FF', name: 'Periwinkle', label: 'Pastel Periwinkle', emoji: '🌷', tulipColor: 'periwinkle', bgTint: '#f3f5ff', borderTint: '#9ba9fb', textTint: '#38469a' },
+  { hex: '#E4AEB5', name: 'Dusty Rose', label: 'Dusty Rose Pink', emoji: '🌷', tulipColor: 'pink', bgTint: '#fdf5f6', borderTint: '#e4aeb5', textTint: '#8a424e' },
+  { hex: '#9BBEAB', name: 'Sage Green', label: 'Eucalyptus Sage', emoji: '🌷', tulipColor: 'sage', bgTint: '#f4f8f5', borderTint: '#9bbeab', textTint: '#385e49' },
+  { hex: '#C0DCCC', name: 'Seafoam Mint', label: 'Soft Seafoam Mint', emoji: '🌷', tulipColor: 'mint', bgTint: '#f6faf8', borderTint: '#c0dccc', textTint: '#3b6b55' },
+  { hex: '#F5D0C6', name: 'Soft Peach', label: 'Warm Peach', emoji: '🌷', tulipColor: 'peach', bgTint: '#fef7f5', borderTint: '#f5d0c6', textTint: '#8e4c3d' },
+  { hex: '#ECE3DF', name: 'Warm Linen', label: 'Blush Warm Linen', emoji: '🌷', tulipColor: 'cream', bgTint: '#faf7f5', borderTint: '#ece3df', textTint: '#6b5850' },
+  { hex: '#E7AF9E', name: 'Terracotta', label: 'Dusty Terracotta', emoji: '🌷', tulipColor: 'terracotta', bgTint: '#fdf5f2', borderTint: '#e7af9e', textTint: '#854231' },
 ];
 
 export interface TableConfig {
@@ -33,15 +32,15 @@ export interface TableConfig {
   shape?: 'round' | 'head';
 }
 
-// Exactly 7 round tables arranged in a horseshoe curve, each assigned to one of the 7 official wedding pastel colors
+// Exactly 7 round tables arranged in a horseshoe curve, assigned to the official wedding brand colors
 export const TABLES: TableConfig[] = [
-  { id: 1, name: 'Table 1', theme: 'Protea', cx: 175, cy: 220, capacity: 8, color: '#EDC9D4', bgTint: '#fdf6f8', borderTint: '#e8b8c6', textTint: '#8a384b', shape: 'round' },
-  { id: 2, name: 'Table 2', theme: 'Rose', cx: 150, cy: 410, capacity: 8, color: '#FFD3C9', bgTint: '#fff6f4', borderTint: '#f9beaf', textTint: '#8c4333', shape: 'round' },
-  { id: 3, name: 'Table 3', theme: 'Buttercream', cx: 270, cy: 555, capacity: 8, color: '#FFF7CF', bgTint: '#fffdf4', borderTint: '#fae996', textTint: '#7c6819', shape: 'round' },
-  { id: 4, name: 'Table 4', theme: 'Fynbos Sage', cx: 480, cy: 565, capacity: 8, color: '#E4F0C9', bgTint: '#f7faf2', borderTint: '#cde1a4', textTint: '#4a6328', shape: 'round' },
-  { id: 5, name: 'Table 5', theme: 'Outeniqua Sky', cx: 690, cy: 555, capacity: 8, color: '#C7E0FF', bgTint: '#f3f8ff', borderTint: '#a9cffb', textTint: '#2b578c', shape: 'round' },
-  { id: 6, name: 'Table 6', theme: 'Lavender', cx: 810, cy: 410, capacity: 8, color: '#CFCFFF', bgTint: '#f6f6ff', borderTint: '#b7b7fa', textTint: '#474794', shape: 'round' },
-  { id: 7, name: 'Table 7', theme: 'Tsitsikamma', cx: 785, cy: 220, capacity: 8, color: '#BAC3FF', bgTint: '#f3f5ff', borderTint: '#9ba9fb', textTint: '#38469a', shape: 'round' },
+  { id: 1, name: 'Table 1', theme: 'Protea', cx: 175, cy: 220, capacity: 8, color: '#E4AEB5', bgTint: '#fdf5f6', borderTint: '#e4aeb5', textTint: '#8a424e', shape: 'round' },
+  { id: 2, name: 'Table 2', theme: 'Eucalyptus', cx: 150, cy: 410, capacity: 8, color: '#9BBEAB', bgTint: '#f4f8f5', borderTint: '#9bbeab', textTint: '#385e49', shape: 'round' },
+  { id: 3, name: 'Table 3', theme: 'Seafoam', cx: 270, cy: 555, capacity: 8, color: '#C0DCCC', bgTint: '#f6faf8', borderTint: '#c0dccc', textTint: '#3b6b55', shape: 'round' },
+  { id: 4, name: 'Table 4', theme: 'Peach Blossom', cx: 480, cy: 565, capacity: 8, color: '#F5D0C6', bgTint: '#fef7f5', borderTint: '#f5d0c6', textTint: '#8e4c3d', shape: 'round' },
+  { id: 5, name: 'Table 5', theme: 'Warm Linen', cx: 690, cy: 555, capacity: 8, color: '#ECE3DF', bgTint: '#faf7f5', borderTint: '#ece3df', textTint: '#6b5850', shape: 'round' },
+  { id: 6, name: 'Table 6', theme: 'Terracotta Clay', cx: 810, cy: 410, capacity: 8, color: '#E7AF9E', bgTint: '#fdf5f2', borderTint: '#e7af9e', textTint: '#854231', shape: 'round' },
+  { id: 7, name: 'Table 7', theme: 'Garden Sage', cx: 785, cy: 220, capacity: 8, color: '#9BBEAB', bgTint: '#f4f8f5', borderTint: '#9bbeab', textTint: '#385e49', shape: 'round' },
 ];
 
 export interface SeatOccupant {

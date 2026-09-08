@@ -58,8 +58,8 @@ export const initialConfig: WeddingConfig = {
   },
   dressCode: {
     title: 'Formal Attire',
-    description: 'Dress code is formal. Please come as you are—while soft pastel shades are beautiful, wear any colour you already have and love! If you need ideas, we love these gentle pastels:',
-    palette: ['#EDC9D4', '#FFD3C9', '#FFF7CF', '#E4F0C9', '#C7E0FF', '#CFCFFF', '#BAC3FF'],
+    description: 'Dress code is formal. Please come as you are—while our wedding brand colours are shown below, wear any colour you already have and love! If you need ideas, we love this palette:',
+    palette: ['#E4AEB5', '#9BBEAB', '#C0DCCC', '#F5D0C6', '#ECE3DF', '#E7AF9E'],
   },
   adminPin: '6385',
   mealOptions: [],

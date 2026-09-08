@@ -86,7 +86,13 @@ export function saveConfig(config: WeddingConfig): void {
   safeSave(STORAGE_KEYS.config, { ...config, adminPin: '6385' });
 }
 
-export const loadGuests = (): Guest[] => safeLoad(STORAGE_KEYS.guests, initialGuests);
+export const loadGuests = (): Guest[] => {
+  const saved = safeLoad<Guest[]>(STORAGE_KEYS.guests, initialGuests);
+  const missingInitial = initialGuests.filter(
+    (init) => !saved.some((s) => s.inviteCode.toLowerCase() === init.inviteCode.toLowerCase())
+  );
+  return missingInitial.length > 0 ? [...saved, ...missingInitial] : saved;
+};
 export const saveGuests = (guests: Guest[]): void => safeSave(STORAGE_KEYS.guests, guests);
 
 export const loadWishes = (): GuestWish[] => safeLoad(STORAGE_KEYS.wishes, initialWishes);

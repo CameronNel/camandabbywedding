@@ -52,6 +52,12 @@ import {
   saveServices,
   saveWishes,
 } from '../utils/storage';
+import {
+  initialAccommodations,
+  initialGuests,
+  initialRegistry,
+  initialServices,
+} from '../data/initialData';
 import { isSupabaseConfigured } from '../lib/supabase';
 import * as repository from '../lib/weddingRepository';
 
@@ -316,19 +322,38 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     setDataError(null);
     try {
       if (dataMode === 'supabase') {
-        const bundle = await repository.lookupInvitation(normalized, config);
-        if (!bundle) return null;
-        setActiveHouseholdState(bundle.household);
-        setAccommodations(bundle.accommodations);
-        setServices(bundle.services);
-        setRegistryItems(bundle.registryItems);
-        return bundle.household;
+        try {
+          const bundle = await repository.lookupInvitation(normalized, config);
+          if (bundle) {
+            setActiveHouseholdState(bundle.household);
+            setAccommodations(bundle.accommodations);
+            setServices(bundle.services);
+            setRegistryItems(bundle.registryItems);
+            return bundle.household;
+          }
+        } catch (supabaseError) {
+          console.warn('Supabase lookup failed or code not found, checking sample codes:', supabaseError);
+        }
       }
-      const match = households.find((household) =>
-        household.inviteCode.toLowerCase() === normalized.toLowerCase(),
+
+      // Always check local / sample test codes as fallback (e.g. CA-DAVIES27, CA-CAMABBY1, etc.)
+      const localCandidates: HouseholdInvitation[] = [
+        ...households,
+        ...loadGuests().map((g) => normalizeHousehold(g, config)),
+        ...initialGuests.map((g) => normalizeHousehold(g, config)),
+      ];
+      const match = localCandidates.find((household) =>
+        household.inviteCode.trim().toLowerCase() === normalized.toLowerCase(),
       ) ?? null;
-      setActiveHouseholdState(match);
-      return match;
+
+      if (match) {
+        setActiveHouseholdState(match);
+        setAccommodations((curr) => curr.length > 0 ? curr : initialAccommodations);
+        setServices((curr) => curr.length > 0 ? curr : initialServices);
+        setRegistryItems((curr) => curr.length > 0 ? curr : initialRegistry);
+        return match;
+      }
+      return null;
     } catch (error) {
       setDataError(errorMessage(error));
       return null;
@@ -379,14 +404,23 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     if (!activeHousehold) return false;
     setDataError(null);
     try {
-      if (dataMode === 'supabase') {
-        const bundle = await repository.submitHouseholdRsvp(activeHousehold.inviteCode, input, config);
-        setActiveHouseholdState(bundle.household);
-        setAccommodations(bundle.accommodations);
-        setServices(bundle.services);
-        setRegistryItems(bundle.registryItems);
-        return true;
+      const isSampleHousehold = initialGuests.some(
+        (g) => g.inviteCode.toLowerCase() === activeHousehold.inviteCode.toLowerCase(),
+      );
+
+      if (dataMode === 'supabase' && !isSampleHousehold) {
+        try {
+          const bundle = await repository.submitHouseholdRsvp(activeHousehold.inviteCode, input, config);
+          setActiveHouseholdState(bundle.household);
+          setAccommodations(bundle.accommodations);
+          setServices(bundle.services);
+          setRegistryItems(bundle.registryItems);
+          return true;
+        } catch (error) {
+          console.warn('Supabase submitHouseholdRsvp failed, falling back to local update:', error);
+        }
       }
+
       const additionalMembers: HouseholdMember[] = [];
       if (input.members) {
         input.members.forEach((item) => {
@@ -424,7 +458,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         rsvpStatus: input.rsvpStatus,
         attendingCount: input.rsvpStatus === 'attending' ? input.attendingCount : 0,
         partySize: Math.max(activeHousehold.partySize, allMembers.length),
-        companionNames: allMembers.filter(m => !m.isPrimary).map(m => m.name),
+        companionNames: allMembers.filter((m) => !m.isPrimary).map((m) => m.name),
         members: allMembers,
         dietaryRestrictions: input.dietaryRestrictions ?? activeHousehold.dietaryRestrictions ?? [],
         dietaryDetails: input.dietaryDetails,
@@ -435,8 +469,34 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         respondedAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      setHouseholds((current) => current.map((household) => household.id === updated.id ? updated : household));
+      setHouseholds((current) => {
+        const exists = current.some((h) => h.id === updated.id);
+        return exists ? current.map((household) => household.id === updated.id ? updated : household) : [updated, ...current];
+      });
       setActiveHouseholdState(updated);
+
+      try {
+        const storedGuests = loadGuests();
+        const updatedStored = storedGuests.map((g) =>
+          g.id === updated.id || g.inviteCode.toLowerCase() === updated.inviteCode.toLowerCase()
+            ? {
+                ...g,
+                email: updated.email || g.email,
+                phone: updated.phone || g.phone,
+                rsvpStatus: updated.rsvpStatus,
+                attendingCount: updated.attendingCount,
+                mealSelection: updated.mealSelection,
+                songRequest: updated.songRequest,
+                message: updated.message,
+                respondedAt: updated.respondedAt,
+              }
+            : g,
+        );
+        saveGuests(updatedStored);
+      } catch (e) {
+        console.error('Failed to update local storage', e);
+      }
+
       if (input.message?.trim()) {
         setWishes((current) => [{
           id: crypto.randomUUID(),

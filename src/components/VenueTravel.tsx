@@ -163,19 +163,19 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
                 </h3>
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-700">
                   {wedding.config.dressCode?.description ||
-                    'Dress code is formal. Please come as you are—while soft pastel shades are beautiful, wear any colour you already have and love! If you need ideas, we love these gentle pastels:'}
+                    'Dress code is formal. Please come as you are—while our wedding brand colours are shown below, wear any colour you already have and love! If you need ideas, we love this palette:'}
                 </p>
               </div>
 
-              <div className="shrink-0 flex items-center gap-2 rounded-2xl border border-pink-200 bg-[#fdf5f8] px-4 py-2.5 text-xs font-bold text-[#8a384b] shadow-2xs">
+              <div className="shrink-0 flex items-center gap-2 rounded-2xl border border-[#e4aeb5] bg-[#fdf5f6] px-4 py-2.5 text-xs font-bold text-[#8a424e] shadow-2xs">
                 <PastelTulip color="pink" size={20} className="drop-shadow-xs" />
                 <span>{wedding.config.dressCode?.title || 'Formal Attire'}</span>
               </div>
             </div>
 
-            {/* 7 Cute Pastel Circles (Bouncy & Playful with Blooming Tulips) */}
+            {/* 6 Brand Color Circles (Bouncy & Playful with Blooming Tulips) */}
             <div className="mt-8">
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-5 sm:gap-4 place-items-center">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 sm:gap-6 place-items-center">
                 {WEDDING_COLOR_PALETTE.map(color => {
                   const isCopied = copiedHex === color.hex;
                   return (

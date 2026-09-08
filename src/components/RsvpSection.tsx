@@ -325,7 +325,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   <button
                     type="button"
                     onClick={() => { setCode('CA-VENUESTAY'); void findInvitation('CA-VENUESTAY'); }}
-                    className="rounded-full bg-[#fdebf0] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#b8697a] transition hover:bg-[#fadce5]"
+                    className="rounded-full bg-[#fdf5f6] border border-[#e4aeb5]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#8a424e] transition hover:bg-[#fcecef]"
                     title="Test VIP Stay (tag: free_venue_housing)"
                   >
                     CA-VENUESTAY (VIP Venue Stay)
@@ -333,7 +333,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   <button
                     type="button"
                     onClick={() => { setCode('CA-NOGIFTS01'); void findInvitation('CA-NOGIFTS01'); }}
-                    className="rounded-full bg-[#edf6ec] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#4c6b4b] transition hover:bg-[#dff0dd]"
+                    className="rounded-full bg-[#f4f8f5] border border-[#9bbeab]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#385e49] transition hover:bg-[#e7f1eb]"
                     title="Test No Gifts (tag: presence_is_our_gift)"
                   >
                     CA-NOGIFTS01 (No Gifts Message)
@@ -341,7 +341,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   <button
                     type="button"
                     onClick={() => { setCode('CA-CAMABBY1'); void findInvitation('CA-CAMABBY1'); }}
-                    className="rounded-full bg-[#eaf2f8] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#486a85] transition hover:bg-[#dbe7f2]"
+                    className="rounded-full bg-[#f6faf8] border border-[#c0dccc]/50 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#3b6b55] transition hover:bg-[#eaf4ef]"
                     title="Test Standard Attending RSVP"
                   >
                     CA-CAMABBY1 (Cam & Abby)
@@ -349,7 +349,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   <button
                     type="button"
                     onClick={() => { setCode('CA-DAVIES27'); void findInvitation('CA-DAVIES27'); }}
-                    className="rounded-full bg-[#f3edf8] px-2.5 py-1 font-mono text-[10px] font-semibold text-[#6d4e82] transition hover:bg-[#e8ddf1]"
+                    className="rounded-full bg-[#fdf5f2] border border-[#e7af9e]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#854231] transition hover:bg-[#fbe9e3]"
                     title="Test Pending RSVP with multi-member checklist"
                   >
                     CA-DAVIES27 (Pending RSVP)

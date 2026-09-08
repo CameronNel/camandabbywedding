@@ -78,18 +78,18 @@ export function AppContent() {
   return (
     <div className="relative min-h-screen overflow-x-clip bg-[#faf3f5] text-stone-800">
       <a className="skip-link" href="#main-content">Skip to content</a>
-      {/* Dreamy Pastel Ambient Light Auras in 7 Colors */}
+      {/* Luminous Ambient Light Auras in Official Brand Colors */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
-        {/* Dusty Rose (#EDC9D4) & Soft Peach (#FFD3C9) Top Glow */}
-        <div className="absolute -top-24 -left-20 h-[620px] w-[620px] rounded-full bg-[#EDC9D4]/45 blur-[120px]" />
-        <div className="absolute top-[14%] -right-32 h-[660px] w-[660px] rounded-full bg-[#FFD3C9]/40 blur-[130px]" />
-        {/* Buttercream (#FFF7CF) & Matcha Sage (#E4F0C9) Middle Glow */}
-        <div className="absolute top-[36%] -left-28 h-[650px] w-[650px] rounded-full bg-[#FFF7CF]/50 blur-[125px]" />
-        <div className="absolute top-[50%] -right-24 h-[670px] w-[670px] rounded-full bg-[#E4F0C9]/40 blur-[125px]" />
-        {/* Sky Blue (#C7E0FF), Lilac (#CFCFFF) & Periwinkle (#BAC3FF) Lower Glow */}
-        <div className="absolute top-[68%] -left-24 h-[670px] w-[670px] rounded-full bg-[#C7E0FF]/38 blur-[130px]" />
-        <div className="absolute top-[80%] -right-20 h-[700px] w-[700px] rounded-full bg-[#CFCFFF]/42 blur-[135px]" />
-        <div className="absolute -bottom-20 left-1/3 h-[620px] w-[620px] rounded-full bg-[#E4F0C9]/45 blur-[130px]" />
+        {/* Dusty Rose (#E4AEB5) & Soft Peach (#F5D0C6) Top Glow */}
+        <div className="absolute -top-24 -left-20 h-[620px] w-[620px] rounded-full bg-[#E4AEB5]/45 blur-[120px]" />
+        <div className="absolute top-[14%] -right-32 h-[660px] w-[660px] rounded-full bg-[#F5D0C6]/42 blur-[130px]" />
+        {/* Eucalyptus Sage (#9BBEAB) & Seafoam Mint (#C0DCCC) Middle Glow */}
+        <div className="absolute top-[36%] -left-28 h-[650px] w-[650px] rounded-full bg-[#9BBEAB]/42 blur-[125px]" />
+        <div className="absolute top-[50%] -right-24 h-[670px] w-[670px] rounded-full bg-[#C0DCCC]/40 blur-[125px]" />
+        {/* Warm Linen (#ECE3DF) & Dusty Terracotta (#E7AF9E) Lower Glow */}
+        <div className="absolute top-[68%] -left-24 h-[670px] w-[670px] rounded-full bg-[#ECE3DF]/50 blur-[130px]" />
+        <div className="absolute top-[80%] -right-20 h-[700px] w-[700px] rounded-full bg-[#E7AF9E]/38 blur-[135px]" />
+        <div className="absolute -bottom-20 left-1/3 h-[620px] w-[620px] rounded-full bg-[#9BBEAB]/45 blur-[130px]" />
       </div>
 
       <SakuraPetals />
@@ -100,7 +100,7 @@ export function AppContent() {
           <PastelTulip color="pink" size={38} tilt={-10} className="animate-gentle-sway drop-shadow-sm" />
         </aside>
         <aside aria-hidden="true" className="pointer-events-auto fixed right-4 top-2/3 z-20 hidden 2xl:block opacity-80 hover:opacity-100 transition-opacity">
-          <PastelTulip color="lavender" size={36} tilt={12} className="animate-gentle-sway-delayed drop-shadow-sm" />
+          <PastelTulip color="sage" size={36} tilt={12} className="animate-gentle-sway-delayed drop-shadow-sm" />
         </aside>
 
         <Hero onNavigate={navigate} />
