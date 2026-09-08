@@ -36,8 +36,8 @@ const WEDDING_FAVOUR_OPTIONS = [
   {
     id: 'Bubbles / Glasses',
     label: 'Bubbles / Glasses',
-    description: 'Celebratory toast glasses or bubbles',
-    emoji: '🥂',
+    description: 'Cool glasses or bubbles',
+    emoji: '🫧',
   },
   {
     id: 'Something from the netherlands',
