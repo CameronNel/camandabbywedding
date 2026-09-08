@@ -25,23 +25,20 @@ export function Hero({ onNavigate }: HeroProps) {
         className="absolute inset-0 h-full w-full object-cover object-center"
         fetchPriority="high"
       />
-      {/* Warm romantic pastel sunrise scrim that preserves the lush garden photo */}
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(251,243,245,0.85)_0%,rgba(253,246,242,0.68)_45%,rgba(255,250,247,0.18)_75%,transparent_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(250,238,242,0.55)_0%,transparent_40%)]" />
 
       <div className="relative mx-auto flex w-full min-h-[calc(100svh-76px)] max-w-[1440px] items-center px-5 py-16 sm:px-8 lg:px-14">
         <div className="max-w-3xl">
-          <p className="hero-enter mb-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-[#8a384b]">
+          <p className="hero-enter mb-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-[#8a384b] drop-shadow-[0_1px_8px_rgba(255,255,255,0.9)]">
             <span className="h-px w-10 bg-[#e597a8]" />
             We’re getting married
           </p>
-          <h1 className="hero-enter hero-enter-delay font-display text-[clamp(4.6rem,12vw,10.5rem)] font-medium leading-[0.72] tracking-[-0.055em] text-stone-900">
+          <h1 className="hero-enter hero-enter-delay font-display text-[clamp(4.6rem,12vw,10.5rem)] font-medium leading-[0.72] tracking-[-0.055em] text-stone-900 drop-shadow-[0_2px_24px_rgba(255,255,255,0.85)]">
             {site.groomName}
-            <span className="mx-[0.08em] inline-block font-script text-[0.54em] font-normal tracking-normal text-[#c97a8b]">&amp;</span>
+            <span className="mx-[0.08em] inline-block font-script text-[0.54em] font-normal tracking-normal text-[#c97a8b] drop-shadow-none">&amp;</span>
             {site.brideName}
           </h1>
 
-          <div className="hero-enter hero-enter-delay-2 mt-10 grid max-w-2xl gap-5 rounded-2xl border-2 border-[#eed5dc] bg-white/80 p-6 backdrop-blur-md shadow-[0_12px_32px_rgba(201,122,139,0.08)] sm:grid-cols-2">
+          <div className="hero-enter hero-enter-delay-2 mt-10 grid max-w-2xl gap-5 rounded-2xl border-2 border-[#eed5dc] bg-white/85 p-6 backdrop-blur-md shadow-[0_12px_32px_rgba(0,0,0,0.1)] sm:grid-cols-2">
             <div className="flex items-start gap-3.5">
               <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fdeef2] text-[#b85b73] shadow-xs">
                 <CalendarDays className="h-5 w-5" />
@@ -65,19 +62,19 @@ export function Hero({ onNavigate }: HeroProps) {
           </div>
 
           <div className="hero-enter hero-enter-delay-3 mt-8 flex flex-wrap items-center gap-4">
-            <button type="button" onClick={() => onNavigate('rsvp')} className="button-primary min-h-12 px-7">
+            <button type="button" onClick={() => onNavigate('rsvp')} className="button-primary min-h-12 px-7 shadow-md">
               {activeHousehold ? 'Review your RSVP' : 'Open your invitation'}
             </button>
-            <button type="button" onClick={() => onNavigate('details')} className="button-secondary min-h-12 px-6">
+            <button type="button" onClick={() => onNavigate('details')} className="button-secondary min-h-12 px-6 bg-white/85 backdrop-blur-md shadow-md">
               Explore the venue
               <ArrowDown className="h-4 w-4 text-[#c97a8b] transition-transform group-hover:translate-y-1" />
             </button>
           </div>
         </div>
 
-        {daysRemaining !== null && <div className="absolute bottom-8 right-6 hidden text-right text-stone-800 md:block lg:right-14">
+        {daysRemaining !== null && <div className="absolute bottom-8 right-6 hidden text-right text-stone-800 md:block lg:right-14 drop-shadow-[0_2px_12px_rgba(255,255,255,0.85)]">
           <span className="block font-display text-5xl font-medium leading-none text-stone-900">{daysRemaining}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-stone-400">days to go</span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-stone-600">days to go</span>
         </div>}
       </div>
     </section>
