@@ -12,18 +12,15 @@ export interface TableConfig {
   shape?: 'round' | 'head';
 }
 
+// Exactly 7 round tables arranged in a horseshoe curve matching user's sketch
 const TABLES: TableConfig[] = [
-  // 1. Bridal Table (Head Table under the draped curtains and fairy lights)
-  { id: 0, name: 'Bridal Table', theme: 'Abby & Cam', cx: 500, cy: 80, capacity: 6, shape: 'head' },
-  // 2. Eight Round Tables (8 chairs each, matching the Arendsrus Barnyard photo)
-  { id: 1, name: 'Table 1', theme: 'Protea', cx: 230, cy: 550, capacity: 8, shape: 'round' },
-  { id: 2, name: 'Table 2', theme: 'Rose', cx: 500, cy: 535, capacity: 8, shape: 'round' },
-  { id: 3, name: 'Table 3', theme: 'Lavender', cx: 770, cy: 500, capacity: 8, shape: 'round' },
-  { id: 4, name: 'Table 4', theme: 'Fynbos', cx: 175, cy: 365, capacity: 8, shape: 'round' },
-  { id: 5, name: 'Table 5', theme: 'Outeniqua', cx: 760, cy: 295, capacity: 8, shape: 'round' },
-  { id: 6, name: 'Table 6', theme: 'Garden Route', cx: 325, cy: 215, capacity: 8, shape: 'round' },
-  { id: 7, name: 'Table 7', theme: 'Tsitsikamma', cx: 150, cy: 145, capacity: 8, shape: 'round' },
-  { id: 8, name: 'Table 8', theme: 'Geelhoutboom', cx: 840, cy: 140, capacity: 8, shape: 'round' },
+  { id: 1, name: 'Table 1', theme: 'Protea', cx: 160, cy: 195, capacity: 8, shape: 'round' },
+  { id: 2, name: 'Table 2', theme: 'Rose', cx: 140, cy: 375, capacity: 8, shape: 'round' },
+  { id: 3, name: 'Table 3', theme: 'Lavender', cx: 240, cy: 525, capacity: 8, shape: 'round' },
+  { id: 4, name: 'Table 4', theme: 'Fynbos', cx: 450, cy: 550, capacity: 8, shape: 'round' },
+  { id: 5, name: 'Table 5', theme: 'Outeniqua', cx: 660, cy: 515, capacity: 8, shape: 'round' },
+  { id: 6, name: 'Table 6', theme: 'Garden Route', cx: 760, cy: 355, capacity: 8, shape: 'round' },
+  { id: 7, name: 'Table 7', theme: 'Tsitsikamma', cx: 740, cy: 180, capacity: 8, shape: 'round' },
 ];
 
 interface SeatOccupant {
@@ -41,8 +38,7 @@ function parseSeatsFromTableNumber(
   if (!str || !str.trim()) return [];
   const results: { tableId: number; seatNumbers: number[] }[] = [];
 
-  // Match "Bridal Table (Seats 1, 2)" or "Head Table" or "Table X (Seats 1, 2)"
-  const regex = /(?:(Bridal|Head)\s*Table|Table\s*(\d+))\s*(?:\((?:Seats? )?([0-9,\s]+)\))?/gi;
+  const regex = /(?:(Bridal|Head|C\s*&\s*A)\s*Table|Table\s*(\d+))\s*(?:\((?:Seats? )?([0-9,\s]+)\))?/gi;
   let match: RegExpExecArray | null;
   while ((match = regex.exec(str)) !== null) {
     const isHead = Boolean(match[1]);
@@ -64,7 +60,7 @@ function parseSeatsFromTableNumber(
   // Fallback: if just a digit like "1" or "2"
   if (results.length === 0) {
     const num = parseInt(str.trim(), 10);
-    if (!isNaN(num) && num >= 0 && num <= 8) {
+    if (!isNaN(num) && num >= 1 && num <= 7) {
       results.push({
         tableId: num,
         seatNumbers: Array.from({ length: defaultCount }, (_, i) => i + 1),
@@ -93,7 +89,7 @@ function formatSeatsToTableNumber(selectedSeatIds: string[]): string {
   tableMap.forEach((seats, tableId) => {
     seats.sort((a, b) => a - b);
     const seatsStr = seats.join(', ');
-    const tableName = tableId === 0 ? 'Bridal Table' : `Table ${tableId}`;
+    const tableName = tableId === 0 ? 'Bridal Table (C & A)' : `Table ${tableId}`;
     parts.push(`${tableName} (${seats.length === 1 ? 'Seat' : 'Seats'} ${seatsStr})`);
   });
 
@@ -137,7 +133,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
     seatNumber: number;
     x: number;
     y: number;
-    status: 'available' | 'selected' | 'occupied';
+    status: 'available' | 'selected' | 'occupied' | 'bridal';
     occupantName?: string;
   } | null>(null);
 
@@ -149,8 +145,25 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
   const occupiedSeatsMap = useMemo(() => {
     const map = new Map<string, SeatOccupant>();
 
+    // Permanently reserve C & A bridal table seats 1 & 2 for Cameron & Abby
+    map.set('T0-S1', {
+      householdId: 'household-cam-abby',
+      householdName: 'Cameron & Abby',
+      guestNames: ['Cameron Nel'],
+      tableId: 0,
+      seatNumber: 1,
+    });
+    map.set('T0-S2', {
+      householdId: 'household-cam-abby',
+      householdName: 'Cameron & Abby',
+      guestNames: ['Abby'],
+      tableId: 0,
+      seatNumber: 2,
+    });
+
     for (const h of households) {
       if (h.id === currentHouseholdId) continue;
+      if (h.id === 'household-cam-abby') continue;
       if (!h.tableNumber || !h.tableNumber.trim()) continue;
 
       const parsed = parseSeatsFromTableNumber(h.tableNumber, h.attendingCount || 1);
@@ -185,22 +198,27 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
     setAlertMessage(null);
     const seatId = `T${tableId}-S${seatNumber}`;
 
-    // 1. Is this seat occupied by someone else?
-    const occupied = occupiedSeatsMap.get(seatId);
-    if (occupied) {
-      const tableName = tableId === 0 ? 'Bridal Table' : `Table ${tableId}`;
-      setAlertMessage(`Seat ${seatNumber} at ${tableName} is already reserved by ${occupied.householdName}.`);
+    // 1. Bridal Table (C & A) check: Always reserved for Cam & Abby
+    if (tableId === 0) {
+      setAlertMessage('The C & A table is exclusively reserved for the bride & groom, Cam and Abby! 💕');
       return;
     }
 
-    // 2. Is this seat already selected by the current guest?
+    // 2. Is this seat occupied by someone else?
+    const occupied = occupiedSeatsMap.get(seatId);
+    if (occupied) {
+      setAlertMessage(`Seat ${seatNumber} at Table ${tableId} is already reserved by ${occupied.householdName}.`);
+      return;
+    }
+
+    // 3. Is this seat already selected by the current guest?
     if (selectedSeatIds.includes(seatId)) {
       const next = selectedSeatIds.filter(id => id !== seatId);
       updateSelection(next);
       return;
     }
 
-    // 3. Trying to select a new seat
+    // 4. Trying to select a new seat
     if (selectedSeatIds.length >= attendingCount) {
       if (attendingCount === 1) {
         updateSelection([seatId]);
@@ -233,13 +251,13 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#b8697a]">
               <Sparkles className="h-4 w-4" />
-              <span>Arendsrus Barnyard Seating Chart</span>
+              <span>Arendsrus Dining Room Seating</span>
             </div>
             <h4 className="mt-1 font-display text-xl sm:text-2xl font-semibold text-stone-800">
-              Pick Your Table &amp; Seats
+              Choose Your Table &amp; Seats
             </h4>
             <p className="mt-1 text-xs text-stone-600 max-w-xl leading-relaxed">
-              Based on the Arendsrus reception dining hall, each round table seats <strong>8 guests</strong> with white chair covers, plus the <strong>Bridal Table</strong> at the head of the room. Click on any free seat to reserve it!
+              There are <strong>7 round tables</strong> (8 seats each) surrounding the floor, with the <strong>C &amp; A Sweetheart Table</strong> at the top center. Click on any free seat to reserve it!
             </p>
           </div>
 
@@ -284,6 +302,12 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
             </span>
             <span>Reserved (Other Guests)</span>
           </div>
+          <div className="flex items-center gap-2">
+            <span className="grid h-5 w-5 place-items-center rounded-full border border-pink-300 bg-pink-100 text-[#b8697a] shadow-xs">
+              <Heart className="h-3 w-3" />
+            </span>
+            <span className="font-medium text-stone-700">Cam &amp; Abby (Bride &amp; Groom)</span>
+          </div>
 
           <div className="ml-auto flex items-center gap-2">
             <button
@@ -326,7 +350,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
               : 'bg-white text-stone-700 border border-stone-200 hover:border-pink-200'
           }`}
         >
-          All Tables
+          All 7 Tables
         </button>
         {TABLES.map(table => {
           const isSelected = activeTableFilter === table.id;
@@ -356,7 +380,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
           {/* SVG Map Container */}
           <div className="relative mx-auto w-full max-w-5xl select-none">
             <svg
-              viewBox="0 0 1000 700"
+              viewBox="0 0 960 660"
               className="w-full h-auto drop-shadow-xs"
               style={{ maxHeight: '720px' }}
             >
@@ -378,18 +402,19 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                   <stop offset="0%" stopColor="#7a554a" />
                   <stop offset="100%" stopColor="#5d3b32" />
                 </linearGradient>
-                <linearGradient id="head-table-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ffffff" />
-                  <stop offset="100%" stopColor="#f7eef1" />
+                <linearGradient id="ca-table-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#fdf4f7" />
+                  <stop offset="50%" stopColor="#ffffff" />
+                  <stop offset="100%" stopColor="#fbf0f4" />
                 </linearGradient>
               </defs>
 
-              {/* ROOM OUTLINE */}
+              {/* ROOM BOUNDARY OUTLINE */}
               <rect
                 x="15"
                 y="15"
-                width="970"
-                height="670"
+                width="930"
+                height="630"
                 rx="24"
                 fill="none"
                 stroke="#e2cbd1"
@@ -397,37 +422,13 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                 strokeDasharray="6 4"
               />
 
-              {/* CEILING DRAPES & FAIRY LIGHTS BACKDROP (matching Arendsrus Barnyard photo) */}
-              <g opacity="0.8">
-                {/* Flowing white drapes across the top wall */}
-                <path
-                  d="M 20 20 Q 250 48, 500 24 Q 750 48, 980 20 L 980 40 Q 750 62, 500 38 Q 250 62, 20 40 Z"
-                  fill="#ffffff"
-                  stroke="#eddce2"
-                  strokeWidth="1.5"
-                />
-                {/* Fairy lights dots */}
-                {[50, 110, 170, 230, 290, 350, 410, 470, 530, 590, 650, 710, 770, 830, 890, 950].map((lx, idx) => (
-                  <circle
-                    key={idx}
-                    cx={lx}
-                    cy={30 + Math.sin(idx) * 6}
-                    r="2.5"
-                    fill="#fef08a"
-                    stroke="#f59e0b"
-                    strokeWidth="0.8"
-                    className="animate-pulse"
-                  />
-                ))}
-              </g>
-
-              {/* 1. TOP-LEFT BAR (matching sketch) */}
+              {/* 1. TOP-LEFT BAR (Matching sketch) */}
               <g className="cursor-default">
                 <rect
                   x="28"
-                  y="24"
-                  width="110"
-                  height="65"
+                  y="26"
+                  width="170"
+                  height="70"
                   rx="12"
                   fill="url(#bar-wood)"
                   stroke="#57362c"
@@ -436,37 +437,149 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                 />
                 <rect
                   x="34"
-                  y="30"
-                  width="98"
-                  height="53"
+                  y="32"
+                  width="158"
+                  height="58"
                   rx="8"
                   fill="#faf2ee"
                   stroke="#c7a79a"
                   strokeWidth="1.2"
                 />
-                <circle cx="50" cy="100" r="7" fill="#edd6ce" stroke="#8d6255" strokeWidth="1.2" />
-                <circle cx="83" cy="100" r="7" fill="#edd6ce" stroke="#8d6255" strokeWidth="1.2" />
-                <circle cx="116" cy="100" r="7" fill="#edd6ce" stroke="#8d6255" strokeWidth="1.2" />
-                <foreignObject x="35" y="32" width="96" height="49">
+                {/* Stools */}
+                <circle cx="55" cy="110" r="8" fill="#edd6ce" stroke="#8d6255" strokeWidth="1.2" />
+                <circle cx="112" cy="110" r="8" fill="#edd6ce" stroke="#8d6255" strokeWidth="1.2" />
+                <circle cx="170" cy="110" r="8" fill="#edd6ce" stroke="#8d6255" strokeWidth="1.2" />
+                <foreignObject x="35" y="34" width="156" height="54">
                   <div className="flex h-full flex-col items-center justify-center text-center text-[#57362c]">
-                    <div className="flex items-center gap-1 font-display text-xs font-bold">
-                      <Wine className="h-3.5 w-3.5 text-[#8d6255]" />
-                      <span>BAR</span>
+                    <div className="flex items-center gap-1.5 font-display text-sm font-bold tracking-wide">
+                      <Wine className="h-4 w-4 text-[#8d6255]" />
+                      <span>Bar</span>
                     </div>
-                    <span className="text-[8px] uppercase font-semibold text-[#8d6255]/80 tracking-wider">
-                      Drinks &amp; Wine
+                    <span className="text-[9px] uppercase font-semibold text-[#8d6255]/80 tracking-wider">
+                      Drinks &amp; Refreshments
                     </span>
                   </div>
                 </foreignObject>
               </g>
 
-              {/* 2. FOOD BUFFET STATION (right wall, matching sketch & photo warmer) */}
+              {/* 2. BRIDAL TABLE: "C & A" (Top Center, Sweetheart Table with 2 Seats for Cam & Abby) */}
+              <g className="cursor-default">
+                {/* Romantic floral arch above table */}
+                <path
+                  d="M 360 48 Q 450 18, 540 48"
+                  fill="none"
+                  stroke="#d8bfc6"
+                  strokeWidth="2"
+                  strokeDasharray="4 2"
+                />
+                {/* Table Top (Pill matching "C & A" in sketch) */}
+                <rect
+                  x="370"
+                  y="36"
+                  width="160"
+                  height="48"
+                  rx="24"
+                  fill="url(#ca-table-grad)"
+                  stroke="#c97a8b"
+                  strokeWidth="2.5"
+                  className="drop-shadow-sm"
+                />
+                {/* "C & A" Lettering (Matching user's sketch) */}
+                <text
+                  x="450"
+                  y="66"
+                  textAnchor="middle"
+                  fill="#9e475a"
+                  fontSize="20"
+                  fontWeight="bold"
+                  className="font-display tracking-widest select-none"
+                >
+                  C &amp; A
+                </text>
+
+                {/* Cam's Seat (Seat 1) */}
+                <g
+                  className="cursor-pointer"
+                  onClick={() => handleSeatClick(0, 1)}
+                  onMouseEnter={() =>
+                    setHoveredSeat({
+                      id: 'T0-S1',
+                      tableId: 0,
+                      tableName: 'C & A Sweetheart Table',
+                      seatNumber: 1,
+                      x: 420,
+                      y: 104,
+                      status: 'bridal',
+                      occupantName: 'Cameron Nel (Groom)',
+                    })
+                  }
+                  onMouseLeave={() => setHoveredSeat(null)}
+                >
+                  <circle cx="420" cy="104" r="14" fill="#c97a8b" stroke="#9e475a" strokeWidth="2" />
+                  <text
+                    x="420"
+                    y="108"
+                    textAnchor="middle"
+                    fill="#ffffff"
+                    fontSize="10"
+                    fontWeight="bold"
+                    className="font-display select-none"
+                  >
+                    C
+                  </text>
+                </g>
+
+                {/* Abby's Seat (Seat 2) */}
+                <g
+                  className="cursor-pointer"
+                  onClick={() => handleSeatClick(0, 2)}
+                  onMouseEnter={() =>
+                    setHoveredSeat({
+                      id: 'T0-S2',
+                      tableId: 0,
+                      tableName: 'C & A Sweetheart Table',
+                      seatNumber: 2,
+                      x: 480,
+                      y: 104,
+                      status: 'bridal',
+                      occupantName: 'Abby (Bride)',
+                    })
+                  }
+                  onMouseLeave={() => setHoveredSeat(null)}
+                >
+                  <circle cx="480" cy="104" r="14" fill="#c97a8b" stroke="#9e475a" strokeWidth="2" />
+                  <text
+                    x="480"
+                    y="108"
+                    textAnchor="middle"
+                    fill="#ffffff"
+                    fontSize="10"
+                    fontWeight="bold"
+                    className="font-display select-none"
+                  >
+                    A
+                  </text>
+                </g>
+                <text
+                  x="450"
+                  y="128"
+                  textAnchor="middle"
+                  fill="#b8697a"
+                  fontSize="9"
+                  fontWeight="600"
+                  className="select-none tracking-wide"
+                >
+                  Cam &amp; Abby 💕
+                </text>
+              </g>
+
+              {/* 3. RIGHT WALL: FOOD (Matching sketch) */}
               <g className="cursor-default">
                 <rect
-                  x="932"
-                  y="200"
-                  width="48"
-                  height="340"
+                  x="880"
+                  y="30"
+                  width="55"
+                  height="580"
                   rx="12"
                   fill="url(#buffet-wood)"
                   stroke="#4e3128"
@@ -474,38 +587,41 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                   className="drop-shadow-sm"
                 />
                 <rect
-                  x="937"
-                  y="206"
-                  width="38"
-                  height="328"
-                  rx="7"
+                  x="886"
+                  y="36"
+                  width="43"
+                  height="568"
+                  rx="8"
                   fill="#faf3ee"
                   stroke="#cfb0a3"
                   strokeWidth="1.2"
                 />
-                <ellipse cx="956" cy="245" rx="10" ry="16" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
-                <ellipse cx="956" cy="315" rx="10" ry="16" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
-                <ellipse cx="956" cy="385" rx="10" ry="16" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
-                <ellipse cx="956" cy="455" rx="10" ry="16" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+                {/* Buffet platter motifs */}
+                <ellipse cx="907" cy="100" rx="12" ry="22" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+                <ellipse cx="907" cy="220" rx="12" ry="22" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+                <ellipse cx="907" cy="340" rx="12" ry="22" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+                <ellipse cx="907" cy="460" rx="12" ry="22" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+                <ellipse cx="907" cy="540" rx="12" ry="22" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+                {/* Vertical Food Label */}
                 <text
-                  x="956"
-                  y="370"
+                  x="907"
+                  y="340"
                   fill="#5d3b32"
-                  fontSize="12"
+                  fontSize="18"
                   fontWeight="bold"
-                  letterSpacing="4"
+                  letterSpacing="6"
                   textAnchor="middle"
-                  transform="rotate(90, 956, 370)"
+                  transform="rotate(90, 907, 340)"
                   className="font-display select-none uppercase"
                 >
-                  BUFFET STATION
+                  FOOD
                 </text>
               </g>
 
-              {/* 3. DANCE FLOOR (center of the barn, matching photo) */}
+              {/* 4. DANCE FLOOR (In the middle of the horseshoe) */}
               <g opacity="0.35" pointerEvents="none">
                 <ellipse
-                  cx="500"
+                  cx="450"
                   cy="325"
                   rx="95"
                   ry="65"
@@ -515,7 +631,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                   strokeDasharray="4 4"
                 />
                 <text
-                  x="500"
+                  x="450"
                   y="320"
                   textAnchor="middle"
                   fill="#b8697a"
@@ -526,183 +642,15 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                 >
                   DANCE FLOOR
                 </text>
-                <Heart className="h-4 w-4 text-[#c97a8b]" x="492" y="332" />
+                <Heart className="h-4 w-4 text-[#c97a8b]" x="442" y="332" />
               </g>
 
-              {/* RENDER ALL TABLES (BRIDAL TABLE + 8 ROUND BANQUET TABLES) */}
+              {/* 5. SEVEN ROUND BANQUET TABLES (Arranged in U-shape horseshoe from sketch) */}
               {TABLES.map(table => {
                 const isFiltered = activeTableFilter !== 'all' && activeTableFilter !== table.id;
-                const seatRadius = 14;
-
-                // Handle Bridal Table (Head Table)
-                if (table.shape === 'head') {
-                  const tableW = 180;
-                  const tableH = 42;
-                  const startX = table.cx - tableW / 2;
-                  const startY = table.cy - tableH / 2;
-
-                  return (
-                    <g
-                      key={table.id}
-                      opacity={isFiltered ? 0.35 : 1}
-                      className="transition-opacity duration-300"
-                    >
-                      {/* Rectangular Table Top */}
-                      <rect
-                        x={startX}
-                        y={startY}
-                        width={tableW}
-                        height={tableH}
-                        rx="10"
-                        fill="url(#head-table-grad)"
-                        stroke="#bca1a8"
-                        strokeWidth="2"
-                        className="drop-shadow-sm"
-                      />
-                      {/* Greenery / Floral Garland Motif on Bridal Table */}
-                      <path
-                        d={`M ${startX + 12} ${startY + 21} Q ${table.cx} ${startY + 29}, ${startX + tableW - 12} ${startY + 21}`}
-                        fill="none"
-                        stroke="#7d997b"
-                        strokeWidth="2"
-                        strokeDasharray="3 3"
-                      />
-                      <text
-                        x={table.cx}
-                        y={startY + 16}
-                        textAnchor="middle"
-                        fill="#3d2c31"
-                        fontSize="12"
-                        fontWeight="bold"
-                        className="font-display select-none"
-                      >
-                        {table.name}
-                      </text>
-                      <text
-                        x={table.cx}
-                        y={startY + 32}
-                        textAnchor="middle"
-                        fill="#b8697a"
-                        fontSize="9"
-                        fontWeight="600"
-                        className="select-none tracking-wide"
-                      >
-                        Abby &amp; Cameron
-                      </text>
-
-                      {/* 6 Seats in a row below the Head Table */}
-                      {Array.from({ length: table.capacity }).map((_, seatIdx) => {
-                        const seatNum = seatIdx + 1;
-                        const seatId = `T${table.id}-S${seatNum}`;
-                        const sx = startX + 18 + seatIdx * 28.8;
-                        const sy = startY + tableH + 18;
-
-                        const isOccupied = occupiedSeatsMap.has(seatId);
-                        const occupant = occupiedSeatsMap.get(seatId);
-                        const isSelected = selectedSeatIds.includes(seatId);
-
-                        const selectedIndex = selectedSeatIds.indexOf(seatId);
-                        const assignedMemberName = isSelected
-                          ? attendingMembers[selectedIndex] || `Guest ${selectedIndex + 1}`
-                          : undefined;
-
-                        return (
-                          <g
-                            key={seatId}
-                            className="group cursor-pointer transition-transform duration-150"
-                            onClick={() => handleSeatClick(table.id, seatNum)}
-                            onMouseEnter={() =>
-                              setHoveredSeat({
-                                id: seatId,
-                                tableId: table.id,
-                                tableName: table.name,
-                                seatNumber: seatNum,
-                                x: sx,
-                                y: sy,
-                                status: isSelected ? 'selected' : isOccupied ? 'occupied' : 'available',
-                                occupantName: isSelected
-                                  ? assignedMemberName
-                                  : isOccupied
-                                    ? occupant?.householdName
-                                    : undefined,
-                              })
-                            }
-                            onMouseLeave={() => setHoveredSeat(null)}
-                          >
-                            <circle cx={sx} cy={sy} r={seatRadius + 7} fill="transparent" />
-
-                            {isSelected ? (
-                              <g filter="url(#glow-rose)">
-                                <circle
-                                  cx={sx}
-                                  cy={sy}
-                                  r={seatRadius}
-                                  fill="#c97a8b"
-                                  stroke="#9e475a"
-                                  strokeWidth="2.5"
-                                />
-                                <Check
-                                  className="h-3 w-3 text-white pointer-events-none"
-                                  x={sx - 6}
-                                  y={sy - 6}
-                                />
-                              </g>
-                            ) : isOccupied ? (
-                              <g>
-                                <circle
-                                  cx={sx}
-                                  cy={sy}
-                                  r={seatRadius}
-                                  fill="#e2e8f0"
-                                  stroke="#cbd5e1"
-                                  strokeWidth="1.5"
-                                />
-                                <text
-                                  x={sx}
-                                  y={sy + 3.5}
-                                  textAnchor="middle"
-                                  fill="#64748b"
-                                  fontSize="9"
-                                  fontWeight="bold"
-                                  className="select-none pointer-events-none font-mono"
-                                >
-                                  ×
-                                </text>
-                              </g>
-                            ) : (
-                              <g>
-                                <circle
-                                  cx={sx}
-                                  cy={sy}
-                                  r={seatRadius}
-                                  fill="#ffffff"
-                                  stroke="#dfcbd0"
-                                  strokeWidth="2"
-                                  className="group-hover:fill-[#fcebf0] group-hover:stroke-[#c97a8b] transition-colors"
-                                />
-                                <text
-                                  x={sx}
-                                  y={sy + 3.5}
-                                  textAnchor="middle"
-                                  fill="#8a6f75"
-                                  fontSize="9"
-                                  fontWeight="600"
-                                  className="select-none pointer-events-none font-mono group-hover:fill-[#b8697a]"
-                                >
-                                  {seatNum}
-                                </text>
-                              </g>
-                            )}
-                          </g>
-                        );
-                      })}
-                    </g>
-                  );
-                }
-
-                // Standard 8-Seater Round Tables
                 const radiusOrbit = 68;
                 const tableRadius = 42;
+                const seatRadius = 14;
 
                 const occupiedAtTable = Array.from({ length: table.capacity }).filter((_, i) =>
                   occupiedSeatsMap.has(`T${table.id}-S${i + 1}`),
@@ -745,7 +693,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                       y={table.cy - 7}
                       textAnchor="middle"
                       fill="#3d2c31"
-                      fontSize="11"
+                      fontSize="12"
                       fontWeight="bold"
                       className="font-display select-none"
                     >
@@ -774,7 +722,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                       {occupiedAtTable + selectedAtTable}/{table.capacity}
                     </text>
 
-                    {/* 8 SEATS AROUND THE ROUND TABLE (at 45 degree intervals) */}
+                    {/* 8 SEATS AROUND EACH TABLE (at 45 degree intervals) */}
                     {Array.from({ length: table.capacity }).map((_, seatIdx) => {
                       const seatNum = seatIdx + 1;
                       const seatId = `T${table.id}-S${seatNum}`;
@@ -888,8 +836,8 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
               {/* ENTRANCE INDICATION */}
               <g opacity="0.6">
                 <text
-                  x="500"
-                  y="675"
+                  x="450"
+                  y="635"
                   textAnchor="middle"
                   fill="#786469"
                   fontSize="10"
@@ -907,15 +855,23 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
               <div
                 className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full pb-3 animate-in fade-in zoom-in-95 duration-150"
                 style={{
-                  left: `${(hoveredSeat.x / 1000) * 100}%`,
-                  top: `${(hoveredSeat.y / 700) * 100}%`,
+                  left: `${(hoveredSeat.x / 960) * 100}%`,
+                  top: `${(hoveredSeat.y / 660) * 100}%`,
                 }}
               >
-                <div className="rounded-xl border border-stone-200/80 bg-stone-900/90 backdrop-blur-md px-3 py-2 text-center text-white shadow-xl min-w-[140px]">
+                <div className="rounded-xl border border-stone-200/80 bg-stone-900/90 backdrop-blur-md px-3 py-2 text-center text-white shadow-xl min-w-[150px]">
                   <p className="text-[11px] font-bold text-pink-200">
                     {hoveredSeat.tableName} • Seat {hoveredSeat.seatNumber}
                   </p>
-                  {hoveredSeat.status === 'selected' ? (
+                  {hoveredSeat.status === 'bridal' ? (
+                    <div className="mt-0.5">
+                      <p className="text-xs font-semibold text-pink-300 flex items-center justify-center gap-1">
+                        <Heart className="h-3 w-3 text-pink-400" />
+                        {hoveredSeat.occupantName}
+                      </p>
+                      <p className="text-[9px] text-stone-300">Bride &amp; Groom Table</p>
+                    </div>
+                  ) : hoveredSeat.status === 'selected' ? (
                     <div className="mt-0.5">
                       <p className="text-xs font-semibold text-white flex items-center justify-center gap-1">
                         <Check className="h-3 w-3 text-pink-400" />
@@ -943,59 +899,90 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
         </div>
       )}
 
-      {/* VIEW MODE: TABLE CARDS (Alternate list view for narrow mobile screens) */}
+      {/* VIEW MODE: TABLE CARDS (Alternate list view for mobile screens) */}
       {viewMode === 'list' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {TABLES.map(table => {
-            return (
-              <div
-                key={table.id}
-                className="rounded-2xl border border-pink-100 bg-white p-5 shadow-xs"
-              >
-                <div className="flex items-center justify-between border-b border-pink-50 pb-3">
-                  <div>
-                    <h5 className="font-display text-base font-bold text-stone-800">
-                      {table.name}: {table.theme}
-                    </h5>
-                    <p className="text-[11px] text-stone-500">{table.capacity} banquet seats</p>
-                  </div>
-                  <span className="rounded-full bg-[#fdf2f4] px-2.5 py-1 text-[10px] font-bold text-[#b8697a]">
-                    {table.shape === 'head' ? 'Head Table' : 'Round Table'}
-                  </span>
-                </div>
-
-                <div className={`mt-4 grid ${table.capacity === 6 ? 'grid-cols-3' : 'grid-cols-4'} gap-2`}>
-                  {Array.from({ length: table.capacity }).map((_, seatIdx) => {
-                    const seatNum = seatIdx + 1;
-                    const seatId = `T${table.id}-S${seatNum}`;
-                    const isOccupied = occupiedSeatsMap.has(seatId);
-                    const occupant = occupiedSeatsMap.get(seatId);
-                    const isSelected = selectedSeatIds.includes(seatId);
-
-                    return (
-                      <button
-                        key={seatId}
-                        type="button"
-                        onClick={() => handleSeatClick(table.id, seatNum)}
-                        className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition cursor-pointer ${
-                          isSelected
-                            ? 'border-[#a85065] bg-[#c97a8b] text-white shadow-xs'
-                            : isOccupied
-                              ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
-                              : 'border-stone-200 bg-stone-50 hover:bg-pink-50 hover:border-pink-300 text-stone-700'
-                        }`}
-                      >
-                        <span className="text-xs font-bold">Seat {seatNum}</span>
-                        <span className="text-[9px] mt-0.5 truncate max-w-full">
-                          {isSelected ? 'Yours' : isOccupied ? occupant?.householdName : 'Free'}
-                        </span>
-                      </button>
-                    );
-                  })}
+        <div className="space-y-4">
+          {/* C & A Bridal Card */}
+          <div className="rounded-2xl border-2 border-pink-200 bg-gradient-to-r from-pink-50/70 via-white to-pink-50/70 p-5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-pink-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-[#c97a8b]" />
+                <div>
+                  <h5 className="font-display text-base font-bold text-stone-800">
+                    C &amp; A Sweetheart Table
+                  </h5>
+                  <p className="text-[11px] text-stone-500">2 seats • Cam &amp; Abby</p>
                 </div>
               </div>
-            );
-          })}
+              <span className="rounded-full bg-pink-100 px-3 py-1 text-xs font-bold text-[#b8697a]">
+                Bride &amp; Groom
+              </span>
+            </div>
+            <div className="mt-3 flex gap-3">
+              <div className="flex-1 rounded-xl border border-pink-300 bg-pink-100/60 p-2.5 text-center">
+                <p className="text-xs font-bold text-[#b8697a]">Cam (Groom)</p>
+                <p className="text-[10px] text-stone-600">Reserved</p>
+              </div>
+              <div className="flex-1 rounded-xl border border-pink-300 bg-pink-100/60 p-2.5 text-center">
+                <p className="text-xs font-bold text-[#b8697a]">Abby (Bride)</p>
+                <p className="text-[10px] text-stone-600">Reserved</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 7 Round Guest Tables */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {TABLES.map(table => {
+              return (
+                <div
+                  key={table.id}
+                  className="rounded-2xl border border-pink-100 bg-white p-5 shadow-xs"
+                >
+                  <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                    <div>
+                      <h5 className="font-display text-base font-bold text-stone-800">
+                        {table.name}: {table.theme}
+                      </h5>
+                      <p className="text-[11px] text-stone-500">8 banquet seats</p>
+                    </div>
+                    <span className="rounded-full bg-[#fdf2f4] px-2.5 py-1 text-[10px] font-bold text-[#b8697a]">
+                      Round Table
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-4 gap-2">
+                    {Array.from({ length: table.capacity }).map((_, seatIdx) => {
+                      const seatNum = seatIdx + 1;
+                      const seatId = `T${table.id}-S${seatNum}`;
+                      const isOccupied = occupiedSeatsMap.has(seatId);
+                      const occupant = occupiedSeatsMap.get(seatId);
+                      const isSelected = selectedSeatIds.includes(seatId);
+
+                      return (
+                        <button
+                          key={seatId}
+                          type="button"
+                          onClick={() => handleSeatClick(table.id, seatNum)}
+                          className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition cursor-pointer ${
+                            isSelected
+                              ? 'border-[#a85065] bg-[#c97a8b] text-white shadow-xs'
+                              : isOccupied
+                                ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                                : 'border-stone-200 bg-stone-50 hover:bg-pink-50 hover:border-pink-300 text-stone-700'
+                          }`}
+                        >
+                          <span className="text-xs font-bold">Seat {seatNum}</span>
+                          <span className="text-[9px] mt-0.5 truncate max-w-full">
+                            {isSelected ? 'Yours' : isOccupied ? occupant?.householdName : 'Free'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -1016,7 +1003,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                     const match = seatId.match(/T(\d+)-S(\d+)/);
                     const t = match ? parseInt(match[1], 10) : 0;
                     const s = match ? match[2] : '';
-                    const tableName = t === 0 ? 'Bridal Table' : `Table ${t}`;
+                    const tableName = t === 0 ? 'C & A Table' : `Table ${t}`;
                     const memberName = attendingMembers[idx] || `Guest ${idx + 1}`;
 
                     return (
