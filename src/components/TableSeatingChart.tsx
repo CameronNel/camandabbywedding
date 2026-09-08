@@ -15,11 +15,11 @@ export interface TableConfig {
 // Exactly 7 round tables arranged in a horseshoe curve matching user's sketch
 const TABLES: TableConfig[] = [
   { id: 1, name: 'Table 1', theme: 'Protea', cx: 170, cy: 230, capacity: 8, shape: 'round' },
-  { id: 2, name: 'Table 2', theme: 'Rose', cx: 150, cy: 420, capacity: 8, shape: 'round' },
-  { id: 3, name: 'Table 3', theme: 'Lavender', cx: 270, cy: 570, capacity: 8, shape: 'round' },
-  { id: 4, name: 'Table 4', theme: 'Fynbos', cx: 480, cy: 590, capacity: 8, shape: 'round' },
-  { id: 5, name: 'Table 5', theme: 'Outeniqua', cx: 690, cy: 570, capacity: 8, shape: 'round' },
-  { id: 6, name: 'Table 6', theme: 'Garden Route', cx: 810, cy: 420, capacity: 8, shape: 'round' },
+  { id: 2, name: 'Table 2', theme: 'Rose', cx: 150, cy: 415, capacity: 8, shape: 'round' },
+  { id: 3, name: 'Table 3', theme: 'Lavender', cx: 270, cy: 565, capacity: 8, shape: 'round' },
+  { id: 4, name: 'Table 4', theme: 'Fynbos', cx: 480, cy: 575, capacity: 8, shape: 'round' },
+  { id: 5, name: 'Table 5', theme: 'Outeniqua', cx: 690, cy: 565, capacity: 8, shape: 'round' },
+  { id: 6, name: 'Table 6', theme: 'Garden Route', cx: 810, cy: 415, capacity: 8, shape: 'round' },
   { id: 7, name: 'Table 7', theme: 'Tsitsikamma', cx: 790, cy: 230, capacity: 8, shape: 'round' },
 ];
 
@@ -594,9 +594,12 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                 />
                 {/* Buffet platter motifs top */}
                 <ellipse cx="949" cy="90" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
-                <ellipse cx="949" cy="170" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+                <ellipse cx="949" cy="165" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
 
-                {/* Vertical Food Label - completely clear space with no overlapping platters */}
+                {/* Decorative separator line above FOOD label */}
+                <line x1="937" y1="230" x2="961" y2="230" stroke="#cfb0a3" strokeWidth="1.2" strokeDasharray="3 2" />
+
+                {/* Vertical Food Label - completely clear dedicated zone, zero overlap */}
                 <text
                   x="949"
                   y="328"
@@ -611,8 +614,11 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                   FOOD
                 </text>
 
+                {/* Decorative separator line below FOOD label */}
+                <line x1="937" y1="426" x2="961" y2="426" stroke="#cfb0a3" strokeWidth="1.2" strokeDasharray="3 2" />
+
                 {/* Buffet platter motifs bottom */}
-                <ellipse cx="949" cy="485" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+                <ellipse cx="949" cy="490" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
                 <ellipse cx="949" cy="565" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
               </g>
 
@@ -835,7 +841,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
               <g opacity="0.6">
                 <text
                   x="480"
-                  y="662"
+                  y="684"
                   textAnchor="middle"
                   fill="#786469"
                   fontSize="10"
