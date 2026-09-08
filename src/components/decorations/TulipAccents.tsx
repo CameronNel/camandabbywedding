@@ -1,6 +1,6 @@
 import { useId, useState, useEffect, useRef } from 'react';
 
-export type TulipColor = 'pink' | 'lavender' | 'peach' | 'yellow' | 'cream';
+export type TulipColor = 'pink' | 'peach' | 'yellow' | 'sage' | 'blue' | 'lavender' | 'periwinkle' | 'cream';
 
 interface TulipPalette {
   front: [string, string, string]; // [highlight, mid, shadow]
@@ -9,25 +9,47 @@ interface TulipPalette {
 }
 
 const PALETTES: Record<TulipColor, TulipPalette> = {
+  // 1. Dusty Rose / Blush (#EDC9D4)
   pink: {
-    front: ['#ffe4eb', '#fbcfe8', '#f472b6'],
-    back: ['#fbcfe8', '#f43f5e'],
-    centerTip: '#fb7185',
+    front: ['#fdf2f5', '#EDC9D4', '#d494a5'],
+    back: ['#f4d3dc', '#ba6c7f'],
+    centerTip: '#d494a5',
   },
-  lavender: {
-    front: ['#f5edff', '#e9d5ff', '#c084fc'],
-    back: ['#e9d5ff', '#a855f7'],
-    centerTip: '#c084fc',
-  },
+  // 2. Soft Peach (#FFD3C9)
   peach: {
-    front: ['#fff1e6', '#fed7aa', '#fb923c'],
-    back: ['#fed7aa', '#f97316'],
-    centerTip: '#fb923c',
+    front: ['#fff4f1', '#FFD3C9', '#f3a899'],
+    back: ['#ffe3dc', '#d97d6a'],
+    centerTip: '#f3a899',
   },
+  // 3. Buttercream Yellow (#FFF7CF)
   yellow: {
-    front: ['#fffbeb', '#fef08a', '#facc15'],
-    back: ['#fef08a', '#eab308'],
-    centerTip: '#facc15',
+    front: ['#fffeea', '#FFF7CF', '#fae58d'],
+    back: ['#fff9db', '#deb83e'],
+    centerTip: '#fae58d',
+  },
+  // 4. Matcha / Soft Sage (#E4F0C9)
+  sage: {
+    front: ['#f8fcf1', '#E4F0C9', '#c0d695'],
+    back: ['#edf6db', '#8ea95e'],
+    centerTip: '#b1ca84',
+  },
+  // 5. Pastel Sky Blue (#C7E0FF)
+  blue: {
+    front: ['#f2f8ff', '#C7E0FF', '#9ac5fa'],
+    back: ['#dcebff', '#679ae1'],
+    centerTip: '#9ac5fa',
+  },
+  // 6. Pastel Lavender / Lilac (#CFCFFF)
+  lavender: {
+    front: ['#f7f7ff', '#CFCFFF', '#a8a8f8'],
+    back: ['#e2e2ff', '#7c7cdb'],
+    centerTip: '#a8a8f8',
+  },
+  // 7. Pastel Periwinkle (#BAC3FF)
+  periwinkle: {
+    front: ['#f1f3ff', '#BAC3FF', '#8e9cf9'],
+    back: ['#d2d9ff', '#6678e0'],
+    centerTip: '#8e9cf9',
   },
   cream: {
     front: ['#ffffff', '#fef3c7', '#fde68a'],
@@ -349,14 +371,13 @@ export function TulipCorner({ position = 'top-right', className = '' }: { positi
 export function TulipGardenRow({ className = '' }: { className?: string }) {
   return (
     <div className={`flex items-end justify-center gap-2 sm:gap-3 py-3 select-none ${className}`} aria-hidden="true">
-      <PastelTulip color="peach" size={24} tilt={-12} bloomDelay={0} />
-      <PastelTulip color="pink" size={28} tilt={-4} bloomDelay={60} />
-      <PastelTulip color="cream" size={22} tilt={6} bloomDelay={120} />
-      <PastelTulip color="lavender" size={26} tilt={-6} bloomDelay={180} />
-      <PastelTulip color="yellow" size={24} tilt={10} bloomDelay={240} />
-      <PastelTulip color="pink" size={30} tilt={0} bloomDelay={300} />
-      <PastelTulip color="lavender" size={25} tilt={-8} bloomDelay={360} />
-      <PastelTulip color="peach" size={27} tilt={12} bloomDelay={420} />
+      <PastelTulip color="pink" size={26} tilt={-10} bloomDelay={0} />
+      <PastelTulip color="peach" size={28} tilt={-4} bloomDelay={70} />
+      <PastelTulip color="yellow" size={24} tilt={5} bloomDelay={140} />
+      <PastelTulip color="sage" size={27} tilt={-2} bloomDelay={210} />
+      <PastelTulip color="blue" size={25} tilt={6} bloomDelay={280} />
+      <PastelTulip color="lavender" size={29} tilt={-5} bloomDelay={350} />
+      <PastelTulip color="periwinkle" size={27} tilt={8} bloomDelay={420} />
     </div>
   );
 }

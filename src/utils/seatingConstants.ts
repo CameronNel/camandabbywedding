@@ -1,3 +1,22 @@
+export interface PaletteColor {
+  hex: string;
+  name: string;
+  label: string;
+  bgTint: string;
+  borderTint: string;
+  textTint: string;
+}
+
+export const WEDDING_COLOR_PALETTE: PaletteColor[] = [
+  { hex: '#EDC9D4', name: 'Dusty Rose', label: 'Blush / Dusty Rose', bgTint: '#fdf6f8', borderTint: '#e8b8c6', textTint: '#8a384b' },
+  { hex: '#FFD3C9', name: 'Soft Peach', label: 'Pastel Peach', bgTint: '#fff6f4', borderTint: '#f9beaf', textTint: '#8c4333' },
+  { hex: '#FFF7CF', name: 'Buttercream', label: 'Buttercream Yellow', bgTint: '#fffdf4', borderTint: '#fae996', textTint: '#7c6819' },
+  { hex: '#E4F0C9', name: 'Matcha Sage', label: 'Matcha / Soft Sage', bgTint: '#f7faf2', borderTint: '#cde1a4', textTint: '#4a6328' },
+  { hex: '#C7E0FF', name: 'Sky Blue', label: 'Pastel Sky Blue', bgTint: '#f3f8ff', borderTint: '#a9cffb', textTint: '#2b578c' },
+  { hex: '#CFCFFF', name: 'Lilac', label: 'Pastel Lavender / Lilac', bgTint: '#f6f6ff', borderTint: '#b7b7fa', textTint: '#474794' },
+  { hex: '#BAC3FF', name: 'Periwinkle', label: 'Pastel Periwinkle', bgTint: '#f3f5ff', borderTint: '#9ba9fb', textTint: '#38469a' },
+];
+
 export interface TableConfig {
   id: number;
   name: string;
@@ -5,18 +24,22 @@ export interface TableConfig {
   cx: number;
   cy: number;
   capacity: number;
+  color: string;
+  bgTint: string;
+  borderTint: string;
+  textTint: string;
   shape?: 'round' | 'head';
 }
 
-// Exactly 7 round tables arranged in a horseshoe curve matching user's sketch
+// Exactly 7 round tables arranged in a horseshoe curve, each assigned to one of the 7 official wedding pastel colors
 export const TABLES: TableConfig[] = [
-  { id: 1, name: 'Table 1', theme: 'Protea', cx: 175, cy: 220, capacity: 8, shape: 'round' },
-  { id: 2, name: 'Table 2', theme: 'Rose', cx: 150, cy: 410, capacity: 8, shape: 'round' },
-  { id: 3, name: 'Table 3', theme: 'Lavender', cx: 270, cy: 555, capacity: 8, shape: 'round' },
-  { id: 4, name: 'Table 4', theme: 'Fynbos', cx: 480, cy: 565, capacity: 8, shape: 'round' },
-  { id: 5, name: 'Table 5', theme: 'Outeniqua', cx: 690, cy: 555, capacity: 8, shape: 'round' },
-  { id: 6, name: 'Table 6', theme: 'Garden Route', cx: 810, cy: 410, capacity: 8, shape: 'round' },
-  { id: 7, name: 'Table 7', theme: 'Tsitsikamma', cx: 785, cy: 220, capacity: 8, shape: 'round' },
+  { id: 1, name: 'Table 1', theme: 'Protea', cx: 175, cy: 220, capacity: 8, color: '#EDC9D4', bgTint: '#fdf6f8', borderTint: '#e8b8c6', textTint: '#8a384b', shape: 'round' },
+  { id: 2, name: 'Table 2', theme: 'Rose', cx: 150, cy: 410, capacity: 8, color: '#FFD3C9', bgTint: '#fff6f4', borderTint: '#f9beaf', textTint: '#8c4333', shape: 'round' },
+  { id: 3, name: 'Table 3', theme: 'Buttercream', cx: 270, cy: 555, capacity: 8, color: '#FFF7CF', bgTint: '#fffdf4', borderTint: '#fae996', textTint: '#7c6819', shape: 'round' },
+  { id: 4, name: 'Table 4', theme: 'Fynbos Sage', cx: 480, cy: 565, capacity: 8, color: '#E4F0C9', bgTint: '#f7faf2', borderTint: '#cde1a4', textTint: '#4a6328', shape: 'round' },
+  { id: 5, name: 'Table 5', theme: 'Outeniqua Sky', cx: 690, cy: 555, capacity: 8, color: '#C7E0FF', bgTint: '#f3f8ff', borderTint: '#a9cffb', textTint: '#2b578c', shape: 'round' },
+  { id: 6, name: 'Table 6', theme: 'Lavender', cx: 810, cy: 410, capacity: 8, color: '#CFCFFF', bgTint: '#f6f6ff', borderTint: '#b7b7fa', textTint: '#474794', shape: 'round' },
+  { id: 7, name: 'Table 7', theme: 'Tsitsikamma', cx: 785, cy: 220, capacity: 8, color: '#BAC3FF', bgTint: '#f3f5ff', borderTint: '#9ba9fb', textTint: '#38469a', shape: 'round' },
 ];
 
 export interface SeatOccupant {

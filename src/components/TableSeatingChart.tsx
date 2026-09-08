@@ -273,11 +273,13 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
             <feGaussianBlur stdDeviation="3" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
-          <radialGradient id={`table-grad${isModal ? '-m' : ''}`} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#ffffff" />
-            <stop offset="70%" stopColor="#fbf6f7" />
-            <stop offset="100%" stopColor="#eddce0" />
-          </radialGradient>
+          {TABLES.map(t => (
+            <radialGradient key={t.id} id={`table-grad-${t.id}${isModal ? '-m' : ''}`} cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="55%" stopColor={t.bgTint} />
+              <stop offset="100%" stopColor={t.color} />
+            </radialGradient>
+          ))}
           <linearGradient id={`bar-wood${isModal ? '-m' : ''}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#8d6255" />
             <stop offset="100%" stopColor="#6e473b" />
@@ -287,9 +289,9 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
             <stop offset="100%" stopColor="#5d3b32" />
           </linearGradient>
           <linearGradient id={`ca-table-grad${isModal ? '-m' : ''}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#fdf4f7" />
+            <stop offset="0%" stopColor="#EDC9D4" />
             <stop offset="50%" stopColor="#ffffff" />
-            <stop offset="100%" stopColor="#fbf0f4" />
+            <stop offset="100%" stopColor="#FFD3C9" />
           </linearGradient>
         </defs>
 
@@ -542,9 +544,9 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                 cx={table.cx}
                 cy={table.cy}
                 r={tableRadius}
-                fill={`url(#table-grad${isModal ? '-m' : ''})`}
-                stroke="#bca1a8"
-                strokeWidth="1.8"
+                fill={`url(#table-grad-${table.id}${isModal ? '-m' : ''})`}
+                stroke={table.borderTint}
+                strokeWidth="2"
                 className="drop-shadow-xs"
               />
 
@@ -554,7 +556,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                 cy={table.cy}
                 r={tableRadius - 13}
                 fill="none"
-                stroke="#eedee2"
+                stroke={table.borderTint}
                 strokeWidth="1.2"
                 strokeDasharray="3 2"
               />
@@ -575,7 +577,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                 x={table.cx}
                 y={table.cy + 6}
                 textAnchor="middle"
-                fill="#9e475a"
+                fill={table.textTint}
                 fontSize="11"
                 fontWeight="bold"
                 letterSpacing="0.5"
@@ -943,8 +945,16 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                       </h5>
                       <p className="text-[11px] text-stone-500">8 banquet seats</p>
                     </div>
-                    <span className="rounded-full bg-[#fdf2f4] px-2.5 py-1 text-[10px] font-bold text-[#b8697a]">
-                      Round Table
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold"
+                      style={{
+                        backgroundColor: table.bgTint,
+                        color: table.textTint,
+                        border: `1px solid ${table.borderTint}`,
+                      }}
+                    >
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: table.color }} />
+                      {table.theme}
                     </span>
                   </div>
 

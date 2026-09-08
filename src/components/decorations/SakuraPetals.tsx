@@ -18,12 +18,13 @@ interface Petal {
 }
 
 const SAKURA_COLORS = [
-  'rgba(255, 183, 197, 0.85)', // classic sakura pink
-  'rgba(255, 198, 214, 0.82)', // light cherry blossom
-  'rgba(255, 218, 230, 0.78)', // pale blush
-  'rgba(251, 207, 232, 0.85)', // pastel pink
-  'rgba(253, 164, 175, 0.8)',  // rose hint
-  'rgba(255, 241, 245, 0.75)', // white-blush petal
+  'rgba(237, 201, 212, 0.85)', // 1. Dusty Rose (#EDC9D4)
+  'rgba(255, 211, 201, 0.82)', // 2. Soft Peach (#FFD3C9)
+  'rgba(255, 247, 207, 0.80)', // 3. Buttercream Yellow (#FFF7CF)
+  'rgba(228, 240, 201, 0.80)', // 4. Matcha Sage (#E4F0C9)
+  'rgba(199, 224, 255, 0.82)', // 5. Sky Blue (#C7E0FF)
+  'rgba(207, 207, 255, 0.82)', // 6. Lavender (#CFCFFF)
+  'rgba(186, 195, 255, 0.80)', // 7. Periwinkle (#BAC3FF)
 ];
 
 export function SakuraPetals() {

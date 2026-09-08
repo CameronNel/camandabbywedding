@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { AlertTriangle, CheckCircle2, MapPin, Save, Settings2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, MapPin, Palette, Save, Settings2 } from 'lucide-react';
 import type { WeddingConfig } from '../../types/wedding';
 import { Button, Field, Toggle, inputClass } from './AdminPrimitives';
 import type { ToastState } from './contracts';
+import { WEDDING_COLOR_PALETTE } from '../../utils/seatingConstants';
 
 type TbcField = keyof NonNullable<WeddingConfig['tbcFields']>;
 
@@ -97,6 +98,28 @@ export const SiteSettings: React.FC<SiteSettingsProps> = ({ config, onSave, noti
           <Field label="Reception description" className="sm:col-span-2"><textarea rows={3} value={draft.receptionVenue.description} onChange={event => setDraft(current => ({ ...current, receptionVenue: { ...current.receptionVenue, description: event.target.value } }))} className={inputClass} /></Field>
           <Field label="Dress code title"><input value={draft.dressCode.title} onChange={event => setDraft(current => ({ ...current, dressCode: { ...current.dressCode, title: event.target.value } }))} className={inputClass} /></Field>
           <Field label="Dress code description"><textarea rows={3} value={draft.dressCode.description} onChange={event => setDraft(current => ({ ...current, dressCode: { ...current.dressCode, description: event.target.value } }))} className={inputClass} /></Field>
+          <div className="sm:col-span-2 mt-1 rounded-2xl border border-stone-200/90 bg-stone-50/80 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Palette className="h-4 w-4 text-[#8a2947]" />
+                <span className="text-xs font-semibold text-stone-800">Wedding Colour Palette (7 Shades)</span>
+              </div>
+              <span className="text-[10px] text-stone-500 font-medium">Shown to guests for attire inspiration</span>
+            </div>
+            <div className="grid grid-cols-7 gap-2">
+              {WEDDING_COLOR_PALETTE.map(color => (
+                <div key={color.hex} className="flex flex-col items-center gap-1.5 text-center">
+                  <div
+                    className="h-10 w-full rounded-xl border shadow-2xs transition-transform hover:scale-105"
+                    style={{ backgroundColor: color.hex, borderColor: color.borderTint }}
+                    title={`${color.name} (${color.hex})`}
+                  />
+                  <span className="font-mono text-[10px] font-bold text-stone-700">{color.hex.replace('#', '')}</span>
+                  <span className="text-[9px] text-stone-500 truncate max-w-full leading-tight">{color.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2"><Toggle checked={Boolean(tbc.receptionVenue)} onChange={checked => setTbc('receptionVenue', checked)} label="Reception details are TBC" /><Toggle checked={Boolean(tbc.dressCode)} onChange={checked => setTbc('dressCode', checked)} label="Dress code is TBC" /></div>
       </SettingsSection>

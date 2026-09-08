@@ -707,11 +707,13 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
               <div className="relative mx-auto w-full max-w-5xl select-none">
                 <svg viewBox="0 0 1000 730" className="w-full h-auto drop-shadow-xs" style={{ maxHeight: '760px' }}>
                   <defs>
-                    <radialGradient id="org-table-grad" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#ffffff" />
-                      <stop offset="70%" stopColor="#fbf6f7" />
-                      <stop offset="100%" stopColor="#eddce0" />
-                    </radialGradient>
+                    {TABLES.map(t => (
+                      <radialGradient key={t.id} id={`org-table-grad-${t.id}`} cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#ffffff" />
+                        <stop offset="55%" stopColor={t.bgTint} />
+                        <stop offset="100%" stopColor={t.color} />
+                      </radialGradient>
+                    ))}
                     <linearGradient id="org-bar-wood" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#8d6255" />
                       <stop offset="100%" stopColor="#6e473b" />
@@ -721,9 +723,9 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                       <stop offset="100%" stopColor="#5d3b32" />
                     </linearGradient>
                     <linearGradient id="org-ca-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#fdf4f7" />
+                      <stop offset="0%" stopColor="#EDC9D4" />
                       <stop offset="50%" stopColor="#ffffff" />
-                      <stop offset="100%" stopColor="#fbf0f4" />
+                      <stop offset="100%" stopColor="#FFD3C9" />
                     </linearGradient>
                   </defs>
 
@@ -835,9 +837,9 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                           cx={table.cx}
                           cy={table.cy}
                           r={tableRadius}
-                          fill="url(#org-table-grad)"
-                          stroke={isHighlighted ? '#8a384b' : '#bca1a8'}
-                          strokeWidth={isHighlighted ? '2.5' : '1.8'}
+                          fill={`url(#org-table-grad-${table.id})`}
+                          stroke={isHighlighted ? '#8a384b' : table.borderTint}
+                          strokeWidth={isHighlighted ? '2.5' : '2'}
                           className="drop-shadow-xs cursor-pointer"
                           onClick={() => setSelectedTableFilter(selectedTableFilter === table.id ? 'all' : table.id)}
                         />
@@ -846,7 +848,7 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                         <text x={table.cx} y={table.cy - 9} textAnchor="middle" fill="#1c1917" fontSize="14" fontWeight="bold" className="font-display select-none pointer-events-none">
                           {table.name}
                         </text>
-                        <text x={table.cx} y={table.cy + 6} textAnchor="middle" fill="#9e475a" fontSize="11" fontWeight="bold" letterSpacing="0.5" className="select-none pointer-events-none">
+                        <text x={table.cx} y={table.cy + 6} textAnchor="middle" fill={table.textTint} fontSize="11" fontWeight="bold" letterSpacing="0.5" className="select-none pointer-events-none">
                           {table.theme}
                         </text>
                         <text x={table.cx} y={table.cy + 20} textAnchor="middle" fill="#57534e" fontSize="10" fontWeight="600" className="select-none pointer-events-none">
@@ -1035,20 +1037,34 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                     <div key={table.id} className="rounded-3xl border border-stone-200 bg-white p-5 shadow-xs">
                       <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                         <div>
-                          <h4 className="font-serif text-base font-bold text-stone-900">
-                            {table.name}: <span className="text-[#8a2947] font-sans">{table.theme}</span>
+                          <h4 className="font-serif text-base font-bold text-stone-900 flex items-center gap-2">
+                            <span>{table.name}:</span>
+                            <span className="font-sans text-sm font-semibold" style={{ color: table.textTint }}>{table.theme}</span>
                           </h4>
                           <p className="text-xs text-stone-500">Round Table • {table.capacity} Seats</p>
                         </div>
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-bold ${
-                            occupiedCount === table.capacity
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-stone-100 text-stone-700'
-                          }`}
-                        >
-                          {occupiedCount} / {table.capacity} Seated
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold"
+                            style={{
+                              backgroundColor: table.bgTint,
+                              color: table.textTint,
+                              border: `1px solid ${table.borderTint}`,
+                            }}
+                          >
+                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: table.color }} />
+                            {table.color}
+                          </span>
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                              occupiedCount === table.capacity
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-stone-100 text-stone-700'
+                            }`}
+                          >
+                            {occupiedCount} / {table.capacity}
+                          </span>
+                        </div>
                       </div>
 
                       {/* 8 Seat List */}

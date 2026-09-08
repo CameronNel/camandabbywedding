@@ -7,10 +7,13 @@ import {
   CalendarDays,
   CalendarPlus,
   Check,
+  CheckCheck,
   Clock3,
+  Copy,
   KeyRound,
   LockKeyhole,
   MapPin,
+  Palette,
   Sparkles,
 } from 'lucide-react';
 import type { SectionId } from './Navbar';
@@ -20,6 +23,7 @@ import { formatWeddingDate } from '../utils/dates';
 import { useWedding } from '../context/WeddingContext';
 import { generateIcsFile } from '../utils/storage';
 import { PastelTulip } from './decorations/TulipAccents';
+import { WEDDING_COLOR_PALETTE } from '../utils/seatingConstants';
 
 interface VenueTravelProps {
   onNavigate: (section: SectionId) => void;
@@ -59,6 +63,15 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
   const wedding = useWedding();
   const { site, activeHousehold, accommodations, services } = useGuestExperience();
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [copiedHex, setCopiedHex] = useState<string | null>(null);
+
+  const handleCopyHex = (hex: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(hex).catch(() => {});
+    }
+    setCopiedHex(hex);
+    window.setTimeout(() => setCopiedHex(null), 2000);
+  };
 
   const sortListings = (items: ListingView[]) => [...items].sort((a, b) => {
     if (a.price === b.price) return 0;
@@ -130,6 +143,97 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </Reveal>
+
+        {/* Wedding Colour Palette & Attire Card */}
+        <Reveal delay={120} className="mt-12 sm:mt-16">
+          <div className="overflow-hidden rounded-[2.2rem] border border-pink-100 bg-white/95 p-7 sm:p-10 shadow-[0_20px_60px_rgba(201,122,139,0.08)]">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-pink-100/70">
+              <div>
+                <p className="eyebrow flex items-center gap-2">
+                  <Palette className="h-3.5 w-3.5 text-[#c97a8b]" />
+                  <span>Dress Code &amp; Palette</span>
+                </p>
+                <h3 className="mt-2 font-display text-3xl sm:text-4xl font-semibold text-stone-800">
+                  Wedding Colour Palette
+                </h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-600">
+                  {wedding.config.dressCode?.description ||
+                    'We warmly invite our guests to wear soft romantic pastel tones to celebrate with us. Feel free to use any shade from our official wedding palette for inspiration:'}
+                </p>
+              </div>
+
+              <div className="shrink-0 flex items-center gap-2 rounded-2xl border border-pink-200/80 bg-[#fdf8fa] px-4 py-2 text-xs font-semibold text-[#8a384b]">
+                <PastelTulip color="pink" size={20} className="drop-shadow-xs" />
+                <span>{wedding.config.dressCode?.title || 'Pastel Garden Attire'}</span>
+              </div>
+            </div>
+
+            {/* 7 Vertical Pastel Swatches (Matching Swatch Card) */}
+            <div className="mt-8">
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 sm:gap-3.5">
+                {WEDDING_COLOR_PALETTE.map(color => {
+                  const isCopied = copiedHex === color.hex;
+                  return (
+                    <button
+                      key={color.hex}
+                      type="button"
+                      onClick={() => handleCopyHex(color.hex)}
+                      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-200 hover:-translate-y-1.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#c97a8b] focus:ring-offset-2 cursor-pointer h-48 sm:h-56 p-3 text-left"
+                      style={{
+                        backgroundColor: color.hex,
+                        borderColor: color.borderTint,
+                      }}
+                      title={`Click to copy ${color.hex}`}
+                    >
+                      {/* Top Label / Name */}
+                      <div className="flex items-center justify-between">
+                        <span
+                          className="rounded-lg px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-2xs backdrop-blur-xs"
+                          style={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.88)',
+                            color: color.textTint,
+                          }}
+                        >
+                          {color.name}
+                        </span>
+                        <span
+                          className="grid h-6 w-6 place-items-center rounded-full bg-white/80 opacity-0 group-hover:opacity-100 transition-opacity text-stone-700 shadow-2xs"
+                        >
+                          {isCopied ? (
+                            <CheckCheck className="h-3.5 w-3.5 text-emerald-600" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Bottom Hex Strip (Matching User's Swatch Card) */}
+                      <div className="mt-auto">
+                        {isCopied && (
+                          <span className="mb-1 block rounded bg-stone-900/80 px-1.5 py-0.5 text-[10px] font-bold text-white text-center">
+                            Copied!
+                          </span>
+                        )}
+                        <div
+                          className="rounded-xl px-2 py-1.5 text-center font-mono text-[11px] font-bold tracking-wider backdrop-blur-sm shadow-2xs transition-colors"
+                          style={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                            color: color.textTint,
+                          }}
+                        >
+                          {color.hex.replace('#', '')}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-4 text-center text-[11px] text-stone-400">
+                Tip: Click any color swatch to copy the hex code for your outfit planning.
+              </p>
             </div>
           </div>
         </Reveal>
