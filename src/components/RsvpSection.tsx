@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import {
   ArrowLeft,
   ArrowRight,
+  CalendarHeart,
   Check,
   CheckCircle2,
   Gift,
@@ -23,6 +24,7 @@ import { Reveal } from './Reveal';
 import { type HouseholdView, useGuestExperience } from './guestExperience';
 import { TableSeatingChart } from './TableSeatingChart';
 import { TulipDuo, TulipCorner } from './decorations/TulipAccents';
+import { PrintInvitationModal } from './PrintInvitationModal';
 import { WEDDING_FAVOUR_OPTIONS } from '../utils/seatingConstants';
 import { DIETARY_OPTIONS, normalizeDietary } from '../utils/dietary';
 
@@ -65,6 +67,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const autoLookupAttempted = useRef(false);
   const initializedHouseholdId = useRef<string | null>(null);
 
@@ -413,7 +416,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   type="text"
                   value={code}
                   onChange={event => setCode(event.target.value)}
-                  placeholder="e.g. DAN42"
+                  placeholder="e.g. Anr-658"
                   autoComplete="one-time-code"
                   autoCapitalize="characters"
                   spellCheck={false}
@@ -440,35 +443,43 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                 <div className="mt-2 flex flex-wrap justify-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => { setCode('VIP01'); void findInvitation('VIP01'); }}
-                    className="rounded-full bg-[#fdf5f6] border border-[#e4aeb5]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#8a424e] transition hover:bg-[#fcecef]"
-                    title="Test VIP Stay (tag: free_venue_housing)"
+                    onClick={() => { setCode('Anr-658'); void findInvitation('Anr-658'); }}
+                    className="rounded-full bg-[#fdf2f4] border border-[#f1aab7] px-2.5 py-1 font-mono text-[10px] font-bold text-[#8a2947] transition hover:bg-[#fce5ea]"
+                    title="Test Custom Household Code"
                   >
-                    VIP01 (VIP Venue Stay)
+                    Anr-658 (Anri & Henk)
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setCode('CLO01'); void findInvitation('CLO01'); }}
-                    className="rounded-full bg-[#f4f8f5] border border-[#9bbeab]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#385e49] transition hover:bg-[#e7f1eb]"
-                    title="Test No Gifts (tag: presence_is_our_gift)"
-                  >
-                    CLO01 (No Gifts Message)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setCode('CAM01'); void findInvitation('CAM01'); }}
+                    onClick={() => { setCode('Cam-101'); void findInvitation('Cam-101'); }}
                     className="rounded-full bg-[#f6faf8] border border-[#c0dccc]/50 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#3b6b55] transition hover:bg-[#eaf4ef]"
                     title="Test Standard Attending RSVP"
                   >
-                    CAM01 (Cam & Abby)
+                    Cam-101 (Cam & Abby)
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setCode('DAV27'); void findInvitation('DAV27'); }}
+                    onClick={() => { setCode('Vip-204'); void findInvitation('Vip-204'); }}
+                    className="rounded-full bg-[#fdf5f6] border border-[#e4aeb5]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#8a424e] transition hover:bg-[#fcecef]"
+                    title="Test VIP Stay (tag: free_venue_housing)"
+                  >
+                    Vip-204 (VIP Venue Stay)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setCode('Clo-305'); void findInvitation('Clo-305'); }}
+                    className="rounded-full bg-[#f4f8f5] border border-[#9bbeab]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#385e49] transition hover:bg-[#e7f1eb]"
+                    title="Test No Gifts (tag: presence_is_our_gift)"
+                  >
+                    Clo-305 (No Gifts Message)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setCode('Dav-402'); void findInvitation('Dav-402'); }}
                     className="rounded-full bg-[#fdf5f2] border border-[#e7af9e]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#854231] transition hover:bg-[#fbe9e3]"
                     title="Test Pending RSVP with multi-member checklist"
                   >
-                    DAV27 (Pending RSVP)
+                    Dav-402 (Pending RSVP)
                   </button>
                 </div>
               </div>
@@ -516,9 +527,19 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   A response is already saved. Submitting this form will update it.
                 </p>
               )}
-              <button type="button" onClick={useAnotherInvitation} className="mt-8 inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-stone-600 underline decoration-stone-300 underline-offset-4 hover:text-stone-900">
-                <RefreshCw className="h-3.5 w-3.5" /> Use another invitation
-              </button>
+              <div className="mt-6 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCardModalOpen(true)}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#f1aab7] bg-white px-4 py-2.5 text-xs font-bold text-[#9c3353] shadow-xs hover:bg-[#fff5f7] transition"
+                >
+                  <CalendarHeart className="h-4 w-4 text-[#db6b88]" />
+                  View custom invitation card
+                </button>
+                <button type="button" onClick={useAnotherInvitation} className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-stone-600 underline decoration-stone-300 underline-offset-4 hover:text-stone-900">
+                  <RefreshCw className="h-3.5 w-3.5" /> Use another invitation
+                </button>
+              </div>
             </aside>
 
             <form onSubmit={saveResponse} className="flex flex-col justify-between">
@@ -1286,6 +1307,20 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
           </Reveal>
         )}
       </div>
+      {household && (
+        <PrintInvitationModal
+          isOpen={isCardModalOpen}
+          onClose={() => setIsCardModalOpen(false)}
+          household={{
+            id: household.id,
+            name: household.name,
+            inviteCode: household.inviteCode,
+            email: household.email,
+            phone: household.phone,
+          }}
+          invitationType="official"
+        />
+      )}
     </section>
   );
 }

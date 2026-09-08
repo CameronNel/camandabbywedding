@@ -171,8 +171,8 @@ export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
   const sampleHousehold = useMemo(() => {
     return households.find(h => selectedIds.has(h.id)) || households[0] || {
       id: 'sample-preview',
-      name: 'Anri Daniel',
-      inviteCode: 'ANR42',
+      name: 'Anri & Henk',
+      inviteCode: 'Anr-658',
       partySize: 2,
       attendingCount: 0,
       rsvpStatus: 'pending' as const,
@@ -556,7 +556,7 @@ export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
                         try {
                           await downloadInvitationPdf({ ...config, websiteUrl: household.invitationUrl || config.siteUrl }, household, variant);
                           notify({ tone: 'success', message: `5×7 PDF downloaded for ${household.name}.` });
-                        } catch (error) {
+                        } catch {
                           notify({ tone: 'error', message: 'PDF generation failed.' });
                         }
                       }}

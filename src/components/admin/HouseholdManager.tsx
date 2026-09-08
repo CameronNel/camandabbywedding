@@ -11,6 +11,7 @@ import {
   Plus,
   Search,
   ShieldCheck,
+  Sparkles,
   Tag,
   Trash2,
   Users,
@@ -25,7 +26,7 @@ import type {
   WeddingConfig,
 } from '../../types/wedding';
 import { sendOrShareWhatsAppWithPdf, type InvitationVariant } from '../../utils/invitations';
-import { exportGuestsToCsv, generateHouseholdInviteCode } from '../../utils/storage';
+import { exportGuestsToCsv, formatInviteCodeDisplay, generateHouseholdInviteCode } from '../../utils/storage';
 import {
   WEDDING_ROLE_TAGS,
   ACCESS_TAG_DEFS,
@@ -158,9 +159,12 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
     });
   }, [households, search, status, tag]);
 
+  const [isCodeCustomized, setIsCodeCustomized] = useState(false);
+
   const openNew = () => {
     setEditing(null);
     setForm(makeEmptyForm());
+    setIsCodeCustomized(false);
     setCustomTagInput('');
     setEditorOpen(true);
   };
@@ -168,8 +172,49 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
   const openEdit = (household: HouseholdInvitation) => {
     setEditing(household);
     setForm(formFromHousehold(household));
+    setIsCodeCustomized(true);
     setCustomTagInput('');
     setEditorOpen(true);
+  };
+
+  const handleNameChange = (name: string) => {
+    setForm(current => {
+      const shouldAuto = !editing && !isCodeCustomized;
+      const code = shouldAuto
+        ? generateHouseholdInviteCode(name, households.map(h => h.inviteCode))
+        : current.inviteCode;
+      return {
+        ...current,
+        name,
+        inviteCode: code,
+      };
+    });
+  };
+
+  const hasLegacyCodes = useMemo(() => {
+    return households.some(h => h.inviteCode?.startsWith('CA-') || (h.inviteCode && h.inviteCode.length > 10));
+  }, [households]);
+
+  const handleReformatAllLegacyCodes = async () => {
+    if (!window.confirm('Update all households with legacy/long invite codes to the custom format (e.g. Anr-658)?')) return;
+    setSaving(true);
+    try {
+      let count = 0;
+      const existing = households.map(h => h.inviteCode);
+      for (const h of households) {
+        if (h.inviteCode?.startsWith('CA-') || (h.inviteCode && h.inviteCode.length > 10)) {
+          const newCode = generateHouseholdInviteCode(h.name, existing);
+          existing.push(newCode);
+          await onUpdate(h.id, { inviteCode: newCode });
+          count++;
+        }
+      }
+      notify({ tone: 'success', message: `Updated ${count} household invite code${count === 1 ? '' : 's'} to custom format (e.g. Anr-658)!` });
+    } catch {
+      notify({ tone: 'error', message: 'Failed to update some legacy invite codes.' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleTag = (value: GuestTag, checked: boolean) => {
@@ -241,7 +286,10 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
     }
     const partySize = Math.max(form.partySize, namedMembers.length + (form.isPlusOneAllowed ? 1 : 0));
     const attendingCount = Math.min(Math.max(0, form.attendingCount), partySize);
-    const inviteCode = form.inviteCode.trim().toUpperCase() || undefined;
+    const existingCodes = households.map(h => h.inviteCode);
+    const inviteCode = form.inviteCode.trim()
+      ? formatInviteCodeDisplay(form.inviteCode, form.name)
+      : generateHouseholdInviteCode(form.name, existingCodes);
     setSaving(true);
     try {
       if (editing) {
@@ -319,6 +367,11 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
               <FileSpreadsheet className="h-4 w-4 text-[#8a2947]" /> Master Report
             </Button>
           )}
+          {hasLegacyCodes && (
+            <Button onClick={handleReformatAllLegacyCodes} disabled={saving} title="Upgrade all legacy codes to custom format (e.g. Anr-658)">
+              <Sparkles className="h-4 w-4 text-pink-600" /> Reformat Legacy Codes
+            </Button>
+          )}
           <Button onClick={() => exportGuestsToCsv(households)} disabled={!households.length} title="Download CSV of all guests and RSVP details">
             <Download className="h-4 w-4" /> Export CSV
           </Button>
@@ -385,13 +438,14 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                     <span>{household.members.length || household.partySize} member{(household.members.length || household.partySize) === 1 ? '' : 's'}</span>
                     <span>·</span>
                     <span className="inline-flex items-center gap-1 rounded bg-stone-100 px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider text-stone-700" title="Household invite code">
-                      {household.inviteCode}
+                      {formatInviteCodeDisplay(household.inviteCode, household.name)}
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          void navigator.clipboard.writeText(household.inviteCode);
-                          notify({ tone: 'success', message: `Copied code ${household.inviteCode} to clipboard!` });
+                          const code = formatInviteCodeDisplay(household.inviteCode, household.name);
+                          void navigator.clipboard.writeText(code);
+                          notify({ tone: 'success', message: `Copied code ${code} to clipboard!` });
                         }}
                         className="ml-0.5 text-stone-400 hover:text-stone-700"
                         title="Copy invite code"
@@ -399,6 +453,21 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                         <Copy className="h-3 w-3" />
                       </button>
                     </span>
+                    {(household.inviteCode?.startsWith('CA-') || (household.inviteCode && household.inviteCode.length > 10)) && (
+                      <button
+                        type="button"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          const newCode = generateHouseholdInviteCode(household.name, households.map(h => h.inviteCode));
+                          await onUpdate(household.id, { inviteCode: newCode });
+                          notify({ tone: 'success', message: `Updated ${household.name}'s code to ${newCode}!` });
+                        }}
+                        className="text-[9px] font-bold text-pink-600 hover:underline"
+                        title="Convert to custom format (e.g. Anr-658)"
+                      >
+                        Upgrade
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-1 text-[11px] text-stone-600">
@@ -442,7 +511,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                           } else {
                             notify({ tone: 'success', message: `Generated ${household.name}'s 5×7 PDF & opened WhatsApp!` });
                           }
-                        } catch (err) {
+                        } catch {
                           notify({ tone: 'error', message: 'PDF generation failed.' });
                         }
                       }}
@@ -476,29 +545,39 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Household / invitation name" className="sm:col-span-2">
-              <input required value={form.name} onChange={event => setForm(current => ({ ...current, name: event.target.value }))} placeholder="The Daniels family" className={inputClass} />
+              <input
+                required
+                value={form.name}
+                onChange={event => handleNameChange(event.target.value)}
+                placeholder="Anri & Henk"
+                className={inputClass}
+              />
             </Field>
             <Field label="Primary email"><input type="email" value={form.email} onChange={event => setForm(current => ({ ...current, email: event.target.value }))} placeholder="guest@example.com" className={inputClass} /></Field>
             <Field label="Mobile / WhatsApp"><input type="tel" value={form.phone} onChange={event => setForm(current => ({ ...current, phone: event.target.value }))} placeholder="+27 …" className={inputClass} /></Field>
-            <Field label="Invite code (3 letters + 2 numbers)">
+            <Field label="Invite code (e.g. Anr-658)">
               <div className="flex gap-2">
                 <input
                   type="text"
-                  maxLength={10}
+                  maxLength={12}
                   value={form.inviteCode}
-                  onChange={event => setForm(current => ({ ...current, inviteCode: event.target.value.toUpperCase() }))}
-                  placeholder="Auto (e.g. DAN42)"
-                  className={`${inputClass} font-mono uppercase tracking-wider`}
+                  onChange={event => {
+                    setIsCodeCustomized(true);
+                    setForm(current => ({ ...current, inviteCode: event.target.value }));
+                  }}
+                  placeholder="Auto (e.g. Anr-658)"
+                  className={`${inputClass} font-mono tracking-wider`}
                 />
                 <Button
                   type="button"
                   size="sm"
                   onClick={() => {
+                    setIsCodeCustomized(false);
                     const existingCodes = households.map(h => h.inviteCode);
                     const generated = generateHouseholdInviteCode(form.name, existingCodes);
                     setForm(current => ({ ...current, inviteCode: generated }));
                   }}
-                  title="Generate short code from household name (3 letters + 2 digits)"
+                  title="Generate custom short code from household name (e.g. Anr-658)"
                 >
                   Generate
                 </Button>

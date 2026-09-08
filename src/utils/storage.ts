@@ -102,10 +102,24 @@ export function saveConfig(config: WeddingConfig): void {
 
 export const loadGuests = (): Guest[] => {
   const saved = safeLoad<Guest[]>(STORAGE_KEYS.guests, initialGuests);
+  let changed = false;
+  const migrated = saved.map(g => {
+    if (g.inviteCode && (g.inviteCode.startsWith('CA-') || g.inviteCode.length > 10 || !g.inviteCode.includes('-'))) {
+      changed = true;
+      return {
+        ...g,
+        inviteCode: generateHouseholdInviteCode(g.name),
+      };
+    }
+    return g;
+  });
+  if (changed) {
+    safeSave(STORAGE_KEYS.guests, migrated);
+  }
   const missingInitial = initialGuests.filter(
-    (init) => !saved.some((s) => s.inviteCode.toLowerCase() === init.inviteCode.toLowerCase())
+    (init) => !migrated.some((s) => inviteCodesMatch(s.inviteCode, init.inviteCode) || s.id === init.id)
   );
-  return missingInitial.length > 0 ? [...saved, ...missingInitial] : saved;
+  return missingInitial.length > 0 ? [...migrated, ...missingInitial] : migrated;
 };
 export const saveGuests = (guests: Guest[]): void => safeSave(STORAGE_KEYS.guests, guests);
 
@@ -173,33 +187,62 @@ export function extractHouseholdCodePrefix(name?: string): string {
   const letters = clean
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z]/g, '')
-    .toUpperCase();
+    .replace(/[^a-zA-Z]/g, '');
 
   if (letters.length >= 3) {
-    return letters.slice(0, 3);
+    const raw = letters.slice(0, 3);
+    return raw[0].toUpperCase() + raw.slice(1).toLowerCase();
   }
   const fallback = (name || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z]/g, '')
-    .toUpperCase();
-  return (fallback.slice(0, 3) || 'WED').padEnd(3, 'W');
+    .replace(/[^a-zA-Z]/g, '');
+  const base = (fallback.slice(0, 3) || 'Wed').padEnd(3, 'w');
+  return base[0].toUpperCase() + base.slice(1).toLowerCase();
+}
+
+export function normalizeInviteCode(code?: string): string {
+  return (code || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^ca-?/i, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+export function inviteCodesMatch(a?: string, b?: string): boolean {
+  if (!a || !b) return false;
+  const normA = normalizeInviteCode(a);
+  const normB = normalizeInviteCode(b);
+  return normA.length > 0 && normA === normB;
+}
+
+export function formatInviteCodeDisplay(code?: string, householdName?: string): string {
+  if (!code) return householdName ? generateHouseholdInviteCode(householdName) : '';
+  const trimmed = code.trim();
+  if (trimmed.startsWith('CA-') && trimmed.length > 10 && householdName) {
+    return generateHouseholdInviteCode(householdName);
+  }
+  const match = trimmed.match(/^([a-zA-Z]{3})-?(\d{2,4})$/);
+  if (match) {
+    const prefix = match[1][0].toUpperCase() + match[1].slice(1).toLowerCase();
+    return `${prefix}-${match[2]}`;
+  }
+  return trimmed;
 }
 
 export function generateHouseholdInviteCode(householdName?: string, existingCodes: string[] = []): string {
   const prefix = extractHouseholdCodePrefix(householdName);
-  const existingSet = new Set(existingCodes.map((c) => c.trim().toUpperCase()));
+  const existingSet = new Set(existingCodes.map(c => normalizeInviteCode(c)));
 
-  for (let i = 0; i < 100; i++) {
-    const num = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-    const candidate = `${prefix}${num}`;
-    if (!existingSet.has(candidate)) {
+  for (let i = 0; i < 200; i++) {
+    const num = Math.floor(100 + Math.random() * 900).toString();
+    const candidate = `${prefix}-${num}`;
+    if (!existingSet.has(normalizeInviteCode(candidate))) {
       return candidate;
     }
   }
-  const extra = Math.floor(10 + Math.random() * 90).toString();
-  return `${prefix}${extra}`;
+  const extra = Math.floor(1000 + Math.random() * 9000).toString();
+  return `${prefix}-${extra}`;
 }
 
 export function createSecureInviteCode(householdName?: string, existingCodes: string[] = []): string {

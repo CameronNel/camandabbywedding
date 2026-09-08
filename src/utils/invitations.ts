@@ -2,6 +2,7 @@ import QRCode from 'qrcode';
 import { jsPDF } from 'jspdf';
 import JSZip from 'jszip';
 import { formatWeddingDate } from './dates';
+import { formatInviteCodeDisplay, generateHouseholdInviteCode } from './storage';
 
 export type InvitationVariant = 'save-the-date' | 'official';
 export type DeliveryChannel = 'email' | 'sms' | 'whatsapp';
@@ -194,7 +195,9 @@ export const createInvitationPdf = async (
   variant: InvitationVariant = 'official',
 ): Promise<jsPDF> => {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: [PDF_WIDTH, PDF_HEIGHT], compress: true });
-  const invitationUrl = buildInvitationUrl(recipient, config.websiteUrl || config.siteUrl);
+  const displayCode = formatInviteCodeDisplay(recipient.inviteCode, recipient.name) || generateHouseholdInviteCode(recipient.name);
+  const normalizedRecipient = { ...recipient, inviteCode: displayCode };
+  const invitationUrl = buildInvitationUrl(normalizedRecipient, config.websiteUrl || config.siteUrl);
   const centre = PDF_WIDTH / 2;
 
   const venueName = config.ceremonyVenue?.name &&
@@ -370,11 +373,11 @@ export const createInvitationPdf = async (
     pdf.setFontSize(6.8);
     pdf.text('YOUR PRIVATE INVITE CODE:', leftX, 428);
 
-    if (recipient.inviteCode) {
+    if (displayCode) {
       pdf.setFont('courier', 'bold');
       pdf.setFontSize(9.5);
       pdf.setTextColor(127, 37, 64);
-      pdf.text(safePdfText(recipient.inviteCode), leftX, 442);
+      pdf.text(safePdfText(displayCode), leftX, 442);
     }
 
     pdf.setFont('helvetica', 'normal');

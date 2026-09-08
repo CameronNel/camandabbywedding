@@ -23,6 +23,7 @@ import {
   type InvitationRecipient,
   type InvitationVariant,
 } from '../utils/invitations';
+import { formatInviteCodeDisplay, generateHouseholdInviteCode } from '../utils/storage';
 
 interface RecipientLike {
   id?: string;
@@ -51,13 +52,18 @@ const normaliseRecipient = (
   source: RecipientLike | null | undefined,
   guestNameOverride?: string,
   inviteCodeOverride?: string,
-): InvitationRecipient => ({
-  id: source?.id,
-  name: guestNameOverride || source?.householdName || source?.name || 'Honoured Guest',
-  inviteCode: inviteCodeOverride || source?.inviteCode || source?.invite_code,
-  email: source?.primaryEmail || source?.email,
-  phone: source?.primaryPhone || source?.phone,
-});
+): InvitationRecipient => {
+  const name = guestNameOverride || source?.householdName || source?.name || 'Honoured Guest';
+  const rawCode = inviteCodeOverride || source?.inviteCode || source?.invite_code;
+  const inviteCode = formatInviteCodeDisplay(rawCode, name) || generateHouseholdInviteCode(name);
+  return {
+    id: source?.id,
+    name,
+    inviteCode,
+    email: source?.primaryEmail || source?.email,
+    phone: source?.primaryPhone || source?.phone,
+  };
+};
 
 const formatWeddingDate = (value: string, short = false): string => {
   const date = new Date(value);

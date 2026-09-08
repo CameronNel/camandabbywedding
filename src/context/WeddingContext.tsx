@@ -29,7 +29,9 @@ import type {
 } from '../types/wedding';
 import {
   buildInvitationUrl,
-  createSecureInviteCode,
+  formatInviteCodeDisplay,
+  generateHouseholdInviteCode,
+  inviteCodesMatch,
   loadAccommodations,
   loadConfig,
   loadGallery,
@@ -157,11 +159,13 @@ function errorMessage(error: unknown): string {
 }
 
 function normalizeHousehold(guest: Guest, config: WeddingConfig): HouseholdInvitation {
+  const code = formatInviteCodeDisplay(guest.inviteCode, guest.name) || generateHouseholdInviteCode(guest.name);
   return {
     ...guest,
+    inviteCode: code,
     tags: guest.tags ?? [],
     members: guest.members ?? [],
-    invitationUrl: guest.inviteCode ? buildInvitationUrl(config, guest.inviteCode) : undefined,
+    invitationUrl: code ? buildInvitationUrl(config, code) : undefined,
   };
 }
 
@@ -171,7 +175,7 @@ function createLocalHousehold(
   existingCodes: string[] = [],
 ): HouseholdInvitation {
   const id = crypto.randomUUID();
-  const inviteCode = draft.inviteCode?.trim().toUpperCase() || createSecureInviteCode(draft.name, existingCodes);
+  const inviteCode = draft.inviteCode?.trim() || generateHouseholdInviteCode(draft.name, existingCodes);
   const memberDrafts = draft.members?.length
     ? draft.members
     : [{ name: draft.name, email: draft.email, phone: draft.phone, isPrimary: true }];
@@ -346,14 +350,9 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         ...loadGuests().map((g) => normalizeHousehold(g, config)),
         ...initialGuests.map((g) => normalizeHousehold(g, config)),
       ];
-      const match = localCandidates.find((household) => {
-        const hCode = household.inviteCode.trim().toLowerCase();
-        const searchCode = normalized.toLowerCase();
-        return hCode === searchCode ||
-               hCode.replace(/[^a-z0-9]/g, '') === searchCode.replace(/[^a-z0-9]/g, '') ||
-               searchCode.replace(/^ca-?/, '') === hCode ||
-               hCode.replace(/^ca-?/, '') === searchCode;
-      }) ?? null;
+      const match = localCandidates.find((household) =>
+        inviteCodesMatch(household.inviteCode, normalized)
+      ) ?? null;
 
       if (match) {
         setActiveHouseholdState(match);
@@ -372,7 +371,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
   const createHousehold = useCallback(async (draft: HouseholdDraft): Promise<HouseholdInvitation> => {
     setDataError(null);
     try {
-      const code = draft.inviteCode?.trim().toUpperCase() || createSecureInviteCode(draft.name, households.map((h) => h.inviteCode));
+      const code = draft.inviteCode?.trim() || generateHouseholdInviteCode(draft.name, households.map((h) => h.inviteCode));
       const draftWithCode: HouseholdDraft = { ...draft, inviteCode: code };
       const household = dataMode === 'supabase'
         ? await repository.createHousehold(draftWithCode, config)
@@ -390,11 +389,12 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     updates: Partial<HouseholdInvitation>,
   ): Promise<void> => {
     const previous = households;
+    const code = updates.inviteCode ? formatInviteCodeDisplay(updates.inviteCode, updates.name) : undefined;
     const normalizedUpdates: Partial<HouseholdInvitation> = {
       ...updates,
-      ...(updates.inviteCode ? {
-        inviteCode: updates.inviteCode.trim().toUpperCase(),
-        invitationUrl: buildInvitationUrl(config, updates.inviteCode.trim().toUpperCase()),
+      ...(code ? {
+        inviteCode: code,
+        invitationUrl: buildInvitationUrl(config, code),
       } : {}),
       updatedAt: new Date().toISOString(),
     };
