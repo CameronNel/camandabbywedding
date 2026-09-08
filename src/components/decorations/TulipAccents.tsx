@@ -100,6 +100,9 @@ export function PastelTulip({
     if (!interactive) return;
     e.stopPropagation();
 
+    // Remove focus outline if browser applies focus on click
+    (e.currentTarget as HTMLElement)?.blur?.();
+
     // Trigger wiggle animation
     setWiggling(true);
     window.setTimeout(() => setWiggling(false), 700);
@@ -124,7 +127,7 @@ export function PastelTulip({
     <span
       ref={containerRef}
       onClick={handleClick}
-      className={`relative inline-flex items-center justify-center select-none ${
+      className={`relative inline-flex items-center justify-center select-none outline-none focus:outline-none focus-visible:outline-none ${
         interactive ? 'tulip-interactive' : ''
       }`}
       role={interactive ? 'button' : undefined}
