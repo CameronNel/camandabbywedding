@@ -155,6 +155,39 @@ export const invitationFilename = (
     .replace(/^_|_$/g, '') + '.pdf';
 };
 
+const drawTulipPair = (pdf: jsPDF, centre: number, topY: number) => {
+  // Stems in sage green
+  pdf.setDrawColor(140, 179, 138);
+  pdf.setLineWidth(1.3);
+  pdf.line(centre - 1, topY + 20, centre - 7, topY + 9);
+  pdf.line(centre + 1, topY + 20, centre + 7, topY + 9);
+
+  // Soft Sage Leaves
+  pdf.setFillColor(164, 198, 161);
+  pdf.ellipse(centre - 10, topY + 14, 5.5, 2.2, 'F');
+  pdf.ellipse(centre + 10, topY + 14, 5.5, 2.2, 'F');
+
+  // Left Tulip Blossom (Blushing pastel pink)
+  pdf.setFillColor(248, 156, 177);
+  pdf.ellipse(centre - 8, topY + 5, 4, 5.5, 'F');
+  pdf.setFillColor(234, 120, 146);
+  pdf.ellipse(centre - 10.5, topY + 6, 2.8, 4.8, 'F');
+  pdf.setFillColor(242, 130, 156);
+  pdf.ellipse(centre - 5.5, topY + 6, 2.8, 4.8, 'F');
+  pdf.setFillColor(255, 209, 220);
+  pdf.ellipse(centre - 8, topY + 6, 2.5, 3.8, 'F');
+
+  // Right Tulip Blossom (Blushing pastel pink)
+  pdf.setFillColor(248, 156, 177);
+  pdf.ellipse(centre + 8, topY + 5, 4, 5.5, 'F');
+  pdf.setFillColor(242, 130, 156);
+  pdf.ellipse(centre + 5.5, topY + 6, 2.8, 4.8, 'F');
+  pdf.setFillColor(234, 120, 146);
+  pdf.ellipse(centre + 10.5, topY + 6, 2.8, 4.8, 'F');
+  pdf.setFillColor(255, 209, 220);
+  pdf.ellipse(centre + 8, topY + 6, 2.5, 3.8, 'F');
+};
+
 export const createInvitationPdf = async (
   config: InvitationConfig,
   recipient: InvitationRecipient,
@@ -164,42 +197,59 @@ export const createInvitationPdf = async (
   const invitationUrl = buildInvitationUrl(recipient, config.websiteUrl || config.siteUrl);
   const centre = PDF_WIDTH / 2;
 
-  // 1. Warm ivory soft background
-  pdf.setFillColor(253, 251, 247);
+  const venueName = config.ceremonyVenue?.name &&
+    config.ceremonyVenue.name !== 'ArendsRus Country Lodge' &&
+    config.ceremonyVenue.name !== 'Venue to follow'
+    ? config.ceremonyVenue.name
+    : 'Arendsrus';
+
+  const venueTime = config.ceremonyVenue?.time &&
+    config.ceremonyVenue.time.toLowerCase() !== 'to be confirmed'
+    ? config.ceremonyVenue.time
+    : '15:00';
+
+  // 1. Soft pastel pink background
+  pdf.setFillColor(254, 240, 244);
   pdf.rect(0, 0, PDF_WIDTH, PDF_HEIGHT, 'F');
 
-  // 2. Romantic dual hairline border
-  pdf.setDrawColor(228, 174, 181);
-  pdf.setLineWidth(1.2);
+  // 2. Romantic dual hairline border in soft pastel pink
+  pdf.setDrawColor(243, 178, 191);
+  pdf.setLineWidth(1.4);
   pdf.roundedRect(14, 14, PDF_WIDTH - 28, PDF_HEIGHT - 28, 8, 8, 'S');
 
-  pdf.setDrawColor(245, 218, 222);
-  pdf.setLineWidth(0.5);
+  pdf.setDrawColor(248, 204, 213);
+  pdf.setLineWidth(0.6);
   pdf.roundedRect(18, 18, PDF_WIDTH - 36, PDF_HEIGHT - 36, 6, 6, 'S');
 
-  // 3. Header
-  pdf.setDrawColor(228, 174, 181);
-  pdf.setLineWidth(0.6);
-  pdf.line(centre - 85, 42, centre - 50, 42);
-  pdf.line(centre + 50, 42, centre + 85, 42);
+  // 3. Tulip pair & Header
+  drawTulipPair(pdf, centre, 20);
 
-  pdf.setTextColor(138, 41, 71);
+  pdf.setDrawColor(243, 178, 191);
+  pdf.setLineWidth(0.6);
+  pdf.line(centre - 85, 47, centre - 50, 47);
+  pdf.line(centre + 50, 47, centre + 85, 47);
+
+  pdf.setTextColor(156, 51, 83);
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(7.8);
   pdf.setCharSpace(1.8);
-  pdf.text(variant === 'save-the-date' ? 'SAVE THE DATE' : 'WEDDING INVITATION', centre, 44.5, { align: 'center' });
+  pdf.text(variant === 'save-the-date' ? 'SAVE THE DATE' : 'WEDDING INVITATION', centre, 49.5, { align: 'center' });
   pdf.setCharSpace(0);
 
   // Addressee tag pill (if present)
-  let contentTop = 64;
+  let contentTop = 66;
   if (recipient.name) {
-    pdf.setFillColor(253, 242, 244);
-    pdf.roundedRect(centre - 75, 54, 150, 16, 8, 8, 'F');
-    pdf.setTextColor(138, 41, 71);
+    pdf.setFillColor(255, 255, 255);
+    pdf.roundedRect(centre - 75, 56, 150, 16, 8, 8, 'F');
+    pdf.setDrawColor(243, 178, 191);
+    pdf.setLineWidth(0.5);
+    pdf.roundedRect(centre - 75, 56, 150, 16, 8, 8, 'S');
+
+    pdf.setTextColor(156, 51, 83);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(6.8);
-    pdf.text(safePdfText(`FOR ${recipient.name.toUpperCase()}`), centre, 64.5, { align: 'center', maxWidth: 140 });
-    contentTop = 82;
+    pdf.text(safePdfText(`FOR ${recipient.name.toUpperCase()}`), centre, 66.5, { align: 'center', maxWidth: 140 });
+    contentTop = 84;
   }
 
   // 4. Couple Names
@@ -219,7 +269,7 @@ export const createInvitationPdf = async (
   pdf.setFontSize(25);
   pdf.text(safePdfText(bride), centre, namesTop + 8, { align: 'center' });
 
-  pdf.setTextColor(201, 122, 142);
+  pdf.setTextColor(219, 107, 136);
   pdf.setFont('times', 'italic');
   pdf.setFontSize(18);
   pdf.text('&', centre, namesTop + 28, { align: 'center' });
@@ -230,7 +280,7 @@ export const createInvitationPdf = async (
   pdf.text(safePdfText(groom), centre, namesTop + 54, { align: 'center' });
 
   // Delicate divider
-  pdf.setDrawColor(228, 174, 181);
+  pdf.setDrawColor(243, 178, 191);
   pdf.setLineWidth(0.6);
   pdf.line(centre - 36, namesTop + 70, centre + 36, namesTop + 70);
 
@@ -238,46 +288,35 @@ export const createInvitationPdf = async (
   if (variant === 'save-the-date') {
     pdf.setTextColor(55, 45, 48);
     pdf.setFont('times', 'bold');
-    pdf.setFontSize(15.5);
+    pdf.setFontSize(16);
     pdf.text(safePdfText(formatDate(config.weddingDate)), centre, namesTop + 98, { align: 'center' });
 
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(9);
-    pdf.setTextColor(110, 85, 92);
-    pdf.text(safePdfText(config.ceremonyVenue.name.toUpperCase()), centre, namesTop + 116, { align: 'center' });
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-    pdf.setTextColor(135, 120, 115);
-    pdf.text('GEORGE, WESTERN CAPE', centre, namesTop + 130, { align: 'center' });
-
     pdf.setFont('times', 'italic');
-    pdf.setFontSize(10.5);
-    pdf.setTextColor(138, 41, 71);
-    pdf.text('Formal invitation to follow', centre, namesTop + 152, { align: 'center' });
+    pdf.setFontSize(11);
+    pdf.setTextColor(156, 51, 83);
+    pdf.text('Formal invitation to follow', centre, namesTop + 126, { align: 'center' });
   } else {
+    // Official invite: Date, Time (15:00), Venue (Arendsrus)
     pdf.setTextColor(50, 40, 45);
     pdf.setFont('times', 'bold');
     pdf.setFontSize(14.5);
     pdf.text(safePdfText(formatDate(config.weddingDate)), centre, namesTop + 96, { align: 'center' });
 
-    if (config.ceremonyVenue.time) {
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8);
-      pdf.setTextColor(120, 100, 105);
-      pdf.text(safePdfText(`AT ${config.ceremonyVenue.time.toUpperCase()}`), centre, namesTop + 110, { align: 'center' });
-    }
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8.5);
+    pdf.setTextColor(156, 51, 83);
+    pdf.text(safePdfText(`AT ${venueTime}`), centre, namesTop + 110, { align: 'center' });
 
     pdf.setFont('times', 'bold');
-    pdf.setFontSize(12.5);
+    pdf.setFontSize(13);
     pdf.setTextColor(138, 41, 71);
-    pdf.text(safePdfText(config.ceremonyVenue.name), centre, namesTop + 128, { align: 'center' });
+    pdf.text(safePdfText(venueName), centre, namesTop + 128, { align: 'center' });
 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(7.5);
     pdf.setTextColor(120, 110, 105);
     pdf.text(
-      safePdfText([config.ceremonyVenue.address, config.ceremonyVenue.city].filter(Boolean).join(', ')),
+      safePdfText('George, Western Cape'),
       centre,
       namesTop + 141,
       { align: 'center' },
@@ -290,19 +329,19 @@ export const createInvitationPdf = async (
   }
 
   // 6. Bottom Section: RSVP Box & Scannable QR Code
-  pdf.setDrawColor(240, 220, 225);
+  pdf.setDrawColor(246, 195, 206);
   pdf.setLineWidth(0.6);
   pdf.line(26, 376, PDF_WIDTH - 26, 376);
 
   if (variant === 'official') {
     // RSVP Callout Box
-    pdf.setFillColor(253, 242, 244);
+    pdf.setFillColor(255, 255, 255);
     pdf.roundedRect(30, 386, PDF_WIDTH - 60, 24, 6, 6, 'F');
-    pdf.setDrawColor(228, 174, 181);
+    pdf.setDrawColor(243, 178, 191);
     pdf.setLineWidth(0.5);
     pdf.roundedRect(30, 386, PDF_WIDTH - 60, 24, 6, 6, 'S');
 
-    pdf.setTextColor(138, 41, 71);
+    pdf.setTextColor(156, 51, 83);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(8.5);
     pdf.text('PLEASE RSVP ON OUR WEBSITE', centre, 398, { align: 'center' });
@@ -310,7 +349,7 @@ export const createInvitationPdf = async (
     if (config.rsvpDeadline) {
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(6.5);
-      pdf.setTextColor(120, 95, 102);
+      pdf.setTextColor(130, 77, 91);
       pdf.text(`Kindly respond by ${formatDate(config.rsvpDeadline, false)}`, centre, 406.5, { align: 'center' });
     }
 
@@ -321,12 +360,12 @@ export const createInvitationPdf = async (
     drawQr(pdf, invitationUrl, qrX, qrY, qrSize);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(6);
-    pdf.setTextColor(120, 100, 105);
+    pdf.setTextColor(156, 51, 83);
     pdf.text('SCAN TO RSVP', qrX + qrSize / 2, qrY + qrSize + 7.5, { align: 'center' });
 
     // Left info
     const leftX = 36;
-    pdf.setTextColor(120, 100, 105);
+    pdf.setTextColor(156, 51, 83);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(6.8);
     pdf.text('YOUR PRIVATE INVITE CODE:', leftX, 428);
@@ -340,12 +379,12 @@ export const createInvitationPdf = async (
 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(6.5);
-    pdf.setTextColor(130, 120, 115);
+    pdf.setTextColor(120, 110, 105);
     pdf.text(safePdfText(displayUrl(invitationUrl)), leftX, 456);
 
     pdf.setFont('times', 'italic');
     pdf.setFontSize(7.5);
-    pdf.setTextColor(140, 100, 110);
+    pdf.setTextColor(156, 51, 83);
     pdf.text('Scan the QR code to RSVP directly on our website.', leftX, 470);
   } else {
     // Save the date bottom
@@ -355,30 +394,30 @@ export const createInvitationPdf = async (
     drawQr(pdf, invitationUrl, qrX, qrY, qrSize);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(6.5);
-    pdf.setTextColor(120, 100, 105);
+    pdf.setTextColor(156, 51, 83);
     pdf.text('SCAN TO VISIT', qrX + qrSize / 2, qrY + qrSize + 8.5, { align: 'center' });
 
     const leftX = 36;
-    pdf.setTextColor(85, 65, 70);
+    pdf.setTextColor(156, 51, 83);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(8);
     pdf.text('VISIT OUR WEDDING WEBSITE', leftX, 410);
 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(7);
-    pdf.setTextColor(130, 120, 115);
+    pdf.setTextColor(120, 110, 105);
     pdf.text(safePdfText(displayUrl(invitationUrl)), leftX, 424);
 
     if (recipient.inviteCode) {
       pdf.setFont('courier', 'bold');
       pdf.setFontSize(8.5);
-      pdf.setTextColor(138, 41, 71);
+      pdf.setTextColor(127, 37, 64);
       pdf.text(safePdfText(`YOUR CODE: ${recipient.inviteCode}`), leftX, 440);
     }
 
     pdf.setFont('times', 'italic');
     pdf.setFontSize(8);
-    pdf.setTextColor(140, 100, 110);
+    pdf.setTextColor(156, 51, 83);
     pdf.text('Scan the QR code to visit our website & save the date.', leftX, 458);
   }
 
@@ -476,12 +515,22 @@ export const buildInvitationMessage = (
 ): { subject: string; message: string; url: string } => {
   const url = buildInvitationUrl(recipient, config.websiteUrl || config.siteUrl);
   const couple = `${config.groomShortName || config.groomName} & ${config.brideShortName || config.brideName}`;
+  const venueName = config.ceremonyVenue?.name &&
+    config.ceremonyVenue.name !== 'ArendsRus Country Lodge' &&
+    config.ceremonyVenue.name !== 'Venue to follow'
+    ? config.ceremonyVenue.name
+    : 'Arendsrus';
+  const venueTime = config.ceremonyVenue?.time &&
+    config.ceremonyVenue.time.toLowerCase() !== 'to be confirmed'
+    ? config.ceremonyVenue.time
+    : '15:00';
+
   const subject = variant === 'save-the-date'
     ? `Save the date — ${couple}`
     : `Your wedding invitation — ${couple}`;
   const message = variant === 'save-the-date'
-    ? `Dear ${recipient.name},\n\nPlease save the date for our wedding on ${formatDate(config.weddingDate)} at ${config.ceremonyVenue.name}! ✨\n\nView details and reserve your spot: ${url}\n\nWith love,\n${couple}`
-    : `Dear ${recipient.name},\n\nWe would love for you to celebrate our wedding with us on ${formatDate(config.weddingDate)} at ${config.ceremonyVenue.name}! 💍✨\n\nPlease view your personal invitation and RSVP here: ${url}\n\nWith love,\n${couple}`;
+    ? `Dear ${recipient.name},\n\nPlease save the date for our wedding on ${formatDate(config.weddingDate)}! ✨\n\nFormal invitation to follow. Visit our wedding website: ${url}\n\nWith love,\n${couple}`
+    : `Dear ${recipient.name},\n\nWe would love for you to celebrate our wedding with us on ${formatDate(config.weddingDate)} at ${venueTime} at ${venueName}! 💍✨\n\nPlease view your personal invitation and RSVP on our website: ${url}\n\nWith love,\n${couple}`;
   return { subject, message, url };
 };
 

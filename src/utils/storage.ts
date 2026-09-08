@@ -72,7 +72,7 @@ export function loadConfig(): WeddingConfig {
   if (saved.weddingDate === '2027-01-04') {
     saved.weddingDate = '2027-08-01';
   }
-  return {
+  const config: WeddingConfig = {
     ...initialConfig,
     ...saved,
     ceremonyVenue: { ...initialConfig.ceremonyVenue, ...saved.ceremonyVenue },
@@ -80,6 +80,20 @@ export function loadConfig(): WeddingConfig {
     dressCode: { ...initialConfig.dressCode, ...saved.dressCode },
     adminPin: '6385',
   };
+  if (!config.ceremonyVenue.time || config.ceremonyVenue.time.toLowerCase() === 'to be confirmed') {
+    config.ceremonyVenue.time = '15:00';
+  }
+  if (!config.ceremonyVenue.name || config.ceremonyVenue.name === 'ArendsRus Country Lodge') {
+    config.ceremonyVenue.name = 'Arendsrus';
+  }
+  if (config.tbcFields) {
+    config.tbcFields = {
+      ...config.tbcFields,
+      ceremonyVenue: false,
+      receptionVenue: false,
+    };
+  }
+  return config;
 }
 
 export function saveConfig(config: WeddingConfig): void {
