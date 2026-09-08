@@ -165,9 +165,13 @@ function normalizeHousehold(guest: Guest, config: WeddingConfig): HouseholdInvit
   };
 }
 
-function createLocalHousehold(draft: HouseholdDraft, config: WeddingConfig): HouseholdInvitation {
+function createLocalHousehold(
+  draft: HouseholdDraft,
+  config: WeddingConfig,
+  existingCodes: string[] = [],
+): HouseholdInvitation {
   const id = crypto.randomUUID();
-  const inviteCode = createSecureInviteCode();
+  const inviteCode = draft.inviteCode?.trim().toUpperCase() || createSecureInviteCode(draft.name, existingCodes);
   const memberDrafts = draft.members?.length
     ? draft.members
     : [{ name: draft.name, email: draft.email, phone: draft.phone, isPrimary: true }];
@@ -342,9 +346,14 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         ...loadGuests().map((g) => normalizeHousehold(g, config)),
         ...initialGuests.map((g) => normalizeHousehold(g, config)),
       ];
-      const match = localCandidates.find((household) =>
-        household.inviteCode.trim().toLowerCase() === normalized.toLowerCase(),
-      ) ?? null;
+      const match = localCandidates.find((household) => {
+        const hCode = household.inviteCode.trim().toLowerCase();
+        const searchCode = normalized.toLowerCase();
+        return hCode === searchCode ||
+               hCode.replace(/[^a-z0-9]/g, '') === searchCode.replace(/[^a-z0-9]/g, '') ||
+               searchCode.replace(/^ca-?/, '') === hCode ||
+               hCode.replace(/^ca-?/, '') === searchCode;
+      }) ?? null;
 
       if (match) {
         setActiveHouseholdState(match);
@@ -363,36 +372,46 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
   const createHousehold = useCallback(async (draft: HouseholdDraft): Promise<HouseholdInvitation> => {
     setDataError(null);
     try {
+      const code = draft.inviteCode?.trim().toUpperCase() || createSecureInviteCode(draft.name, households.map((h) => h.inviteCode));
+      const draftWithCode: HouseholdDraft = { ...draft, inviteCode: code };
       const household = dataMode === 'supabase'
-        ? await repository.createHousehold(draft, config)
-        : createLocalHousehold(draft, config);
+        ? await repository.createHousehold(draftWithCode, config)
+        : createLocalHousehold(draftWithCode, config, households.map((h) => h.inviteCode));
       setHouseholds((current) => [household, ...current]);
       return household;
     } catch (error) {
       setDataError(errorMessage(error));
       throw error;
     }
-  }, [config, dataMode]);
+  }, [config, dataMode, households]);
 
   const updateHousehold = useCallback(async (
     id: string,
     updates: Partial<HouseholdInvitation>,
   ): Promise<void> => {
     const previous = households;
+    const normalizedUpdates: Partial<HouseholdInvitation> = {
+      ...updates,
+      ...(updates.inviteCode ? {
+        inviteCode: updates.inviteCode.trim().toUpperCase(),
+        invitationUrl: buildInvitationUrl(config, updates.inviteCode.trim().toUpperCase()),
+      } : {}),
+      updatedAt: new Date().toISOString(),
+    };
     setHouseholds((current) => current.map((household) =>
-      household.id === id ? { ...household, ...updates, updatedAt: new Date().toISOString() } : household,
+      household.id === id ? { ...household, ...normalizedUpdates } : household,
     ));
-    setActiveHouseholdState((current) => current?.id === id ? { ...current, ...updates } : current);
+    setActiveHouseholdState((current) => current?.id === id ? { ...current, ...normalizedUpdates } : current);
     if (dataMode === 'supabase') {
       try {
-        await repository.updateHousehold(id, updates);
+        await repository.updateHousehold(id, normalizedUpdates);
       } catch (error) {
         setHouseholds(previous);
         setDataError(errorMessage(error));
         throw error;
       }
     }
-  }, [dataMode, households]);
+  }, [config, dataMode, households]);
 
   const deleteHousehold = useCallback(async (id: string): Promise<void> => {
     if (dataMode === 'supabase') await repository.deleteHousehold(id);

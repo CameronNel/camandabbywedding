@@ -413,7 +413,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   type="text"
                   value={code}
                   onChange={event => setCode(event.target.value)}
-                  placeholder="e.g. CA-••••••"
+                  placeholder="e.g. DAN42"
                   autoComplete="one-time-code"
                   autoCapitalize="characters"
                   spellCheck={false}
@@ -440,35 +440,35 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                 <div className="mt-2 flex flex-wrap justify-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => { setCode('CA-VENUESTAY'); void findInvitation('CA-VENUESTAY'); }}
+                    onClick={() => { setCode('VIP01'); void findInvitation('VIP01'); }}
                     className="rounded-full bg-[#fdf5f6] border border-[#e4aeb5]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#8a424e] transition hover:bg-[#fcecef]"
                     title="Test VIP Stay (tag: free_venue_housing)"
                   >
-                    CA-VENUESTAY (VIP Venue Stay)
+                    VIP01 (VIP Venue Stay)
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setCode('CA-NOGIFTS01'); void findInvitation('CA-NOGIFTS01'); }}
+                    onClick={() => { setCode('CLO01'); void findInvitation('CLO01'); }}
                     className="rounded-full bg-[#f4f8f5] border border-[#9bbeab]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#385e49] transition hover:bg-[#e7f1eb]"
                     title="Test No Gifts (tag: presence_is_our_gift)"
                   >
-                    CA-NOGIFTS01 (No Gifts Message)
+                    CLO01 (No Gifts Message)
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setCode('CA-CAMABBY1'); void findInvitation('CA-CAMABBY1'); }}
+                    onClick={() => { setCode('CAM01'); void findInvitation('CAM01'); }}
                     className="rounded-full bg-[#f6faf8] border border-[#c0dccc]/50 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#3b6b55] transition hover:bg-[#eaf4ef]"
                     title="Test Standard Attending RSVP"
                   >
-                    CA-CAMABBY1 (Cam & Abby)
+                    CAM01 (Cam & Abby)
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setCode('CA-DAVIES27'); void findInvitation('CA-DAVIES27'); }}
+                    onClick={() => { setCode('DAV27'); void findInvitation('DAV27'); }}
                     className="rounded-full bg-[#fdf5f2] border border-[#e7af9e]/40 px-2.5 py-1 font-mono text-[10px] font-semibold text-[#854231] transition hover:bg-[#fbe9e3]"
                     title="Test Pending RSVP with multi-member checklist"
                   >
-                    CA-DAVIES27 (Pending RSVP)
+                    DAV27 (Pending RSVP)
                   </button>
                 </div>
               </div>

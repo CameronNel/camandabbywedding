@@ -167,11 +167,43 @@ export function resetAppToFactoryDefaults(): void {
   }
 }
 
-export function createSecureInviteCode(): string {
-  const bytes = new Uint8Array(12);
-  globalThis.crypto.getRandomValues(bytes);
-  const token = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
-  return `CA-${token}`;
+export function extractHouseholdCodePrefix(name?: string): string {
+  let clean = (name || '').trim();
+  clean = clean.replace(/^(the|dr\.?|mr\.?|mrs\.?|ms\.?)\s+/i, '');
+  const letters = clean
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z]/g, '')
+    .toUpperCase();
+
+  if (letters.length >= 3) {
+    return letters.slice(0, 3);
+  }
+  const fallback = (name || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z]/g, '')
+    .toUpperCase();
+  return (fallback.slice(0, 3) || 'WED').padEnd(3, 'W');
+}
+
+export function generateHouseholdInviteCode(householdName?: string, existingCodes: string[] = []): string {
+  const prefix = extractHouseholdCodePrefix(householdName);
+  const existingSet = new Set(existingCodes.map((c) => c.trim().toUpperCase()));
+
+  for (let i = 0; i < 100; i++) {
+    const num = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    const candidate = `${prefix}${num}`;
+    if (!existingSet.has(candidate)) {
+      return candidate;
+    }
+  }
+  const extra = Math.floor(10 + Math.random() * 90).toString();
+  return `${prefix}${extra}`;
+}
+
+export function createSecureInviteCode(householdName?: string, existingCodes: string[] = []): string {
+  return generateHouseholdInviteCode(householdName, existingCodes);
 }
 
 export function buildInvitationUrl(config: WeddingConfig, inviteCode: string): string {

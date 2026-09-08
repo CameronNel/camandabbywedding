@@ -97,6 +97,7 @@ export interface HouseholdInvitation extends Guest {
 
 export interface HouseholdDraft {
   name: string;
+  inviteCode?: string;
   email?: string;
   phone?: string;
   partySize?: number;

@@ -25,7 +25,7 @@ import type {
   WeddingConfig,
 } from '../../types/wedding';
 import { sendOrShareWhatsAppWithPdf, type InvitationVariant } from '../../utils/invitations';
-import { exportGuestsToCsv } from '../../utils/storage';
+import { exportGuestsToCsv, generateHouseholdInviteCode } from '../../utils/storage';
 import {
   WEDDING_ROLE_TAGS,
   ACCESS_TAG_DEFS,
@@ -50,6 +50,7 @@ interface HouseholdManagerProps {
 
 interface HouseholdFormState {
   name: string;
+  inviteCode: string;
   email: string;
   phone: string;
   partySize: number;
@@ -85,6 +86,7 @@ const makeMemberFormState = (member?: Partial<HouseholdMember>): MemberFormState
 
 const makeEmptyForm = (): HouseholdFormState => ({
   name: '',
+  inviteCode: '',
   email: '',
   phone: '',
   partySize: 1,
@@ -103,6 +105,7 @@ const formFromHousehold = (household: HouseholdInvitation): HouseholdFormState =
 
   return {
     name: household.name,
+    inviteCode: household.inviteCode || '',
     email: household.email || '',
     phone: household.phone || '',
     partySize: Math.max(household.partySize, members.length || 1),
@@ -238,11 +241,13 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
     }
     const partySize = Math.max(form.partySize, namedMembers.length + (form.isPlusOneAllowed ? 1 : 0));
     const attendingCount = Math.min(Math.max(0, form.attendingCount), partySize);
+    const inviteCode = form.inviteCode.trim().toUpperCase() || undefined;
     setSaving(true);
     try {
       if (editing) {
         await onUpdate(editing.id, {
           name: form.name.trim(),
+          inviteCode,
           email: form.email.trim() || undefined,
           phone: form.phone.trim() || undefined,
           partySize,
@@ -257,6 +262,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
       } else {
         await onCreate({
           name: form.name.trim(),
+          inviteCode,
           email: form.email.trim() || undefined,
           phone: form.phone.trim() || undefined,
           partySize,
@@ -378,7 +384,21 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-stone-500">
                     <span>{household.members.length || household.partySize} member{(household.members.length || household.partySize) === 1 ? '' : 's'}</span>
                     <span>·</span>
-                    <span className="font-mono" title="Private bearer code">••••••{household.inviteCode.slice(-6)}</span>
+                    <span className="inline-flex items-center gap-1 rounded bg-stone-100 px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider text-stone-700" title="Household invite code">
+                      {household.inviteCode}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void navigator.clipboard.writeText(household.inviteCode);
+                          notify({ tone: 'success', message: `Copied code ${household.inviteCode} to clipboard!` });
+                        }}
+                        className="ml-0.5 text-stone-400 hover:text-stone-700"
+                        title="Copy invite code"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </span>
                   </div>
                 </div>
                 <div className="space-y-1 text-[11px] text-stone-600">
@@ -460,6 +480,30 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
             </Field>
             <Field label="Primary email"><input type="email" value={form.email} onChange={event => setForm(current => ({ ...current, email: event.target.value }))} placeholder="guest@example.com" className={inputClass} /></Field>
             <Field label="Mobile / WhatsApp"><input type="tel" value={form.phone} onChange={event => setForm(current => ({ ...current, phone: event.target.value }))} placeholder="+27 …" className={inputClass} /></Field>
+            <Field label="Invite code (3 letters + 2 numbers)">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  maxLength={10}
+                  value={form.inviteCode}
+                  onChange={event => setForm(current => ({ ...current, inviteCode: event.target.value.toUpperCase() }))}
+                  placeholder="Auto (e.g. DAN42)"
+                  className={`${inputClass} font-mono uppercase tracking-wider`}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    const existingCodes = households.map(h => h.inviteCode);
+                    const generated = generateHouseholdInviteCode(form.name, existingCodes);
+                    setForm(current => ({ ...current, inviteCode: generated }));
+                  }}
+                  title="Generate short code from household name (3 letters + 2 digits)"
+                >
+                  Generate
+                </Button>
+              </div>
+            </Field>
             <Field label="Maximum party size"><input type="number" min={form.members.length} max={20} value={form.partySize} onChange={event => setForm(current => ({ ...current, partySize: Math.max(current.members.length, Number(event.target.value) || current.members.length) }))} className={inputClass} /></Field>
             <Field label="Table / seating note"><input value={form.tableNumber} onChange={event => setForm(current => ({ ...current, tableNumber: event.target.value }))} placeholder="Unassigned" className={inputClass} /></Field>
             {editing && (
@@ -656,7 +700,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
               <Toggle checked={form.tags.includes('presence_is_our_gift')} onChange={checked => toggleTag('presence_is_our_gift', checked)} label="Presence is our gift" description="Replaces the registry with the couple's personal no-gift message." />
               <Toggle checked={form.isPlusOneAllowed} onChange={checked => setForm(current => ({ ...current, isPlusOneAllowed: checked }))} label="Flexible plus-one" description="Allows an unnamed companion within the maximum party size." />
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-[10px] leading-relaxed text-emerald-800">
-                <ShieldCheck className="mb-1.5 h-4 w-4" /> A unique high-entropy invite code is generated by the backend and never entered manually.
+                <ShieldCheck className="mb-1.5 h-4 w-4" /> A short, memorable invite code (household's first 3 letters + 2 random numbers) is automatically generated for cards and quick RSVP.
               </div>
             </div>
           </div>

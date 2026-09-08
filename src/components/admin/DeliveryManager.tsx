@@ -172,7 +172,7 @@ export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
     return households.find(h => selectedIds.has(h.id)) || households[0] || {
       id: 'sample-preview',
       name: 'Anri Daniel',
-      inviteCode: 'CA-ANRI-D-DSF',
+      inviteCode: 'ANR42',
       partySize: 2,
       attendingCount: 0,
       rsvpStatus: 'pending' as const,

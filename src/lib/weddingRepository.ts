@@ -19,7 +19,7 @@ import type {
   WeddingService,
 } from '../types/wedding';
 import { initialConfig } from '../data/initialData';
-import { buildInvitationUrl } from '../utils/storage';
+import { buildInvitationUrl, generateHouseholdInviteCode } from '../utils/storage';
 import { isAllowedAdminEmail, requireSupabase, supabase } from './supabase';
 
 type Row = Record<string, unknown>;
@@ -433,10 +433,12 @@ export async function updateSiteConfig(config: WeddingConfig): Promise<void> {
 
 export async function createHousehold(draft: HouseholdDraft, config: WeddingConfig): Promise<HouseholdInvitation> {
   const client = requireSupabase();
+  const inviteCode = draft.inviteCode?.trim().toUpperCase() || generateHouseholdInviteCode(draft.name);
   let insertResult = await client.from('households').insert({
     display_name: draft.name.trim(),
     email: draft.email?.trim() || null,
     phone: draft.phone?.trim() || null,
+    invite_code: inviteCode,
     max_party_size: Math.max(1, draft.partySize ?? draft.members?.length ?? 1),
     table_number: draft.tableNumber?.trim() || null,
     is_plus_one_allowed: draft.isPlusOneAllowed ?? false,
@@ -450,6 +452,7 @@ export async function createHousehold(draft: HouseholdDraft, config: WeddingConf
       display_name: draft.name.trim(),
       email: draft.email?.trim() || null,
       phone: draft.phone?.trim() || null,
+      invite_code: inviteCode,
       max_party_size: Math.max(1, draft.partySize ?? draft.members?.length ?? 1),
       table_number: draft.tableNumber?.trim() || null,
       is_plus_one_allowed: draft.isPlusOneAllowed ?? false,
@@ -482,6 +485,7 @@ export async function createHousehold(draft: HouseholdDraft, config: WeddingConf
 function householdUpdatePayload(updates: Partial<HouseholdInvitation>): Row {
   const payload: Row = {};
   if (updates.name !== undefined) payload.display_name = updates.name.trim();
+  if (updates.inviteCode !== undefined) payload.invite_code = updates.inviteCode.trim().toUpperCase();
   if (updates.email !== undefined) payload.email = updates.email?.trim() || null;
   if (updates.phone !== undefined) payload.phone = updates.phone?.trim() || null;
   if (updates.partySize !== undefined) payload.max_party_size = Math.max(1, updates.partySize);
