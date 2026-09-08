@@ -14,13 +14,13 @@ export interface TableConfig {
 
 // Exactly 7 round tables arranged in a horseshoe curve matching user's sketch
 const TABLES: TableConfig[] = [
-  { id: 1, name: 'Table 1', theme: 'Protea', cx: 160, cy: 195, capacity: 8, shape: 'round' },
-  { id: 2, name: 'Table 2', theme: 'Rose', cx: 140, cy: 375, capacity: 8, shape: 'round' },
-  { id: 3, name: 'Table 3', theme: 'Lavender', cx: 240, cy: 525, capacity: 8, shape: 'round' },
+  { id: 1, name: 'Table 1', theme: 'Protea', cx: 165, cy: 215, capacity: 8, shape: 'round' },
+  { id: 2, name: 'Table 2', theme: 'Rose', cx: 140, cy: 385, capacity: 8, shape: 'round' },
+  { id: 3, name: 'Table 3', theme: 'Lavender', cx: 240, cy: 530, capacity: 8, shape: 'round' },
   { id: 4, name: 'Table 4', theme: 'Fynbos', cx: 450, cy: 550, capacity: 8, shape: 'round' },
-  { id: 5, name: 'Table 5', theme: 'Outeniqua', cx: 660, cy: 515, capacity: 8, shape: 'round' },
-  { id: 6, name: 'Table 6', theme: 'Garden Route', cx: 760, cy: 355, capacity: 8, shape: 'round' },
-  { id: 7, name: 'Table 7', theme: 'Tsitsikamma', cx: 740, cy: 180, capacity: 8, shape: 'round' },
+  { id: 5, name: 'Table 5', theme: 'Outeniqua', cx: 660, cy: 520, capacity: 8, shape: 'round' },
+  { id: 6, name: 'Table 6', theme: 'Garden Route', cx: 760, cy: 365, capacity: 8, shape: 'round' },
+  { id: 7, name: 'Table 7', theme: 'Tsitsikamma', cx: 735, cy: 195, capacity: 8, shape: 'round' },
 ];
 
 interface SeatOccupant {
@@ -425,10 +425,10 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
               {/* 1. TOP-LEFT BAR (Matching sketch) */}
               <g className="cursor-default">
                 <rect
-                  x="28"
-                  y="26"
-                  width="170"
-                  height="70"
+                  x="26"
+                  y="24"
+                  width="168"
+                  height="62"
                   rx="12"
                   fill="url(#bar-wood)"
                   stroke="#57362c"
@@ -436,20 +436,16 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                   className="drop-shadow-sm"
                 />
                 <rect
-                  x="34"
-                  y="32"
-                  width="158"
-                  height="58"
+                  x="32"
+                  y="30"
+                  width="156"
+                  height="50"
                   rx="8"
                   fill="#faf2ee"
                   stroke="#c7a79a"
                   strokeWidth="1.2"
                 />
-                {/* Stools */}
-                <circle cx="55" cy="110" r="8" fill="#edd6ce" stroke="#8d6255" strokeWidth="1.2" />
-                <circle cx="112" cy="110" r="8" fill="#edd6ce" stroke="#8d6255" strokeWidth="1.2" />
-                <circle cx="170" cy="110" r="8" fill="#edd6ce" stroke="#8d6255" strokeWidth="1.2" />
-                <foreignObject x="35" y="34" width="156" height="54">
+                <foreignObject x="33" y="31" width="154" height="48">
                   <div className="flex h-full flex-col items-center justify-center text-center text-[#57362c]">
                     <div className="flex items-center gap-1.5 font-display text-sm font-bold tracking-wide">
                       <Wine className="h-4 w-4 text-[#8d6255]" />
