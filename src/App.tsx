@@ -76,19 +76,20 @@ export function AppContent() {
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-x-clip bg-[#fdfbfb] text-stone-800">
+    <div className="relative min-h-screen overflow-x-clip bg-[#faf3f5] text-stone-800">
       <a className="skip-link" href="#main-content">Skip to content</a>
       {/* Dreamy Pastel Ambient Light Auras in 7 Colors */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
         {/* Dusty Rose (#EDC9D4) & Soft Peach (#FFD3C9) Top Glow */}
-        <div className="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-[#EDC9D4]/25 blur-[120px]" />
-        <div className="absolute top-[20%] -right-40 h-[560px] w-[560px] rounded-full bg-[#FFD3C9]/20 blur-[140px]" />
+        <div className="absolute -top-24 -left-20 h-[620px] w-[620px] rounded-full bg-[#EDC9D4]/45 blur-[120px]" />
+        <div className="absolute top-[14%] -right-32 h-[660px] w-[660px] rounded-full bg-[#FFD3C9]/40 blur-[130px]" />
         {/* Buttercream (#FFF7CF) & Matcha Sage (#E4F0C9) Middle Glow */}
-        <div className="absolute top-[45%] -left-36 h-[520px] w-[520px] rounded-full bg-[#FFF7CF]/25 blur-[130px]" />
-        <div className="absolute top-[60%] -right-32 h-[540px] w-[540px] rounded-full bg-[#E4F0C9]/20 blur-[130px]" />
+        <div className="absolute top-[36%] -left-28 h-[650px] w-[650px] rounded-full bg-[#FFF7CF]/50 blur-[125px]" />
+        <div className="absolute top-[50%] -right-24 h-[670px] w-[670px] rounded-full bg-[#E4F0C9]/40 blur-[125px]" />
         {/* Sky Blue (#C7E0FF), Lilac (#CFCFFF) & Periwinkle (#BAC3FF) Lower Glow */}
-        <div className="absolute top-[75%] -left-28 h-[550px] w-[550px] rounded-full bg-[#C7E0FF]/20 blur-[135px]" />
-        <div className="absolute bottom-10 right-0 h-[580px] w-[580px] rounded-full bg-[#CFCFFF]/20 blur-[140px]" />
+        <div className="absolute top-[68%] -left-24 h-[670px] w-[670px] rounded-full bg-[#C7E0FF]/38 blur-[130px]" />
+        <div className="absolute top-[80%] -right-20 h-[700px] w-[700px] rounded-full bg-[#CFCFFF]/42 blur-[135px]" />
+        <div className="absolute -bottom-20 left-1/3 h-[620px] w-[620px] rounded-full bg-[#BAC3FF]/38 blur-[130px]" />
       </div>
 
       <SakuraPetals />

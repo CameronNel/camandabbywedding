@@ -57,8 +57,8 @@ export const initialConfig: WeddingConfig = {
     description: '',
   },
   dressCode: {
-    title: 'Romantic Pastel Garden Elegance',
-    description: 'We kindly invite our guests to celebrate with us in soft romantic pastel tones inspired by our wedding colour palette.',
+    title: 'Formal Attire',
+    description: 'Dress code is formal. Please come as you are—while soft pastel shades are beautiful, wear any colour you already have and love! If you need ideas, we love these gentle pastels:',
     palette: ['#EDC9D4', '#FFD3C9', '#FFF7CF', '#E4F0C9', '#C7E0FF', '#CFCFFF', '#BAC3FF'],
   },
   adminPin: '6385',

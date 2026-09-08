@@ -18,15 +18,16 @@ export function Hero({ onNavigate }: HeroProps) {
   const formattedDate = site.dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(site.weddingDate);
 
   return (
-    <section id="home" className="anchor-section relative z-10 min-h-screen min-h-[100svh] overflow-hidden bg-[#fdfbfb] pt-[76px] text-stone-800 flex flex-col justify-center">
+    <section id="home" className="anchor-section relative z-10 min-h-screen min-h-[100svh] overflow-hidden bg-[#faf3f5] pt-[76px] text-stone-800 flex flex-col justify-center">
       <img
         src={`${import.meta.env.BASE_URL}images/hero-arendsrus.jpg`}
         alt="ArendsRus Country Lodge in George"
         className="absolute inset-0 h-full w-full object-cover object-center"
         fetchPriority="high"
       />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(253,251,251,0.93)_0%,rgba(253,251,251,0.86)_42%,rgba(253,251,251,0.38)_75%,rgba(253,251,251,0.12)_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(253,245,248,0.7)_0%,transparent_35%)]" />
+      {/* Warm romantic pastel sunrise scrim that preserves the lush garden photo */}
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(251,243,245,0.85)_0%,rgba(253,246,242,0.68)_45%,rgba(255,250,247,0.18)_75%,transparent_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(250,238,242,0.55)_0%,transparent_40%)]" />
 
       <div className="relative mx-auto flex w-full min-h-[calc(100svh-76px)] max-w-[1440px] items-center px-5 py-16 sm:px-8 lg:px-14">
         <div className="max-w-3xl">
@@ -40,21 +41,25 @@ export function Hero({ onNavigate }: HeroProps) {
             {site.brideName}
           </h1>
 
-          <div className="hero-enter hero-enter-delay-2 mt-10 grid max-w-2xl gap-5 border-y border-[#f0d5de] py-6 text-sm text-stone-700 sm:grid-cols-2">
-            <div className="flex items-start gap-3">
-              <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-[#c97a8b]" />
+          <div className="hero-enter hero-enter-delay-2 mt-10 grid max-w-2xl gap-5 rounded-2xl border-2 border-[#eed5dc] bg-white/80 p-6 backdrop-blur-md shadow-[0_12px_32px_rgba(201,122,139,0.08)] sm:grid-cols-2">
+            <div className="flex items-start gap-3.5">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fdeef2] text-[#b85b73] shadow-xs">
+                <CalendarDays className="h-5 w-5" />
+              </div>
               <div>
-                <span className="block text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">The date</span>
-                <time dateTime={site.dateIsTbc ? undefined : site.weddingDate.slice(0, 10)} className="mt-1 block font-display text-xl font-semibold text-stone-900">{formattedDate}</time>
-                <span className="mt-0.5 block text-xs text-stone-500">{site.ceremonyIsTbc || !site.ceremonyTime ? 'Ceremony time to be confirmed' : site.ceremonyTime}</span>
+                <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#8a384b]">The date</span>
+                <time dateTime={site.dateIsTbc ? undefined : site.weddingDate.slice(0, 10)} className="mt-1 block font-display text-xl font-bold text-stone-900">{formattedDate}</time>
+                <span className="mt-0.5 block text-xs font-medium text-stone-600">{site.ceremonyIsTbc || !site.ceremonyTime ? 'Ceremony time to be confirmed' : site.ceremonyTime}</span>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#c97a8b]" />
+            <div className="flex items-start gap-3.5">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#edf5e6] text-[#4a6b2c] shadow-xs">
+                <MapPin className="h-5 w-5" />
+              </div>
               <div>
-                <span className="block text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">The place</span>
-                <span className="mt-1 block font-display text-xl font-semibold text-stone-900">{site.venueName}</span>
-                <span className="mt-0.5 block text-xs text-stone-500">George, Western Cape</span>
+                <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-[#4a6b2c]">The place</span>
+                <span className="mt-1 block font-display text-xl font-bold text-stone-900">{site.venueName}</span>
+                <span className="mt-0.5 block text-xs font-medium text-stone-600">George, Western Cape</span>
               </div>
             </div>
           </div>

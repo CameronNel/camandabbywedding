@@ -40,7 +40,7 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
   };
 
   return (
-    <header className="site-nav fixed inset-x-0 top-0 z-50 h-[76px] border-b border-[#f0d5de]/70 bg-[#fdfbfb]/[0.94] backdrop-blur-xl">
+    <header className="site-nav fixed inset-x-0 top-0 z-50 h-[76px] border-b border-[#eed5dc] bg-[#faf3f5]/[0.92] backdrop-blur-xl">
       <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <button
           type="button"

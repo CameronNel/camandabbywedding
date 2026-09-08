@@ -64,7 +64,6 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
   const { site, activeHousehold, accommodations, services } = useGuestExperience();
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [copiedHex, setCopiedHex] = useState<string | null>(null);
-  const [swatchIconMode, setSwatchIconMode] = useState<'tulips' | 'cats'>('tulips');
 
   const handleCopyHex = async (hex: string) => {
     try {
@@ -91,7 +90,7 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
   const formattedDate = site.dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(site.weddingDate);
 
   return (
-    <section id="details" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] bg-transparent">
+    <section id="details" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] bg-gradient-to-b from-transparent via-[#f5f8ef]/40 to-transparent">
       <div className="relative z-10 mx-auto max-w-[1440px] px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44 lg:px-14">
         <Reveal className="grid items-end gap-8 lg:grid-cols-[1fr_0.75fr]">
           <div>
@@ -106,28 +105,28 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
           </p>
         </Reveal>
 
-        <Reveal delay={100} className="mt-8 overflow-hidden rounded-[2rem] border border-[#f0d5de] bg-white text-stone-800 shadow-[0_24px_70px_rgba(201,122,139,0.08)] sm:mt-10">
+        <Reveal delay={100} className="mt-8 overflow-hidden rounded-[2rem] border-2 border-[#eedce2] bg-gradient-to-br from-[#fffdfd] via-[#fffafc] to-[#faf5ec] text-stone-800 shadow-[0_24px_70px_rgba(201,122,139,0.1)] sm:mt-10">
           <div className="grid lg:grid-cols-[1.25fr_0.75fr]">
             <div className="relative min-h-[340px] overflow-hidden sm:min-h-[460px]">
               <img src={`${import.meta.env.BASE_URL}images/arendsrus-grounds.jpg`} alt="ArendsRus Country Lodge grounds" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-              <div className="absolute inset-0 bg-gradient-to-t from-stone-900/25 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-stone-900/30 via-transparent to-transparent" />
             </div>
-            <div className="flex flex-col justify-between p-7 sm:p-10 lg:p-12">
+            <div className="flex flex-col justify-between p-7 sm:p-10 lg:p-12 bg-gradient-to-br from-[#fff8fa]/90 via-[#fffcfd]/80 to-[#faf5ec]/90">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#8a384b]">George · Western Cape</p>
                 <h3 className="mt-4 font-display text-4xl font-semibold leading-tight text-stone-900 sm:text-5xl">{site.venueName}</h3>
                 <dl className="mt-9 space-y-6 text-sm">
                   <div className="flex gap-3">
-                    <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-[#c97a8b]" />
-                    <div><dt className="text-stone-400">Date</dt><dd className="mt-1 font-medium text-stone-800"><time dateTime={site.dateIsTbc ? undefined : site.weddingDate.slice(0, 10)}>{formattedDate}</time></dd></div>
+                    <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-[#b85b73]" />
+                    <div><dt className="text-stone-500 font-medium">Date</dt><dd className="mt-1 font-semibold text-stone-800"><time dateTime={site.dateIsTbc ? undefined : site.weddingDate.slice(0, 10)}>{formattedDate}</time></dd></div>
                   </div>
                   <div className="flex gap-3">
-                    <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-[#c97a8b]" />
-                    <div><dt className="text-stone-400">Times</dt><dd className="mt-1 font-medium text-stone-800">{site.ceremonyIsTbc || !site.ceremonyTime ? 'To be confirmed' : site.ceremonyTime}</dd></div>
+                    <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-[#b85b73]" />
+                    <div><dt className="text-stone-500 font-medium">Times</dt><dd className="mt-1 font-semibold text-stone-800">{site.ceremonyIsTbc || !site.ceremonyTime ? 'To be confirmed' : site.ceremonyTime}</dd></div>
                   </div>
                   <div className="flex gap-3">
-                    <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#c97a8b]" />
-                    <div><dt className="text-stone-400">Location</dt><dd className="mt-1 font-medium text-stone-800">{site.venueAddress ? `${site.venueAddress}, ` : ''}{site.venueCity}</dd></div>
+                    <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#b85b73]" />
+                    <div><dt className="text-stone-500 font-medium">Location</dt><dd className="mt-1 font-semibold text-stone-800">{site.venueAddress ? `${site.venueAddress}, ` : ''}{site.venueCity}</dd></div>
                   </div>
                 </dl>
               </div>
@@ -139,10 +138,10 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
                   <button
                     type="button"
                     onClick={() => generateIcsFile(wedding.config)}
-                    className="inline-flex min-h-12 items-center gap-2 rounded-full border border-stone-200 bg-[#fdf5f7] px-5 text-xs font-semibold uppercase tracking-[0.08em] text-[#8a384b] transition hover:border-[#c97a8b] hover:bg-white hover:text-stone-900 shadow-2xs"
+                    className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[#e8c7d2] bg-white/90 px-5 text-xs font-semibold uppercase tracking-[0.08em] text-[#8a384b] transition hover:border-[#c97a8b] hover:bg-[#fff2f6] hover:text-stone-900 shadow-2xs"
                     title="Download .ics calendar event for Apple Calendar, Outlook, and Google Calendar"
                   >
-                    <CalendarPlus className="h-4 w-4 text-[#c97a8b]" /> Add to calendar
+                    <CalendarPlus className="h-4 w-4 text-[#b85b73]" /> Add to calendar
                   </button>
                 )}
               </div>
@@ -152,59 +151,29 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
 
         {/* Wedding Colour Palette & Attire Card */}
         <Reveal delay={120} className="mt-12 sm:mt-16">
-          <div className="overflow-hidden rounded-[2.2rem] border border-pink-100 bg-white/95 p-7 sm:p-10 shadow-[0_20px_60px_rgba(201,122,139,0.08)]">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-pink-100/70">
+          <div className="overflow-hidden rounded-[2.2rem] border-2 border-[#edd3dc] bg-gradient-to-br from-[#fffdfd] via-[#fdf7fa] to-[#faf3f7] p-7 sm:p-10 shadow-[0_24px_70px_rgba(201,122,139,0.1)]">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-pink-200/60">
               <div>
                 <p className="eyebrow flex items-center gap-2">
                   <Palette className="h-3.5 w-3.5 text-[#c97a8b]" />
                   <span>Dress Code &amp; Palette</span>
                 </p>
-                <h3 className="mt-2 font-display text-3xl sm:text-4xl font-semibold text-stone-800">
-                  Wedding Colour Palette
+                <h3 className="mt-2 font-display text-3xl sm:text-4xl font-semibold text-stone-900">
+                  Dress Code: Formal
                 </h3>
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-600">
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-700">
                   {wedding.config.dressCode?.description ||
-                    'We warmly invite our guests to wear soft romantic pastel tones to celebrate with us. Feel free to use any shade from our official wedding palette for inspiration:'}
+                    'Dress code is formal. Please come as you are—while soft pastel shades are beautiful, wear any colour you already have and love! If you need ideas, we love these gentle pastels:'}
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Cute Tulips / Kitties Toggle */}
-                <div className="flex items-center rounded-full border border-pink-200/80 bg-[#fdf8fa] p-1 text-xs shadow-2xs">
-                  <button
-                    type="button"
-                    onClick={() => setSwatchIconMode('tulips')}
-                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
-                      swatchIconMode === 'tulips'
-                        ? 'bg-[#c97a8b] text-white shadow-2xs'
-                        : 'text-stone-500 hover:text-stone-800'
-                    }`}
-                    title="Show blooming tulips"
-                  >
-                    <PastelTulip color="pink" size={15} interactive={false} /> Tulips
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSwatchIconMode('cats')}
-                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
-                      swatchIconMode === 'cats'
-                        ? 'bg-[#c97a8b] text-white shadow-2xs'
-                        : 'text-stone-500 hover:text-stone-800'
-                    }`}
-                    title="Show cute kitties"
-                  >
-                    <span>🐱</span> Kitties
-                  </button>
-                </div>
-
-                <div className="shrink-0 flex items-center gap-2 rounded-2xl border border-pink-200/80 bg-[#fdf8fa] px-4 py-2 text-xs font-semibold text-[#8a384b]">
-                  <PastelTulip color="pink" size={20} className="drop-shadow-xs" />
-                  <span>{wedding.config.dressCode?.title || 'Pastel Garden Attire'}</span>
-                </div>
+              <div className="shrink-0 flex items-center gap-2 rounded-2xl border border-pink-200 bg-[#fdf5f8] px-4 py-2.5 text-xs font-bold text-[#8a384b] shadow-2xs">
+                <PastelTulip color="pink" size={20} className="drop-shadow-xs" />
+                <span>{wedding.config.dressCode?.title || 'Formal Attire'}</span>
               </div>
             </div>
 
-            {/* 7 Cute Pastel Circles (Bouncy, Playful & Cutsey) */}
+            {/* 7 Cute Pastel Circles (Bouncy & Playful with Blooming Tulips) */}
             <div className="mt-8">
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-5 sm:gap-4 place-items-center">
                 {WEDDING_COLOR_PALETTE.map(color => {
@@ -221,22 +190,22 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
                       <div className="relative">
                         {/* Outer soft glow ring on hover */}
                         <div
-                          className="absolute -inset-2 rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-75"
+                          className="absolute -inset-2 rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-85"
                           style={{ backgroundColor: color.hex }}
                         />
 
                         {/* Main Circle */}
                         <div
-                          className="relative flex h-24 w-24 sm:h-26 sm:w-26 md:h-28 md:w-28 items-center justify-center rounded-full border-3 shadow-[0_10px_25px_rgba(0,0,0,0.06)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_16px_35px_rgba(0,0,0,0.12)] overflow-hidden"
+                          className="relative flex h-24 w-24 sm:h-26 sm:w-26 md:h-28 md:w-28 items-center justify-center rounded-full border-3 shadow-[0_10px_25px_rgba(0,0,0,0.07)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_16px_35px_rgba(0,0,0,0.14)] overflow-hidden"
                           style={{
                             backgroundColor: color.hex,
                             borderColor: color.borderTint,
                           }}
                         >
                           {/* Glossy top-light reflection arc */}
-                          <div className="pointer-events-none absolute inset-x-2 top-1.5 h-7 rounded-full bg-gradient-to-b from-white/60 via-white/20 to-transparent" />
+                          <div className="pointer-events-none absolute inset-x-2 top-1.5 h-7 rounded-full bg-gradient-to-b from-white/65 via-white/20 to-transparent" />
 
-                          {/* Center cute tulip / kitty & hex indicator */}
+                          {/* Center cute blooming tulip & hex indicator */}
                           <div className="flex flex-col items-center justify-center transition-transform duration-200 group-hover:scale-110">
                             {isCopied ? (
                               <div className="flex flex-col items-center">
@@ -245,19 +214,13 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
                               </div>
                             ) : (
                               <>
-                                {swatchIconMode === 'tulips' ? (
-                                  <div className="my-0.5 flex items-center justify-center">
-                                    <PastelTulip color={color.tulipColor} size={28} interactive={false} className="filter drop-shadow-xs pointer-events-none" />
-                                  </div>
-                                ) : (
-                                  <span className="text-2xl sm:text-3xl select-none filter drop-shadow-xs">
-                                    {color.catEmoji}
-                                  </span>
-                                )}
+                                <div className="my-0.5 flex items-center justify-center">
+                                  <PastelTulip color={color.tulipColor} size={28} interactive={false} className="filter drop-shadow-xs pointer-events-none" />
+                                </div>
                                 <span
                                   className="mt-0.5 font-mono text-[10px] sm:text-[11px] font-extrabold tracking-wider rounded-full px-2 py-0.5 shadow-2xs backdrop-blur-xs"
                                   style={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.94)',
                                     color: color.textTint,
                                   }}
                                 >

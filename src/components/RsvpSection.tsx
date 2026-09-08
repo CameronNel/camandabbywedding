@@ -253,7 +253,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   };
 
   return (
-    <section id="rsvp" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-transparent px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
+    <section id="rsvp" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-gradient-to-b from-transparent via-[#fff5f1]/50 to-[#f7faf0]/50 px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
       <div className="mx-auto max-w-[1440px]">
         <Reveal className="relative z-10 mb-8 max-w-2xl">
           <p className="eyebrow flex items-center gap-2">
@@ -267,14 +267,16 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
         </Reveal>
 
         {!household ? (
-          <Reveal delay={100} className="relative z-10 grid overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-[0_24px_80px_rgba(64,48,39,0.09)] lg:grid-cols-[0.78fr_1.22fr]">
+          <Reveal delay={100} className="relative z-10 grid overflow-hidden rounded-[2rem] border-2 border-[#eed5dc] bg-gradient-to-br from-[#fffdfd] to-[#faf3f7] shadow-[0_24px_80px_rgba(201,122,139,0.12)] lg:grid-cols-[0.78fr_1.22fr]">
             <TulipCorner position="top-right" className="z-10 hidden sm:block" />
-            <div className="relative min-h-64 overflow-hidden bg-gradient-to-br from-[#fdf5f7] via-[#fff8fa] to-[#fff5f2] p-8 text-stone-800 sm:p-10 border-b border-stone-200/60 lg:border-b-0 lg:border-r">
-              <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full border border-pink-200/30" />
-              <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full border border-pink-200/30" />
-              <LockKeyhole className="relative h-8 w-8 text-[#c97a8b]" />
-              <h3 className="relative mt-16 max-w-xs font-display text-4xl leading-tight text-stone-900">A private moment, made simple.</h3>
-              <p className="relative mt-4 max-w-sm text-sm leading-7 text-stone-600">
+            <div className="relative min-h-64 overflow-hidden bg-gradient-to-br from-[#faecf0] via-[#fdf1ec] to-[#f4f7eb] p-8 text-stone-800 sm:p-10 border-b border-[#eed5dc] lg:border-b-0 lg:border-r">
+              <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full border border-pink-300/40" />
+              <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full border border-pink-300/40" />
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-pink-200 bg-white/90 text-[#b85b73] shadow-xs">
+                <LockKeyhole className="h-6 w-6" />
+              </div>
+              <h3 className="relative mt-12 max-w-xs font-display text-4xl leading-tight text-stone-900 font-semibold">A private moment, made simple.</h3>
+              <p className="relative mt-4 max-w-sm text-sm leading-7 text-stone-700">
                 Your code securely connects you to the correct household and guest list. There is no public name search or self-registration.
               </p>
             </div>

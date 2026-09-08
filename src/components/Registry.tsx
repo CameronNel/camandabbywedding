@@ -24,27 +24,27 @@ export function Registry({ onNavigate }: RegistryProps) {
   };
 
   return (
-    <section id="gifts" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-transparent px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
+    <section id="gifts" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-gradient-to-b from-transparent via-[#fff7f9]/50 to-transparent px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
       <div className="absolute -right-48 -top-48 h-[34rem] w-[34rem] rounded-full border border-[#e3b8c3]/30" aria-hidden="true" />
       <div className="absolute -bottom-64 -left-56 h-[40rem] w-[40rem] rounded-full border border-[#e3b8c3]/25" aria-hidden="true" />
       <div className="relative z-10 mx-auto max-w-6xl">
         <Reveal className="max-w-3xl">
           <p className="eyebrow flex items-center gap-2">
             <TulipDuo size={20} />
-            With love
+            <span>With love</span>
           </p>
           <h2 className="section-title">Gifts</h2>
           <p className="section-copy mt-5">Sharing the day with the people we love matters most. Gift details, where applicable, are private to each invitation.</p>
         </Reveal>
 
         {!activeHousehold ? (
-          <Reveal delay={80} className="mt-8 grid overflow-hidden rounded-[2rem] border border-pink-100 bg-[#fcf8fa] shadow-[0_24px_70px_rgba(201,122,139,0.08)] sm:mt-10 md:grid-cols-[auto_1fr_auto] md:items-center">
-            <div className="grid h-full min-h-36 place-items-center bg-gradient-to-br from-[#c97a8b] to-[#b8697a] px-9 text-[#fdf2f4]">
+          <Reveal delay={80} className="mt-8 grid overflow-hidden rounded-[2rem] border-2 border-[#eed5dc] bg-gradient-to-br from-[#fffdfd] to-[#faf3f7] shadow-[0_24px_70px_rgba(201,122,139,0.1)] sm:mt-10 md:grid-cols-[auto_1fr_auto] md:items-center">
+            <div className="grid h-full min-h-36 place-items-center bg-gradient-to-br from-[#df8298] to-[#c96d83] px-9 text-[#fdf2f4]">
               <LockKeyhole className="h-8 w-8" />
             </div>
             <div className="p-7 sm:p-9">
-              <h3 className="font-display text-3xl text-stone-800">Open your private invitation first</h3>
-              <p className="mt-2 max-w-xl text-sm leading-7 text-stone-600">Once your invitation is verified, this page will show the message or gift details chosen for your household.</p>
+              <h3 className="font-display text-3xl font-semibold text-stone-900">Open your private invitation first</h3>
+              <p className="mt-2 max-w-xl text-sm leading-7 text-stone-700">Once your invitation is verified, this page will show the message or gift details chosen for your household.</p>
             </div>
             <div className="px-7 pb-7 md:pr-9 md:pt-7">
               <button type="button" onClick={() => onNavigate('rsvp')} className="button-primary min-h-11 whitespace-nowrap px-6"><KeyRound className="h-4 w-4" /> Open invitation</button>

@@ -3,7 +3,6 @@ export interface PaletteColor {
   name: string;
   label: string;
   emoji: string;
-  catEmoji: string;
   tulipColor: 'pink' | 'peach' | 'yellow' | 'sage' | 'blue' | 'lavender' | 'periwinkle';
   bgTint: string;
   borderTint: string;
@@ -11,13 +10,13 @@ export interface PaletteColor {
 }
 
 export const WEDDING_COLOR_PALETTE: PaletteColor[] = [
-  { hex: '#EDC9D4', name: 'Dusty Rose', label: 'Blush / Dusty Rose', emoji: '🌷', catEmoji: '🐱', tulipColor: 'pink', bgTint: '#fdf6f8', borderTint: '#e8b8c6', textTint: '#8a384b' },
-  { hex: '#FFD3C9', name: 'Soft Peach', label: 'Pastel Peach', emoji: '🌷', catEmoji: '😸', tulipColor: 'peach', bgTint: '#fff6f4', borderTint: '#f9beaf', textTint: '#8c4333' },
-  { hex: '#FFF7CF', name: 'Buttercream', label: 'Buttercream Yellow', emoji: '🌷', catEmoji: '😻', tulipColor: 'yellow', bgTint: '#fffdf4', borderTint: '#fae996', textTint: '#7c6819' },
-  { hex: '#E4F0C9', name: 'Matcha Sage', label: 'Matcha / Soft Sage', emoji: '🌷', catEmoji: '🐾', tulipColor: 'sage', bgTint: '#f7faf2', borderTint: '#cde1a4', textTint: '#4a6328' },
-  { hex: '#C7E0FF', name: 'Sky Blue', label: 'Pastel Sky Blue', emoji: '🌷', catEmoji: '😽', tulipColor: 'blue', bgTint: '#f3f8ff', borderTint: '#a9cffb', textTint: '#2b578c' },
-  { hex: '#CFCFFF', name: 'Lilac', label: 'Pastel Lavender / Lilac', emoji: '🌷', catEmoji: '🐈', tulipColor: 'lavender', bgTint: '#f6f6ff', borderTint: '#b7b7fa', textTint: '#474794' },
-  { hex: '#BAC3FF', name: 'Periwinkle', label: 'Pastel Periwinkle', emoji: '🌷', catEmoji: '✨', tulipColor: 'periwinkle', bgTint: '#f3f5ff', borderTint: '#9ba9fb', textTint: '#38469a' },
+  { hex: '#EDC9D4', name: 'Dusty Rose', label: 'Blush / Dusty Rose', emoji: '🌷', tulipColor: 'pink', bgTint: '#fdf6f8', borderTint: '#e8b8c6', textTint: '#8a384b' },
+  { hex: '#FFD3C9', name: 'Soft Peach', label: 'Pastel Peach', emoji: '🌷', tulipColor: 'peach', bgTint: '#fff6f4', borderTint: '#f9beaf', textTint: '#8c4333' },
+  { hex: '#FFF7CF', name: 'Buttercream', label: 'Buttercream Yellow', emoji: '🌷', tulipColor: 'yellow', bgTint: '#fffdf4', borderTint: '#fae996', textTint: '#7c6819' },
+  { hex: '#E4F0C9', name: 'Matcha Sage', label: 'Matcha / Soft Sage', emoji: '🌷', tulipColor: 'sage', bgTint: '#f7faf2', borderTint: '#cde1a4', textTint: '#4a6328' },
+  { hex: '#C7E0FF', name: 'Sky Blue', label: 'Pastel Sky Blue', emoji: '🌷', tulipColor: 'blue', bgTint: '#f3f8ff', borderTint: '#a9cffb', textTint: '#2b578c' },
+  { hex: '#CFCFFF', name: 'Lilac', label: 'Pastel Lavender / Lilac', emoji: '🌷', tulipColor: 'lavender', bgTint: '#f6f6ff', borderTint: '#b7b7fa', textTint: '#474794' },
+  { hex: '#BAC3FF', name: 'Periwinkle', label: 'Pastel Periwinkle', emoji: '🌷', tulipColor: 'periwinkle', bgTint: '#f3f5ff', borderTint: '#9ba9fb', textTint: '#38469a' },
 ];
 
 export interface TableConfig {

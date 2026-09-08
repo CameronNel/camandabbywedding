@@ -82,7 +82,7 @@ export function PhotoGallery() {
   const lightboxItem = lightboxIndex !== null ? galleryItems[lightboxIndex] : null;
 
   return (
-    <section id="gallery" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-transparent px-5 pt-8 pb-32 text-stone-800 sm:px-8 sm:pt-10 sm:pb-44">
+    <section id="gallery" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-gradient-to-b from-[#f8eff4] via-[#f0f3fa] to-[#f8edf4] border-y border-[#ecd4de]/70 px-5 pt-8 pb-32 text-stone-800 sm:px-8 sm:pt-10 sm:pb-44">
       <div className="mx-auto max-w-[1440px]">
         {/* Header */}
         <Reveal className="grid items-end gap-8 lg:grid-cols-[0.72fr_1.28fr]">
@@ -108,7 +108,7 @@ export function PhotoGallery() {
                 onMouseLeave={() => setIsHovered(false)}
               >
                 {/* Big Picture (Left Column, 7 cols on desktop) */}
-                <div className="relative group overflow-hidden rounded-[2rem] border border-[#f0d5de] bg-[#fcf8fa] shadow-[0_20px_60px_rgba(201,122,139,0.08)] lg:col-span-7 aspect-[4/3] sm:aspect-[16/11] lg:aspect-auto lg:min-h-[520px]">
+                <div className="relative group overflow-hidden rounded-[2rem] border-2 border-[#eed5df] bg-[#fff9fb] shadow-[0_25px_70px_rgba(199,134,152,0.12)] lg:col-span-7 aspect-[4/3] sm:aspect-[16/11] lg:aspect-auto lg:min-h-[520px]">
                   {galleryItems.map((item, index) => {
                     const isActive = index === currentIndex;
                     return (
@@ -172,7 +172,7 @@ export function PhotoGallery() {
                 </div>
 
                 {/* Text on the Right with Image Name / Description (Right Column, 5 cols on desktop) */}
-                <div className="flex flex-col justify-between rounded-[2rem] border border-[#f0d5de] bg-white/95 p-6 sm:p-8 lg:col-span-5 lg:p-10 backdrop-blur-sm shadow-[0_20px_60px_rgba(201,122,139,0.06)]">
+                <div className="flex flex-col justify-between rounded-[2rem] border-2 border-[#edd2dc] bg-white/95 p-6 sm:p-8 lg:col-span-5 lg:p-10 backdrop-blur-sm shadow-[0_20px_60px_rgba(201,122,139,0.08)]">
                   {/* Top content */}
                   <div>
                     {/* Eyebrow / Category badge */}
