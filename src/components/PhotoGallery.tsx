@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Expand, Images, Pause, Play, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronDown, ChevronUp, Expand, Images, Maximize2, Minimize2, Pause, Play, X } from 'lucide-react';
 import { Reveal } from './Reveal';
 import { useGuestExperience } from './guestExperience';
 import { TulipDuo, PastelTulip } from './decorations/TulipAccents';
@@ -12,9 +12,12 @@ export function PhotoGallery() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [imageFit, setImageFit] = useState<'contain' | 'cover'>('contain');
+  const [isDetailsMinimized, setIsDetailsMinimized] = useState(false);
 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
 
   const total = galleryItems.length;
 
@@ -30,6 +33,23 @@ export function PhotoGallery() {
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null) return;
+    const diff = touchStartXRef.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        nextSlide();
+      } else {
+        prevSlide();
+      }
+    }
+    touchStartXRef.current = null;
   };
 
   useEffect(() => {
@@ -103,175 +123,220 @@ export function PhotoGallery() {
           <div className="mt-10 sm:mt-12">
             <Reveal delay={120}>
               <div
-                className="grid gap-6 lg:grid-cols-12 lg:gap-8 items-stretch"
+                className="relative group overflow-hidden rounded-[2.5rem] border-2 border-[#eed5df] bg-[#fff9fb] shadow-[0_25px_80px_rgba(199,134,152,0.16)] w-full h-[540px] sm:h-[640px] md:h-[720px] lg:h-[780px] xl:h-[840px]"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
               >
-                {/* Big Picture (Left Column, 7 cols on desktop) */}
-                <div className="relative group overflow-hidden rounded-[2rem] border-2 border-[#eed5df] bg-[#fff9fb] shadow-[0_25px_70px_rgba(199,134,152,0.12)] lg:col-span-7 aspect-[4/3] sm:aspect-[16/11] lg:aspect-auto lg:min-h-[520px]">
-                  {galleryItems.map((item, index) => {
-                    const isActive = index === currentIndex;
-                    return (
-                      <div
-                        key={item.id}
-                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                          isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-                        }`}
-                        aria-hidden={!isActive}
-                      >
+                {galleryItems.map((item, index) => {
+                  const isActive = index === currentIndex;
+                  return (
+                    <div
+                      key={item.id}
+                      className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                        isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                      }`}
+                      aria-hidden={!isActive}
+                    >
+                      {imageFit === 'contain' ? (
+                        <>
+                          {/* Ambient blurred background that fills the entire container */}
+                          <div className="absolute inset-0 overflow-hidden select-none pointer-events-none">
+                            <img
+                              src={item.src}
+                              alt=""
+                              aria-hidden="true"
+                              className="h-full w-full object-cover blur-2xl opacity-40 scale-110 saturate-150"
+                            />
+                            <div className="absolute inset-0 bg-stone-900/10 backdrop-blur-xs" />
+                          </div>
+
+                          {/* Sharp, uncropped high-resolution photo */}
+                          <div className="relative z-10 flex h-full w-full items-center justify-center p-3 sm:p-6 lg:p-8">
+                            <img
+                              src={item.src}
+                              alt={item.alt}
+                              className="max-h-full max-w-full object-contain rounded-2xl drop-shadow-[0_20px_45px_rgba(0,0,0,0.24)] transition-transform duration-700 ease-out group-hover:scale-[1.01]"
+                              loading={index === 0 ? 'eager' : 'lazy'}
+                            />
+                          </div>
+                        </>
+                      ) : (
                         <img
                           src={item.src}
                           alt={item.alt}
                           className="h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.02]"
                           loading={index === 0 ? 'eager' : 'lazy'}
                         />
-                      </div>
-                    );
-                  })}
+                      )}
+                    </div>
+                  );
+                })}
 
-                  {/* Top right: Expand to full screen */}
+                {/* Top right controls: Fit/Fill toggle and Expand to full screen */}
+                <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setImageFit(prev => prev === 'contain' ? 'cover' : 'contain')}
+                    className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-white/60 bg-white/85 text-stone-700 backdrop-blur-md transition hover:bg-white hover:text-[#c97a8b] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c97a8b]"
+                    aria-label={imageFit === 'contain' ? 'Fill frame' : 'Fit whole photo'}
+                    title={imageFit === 'contain' ? 'Fill frame (zoom to fill)' : 'Fit whole photo (uncropped)'}
+                  >
+                    {imageFit === 'contain' ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => openLightbox(currentIndex)}
-                    className="absolute top-5 right-5 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-white/60 bg-white/80 text-stone-700 backdrop-blur-md transition hover:bg-white hover:text-[#c97a8b] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c97a8b]"
+                    className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-white/60 bg-white/85 text-stone-700 backdrop-blur-md transition hover:bg-white hover:text-[#c97a8b] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c97a8b]"
                     aria-label="View photo in full screen"
                     title="View full screen"
                   >
                     <Expand className="h-4 w-4" />
                   </button>
-
-                  {/* Quick in-image prev/next overlays on hover */}
-                  {total > 1 && (
-                    <div className="absolute inset-x-4 top-1/2 z-30 flex -translate-y-1/2 justify-between opacity-0 transition-opacity duration-300 group-hover:opacity-100 sm:inset-x-6">
-                      <button
-                        type="button"
-                        onClick={prevSlide}
-                        className="flex h-11 w-11 items-center justify-center rounded-full border border-white/60 bg-white/80 text-stone-700 backdrop-blur-md transition hover:bg-white hover:text-[#c97a8b] shadow-sm"
-                        aria-label="Previous photo"
-                      >
-                        <ArrowLeft className="h-5 w-5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={nextSlide}
-                        className="flex h-11 w-11 items-center justify-center rounded-full border border-white/60 bg-white/80 text-stone-700 backdrop-blur-md transition hover:bg-white hover:text-[#c97a8b] shadow-sm"
-                        aria-label="Next photo"
-                      >
-                        <ArrowRight className="h-5 w-5" />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Small badge bottom-left of the photo */}
-                  <div className="absolute bottom-5 left-5 z-30 sm:bottom-6 sm:left-6">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#f0d5de] bg-white/90 px-3.5 py-1 text-xs font-medium tracking-wide text-stone-700 shadow-sm backdrop-blur-md">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#c97a8b] animate-pulse" />
-                      {String(currentIndex + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
-                    </span>
-                  </div>
                 </div>
 
-                {/* Text on the Right with Image Name / Description (Right Column, 5 cols on desktop) */}
-                <div className="flex flex-col justify-between rounded-[2rem] border-2 border-[#edd2dc] bg-white/95 p-6 sm:p-8 lg:col-span-5 lg:p-10 backdrop-blur-sm shadow-[0_20px_60px_rgba(201,122,139,0.08)]">
-                  {/* Top content */}
-                  <div>
-                    {/* Eyebrow / Category badge */}
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-[#fdf5f7] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a384b]">
-                        <PastelTulip color="pink" size={15} />
-                        {currentItem.category === 'venue' ? 'The Venue' : currentItem.category === 'couple' ? 'Our Moments' : (currentItem.category || 'Photograph')}
-                      </span>
-                      <span className="text-xs font-semibold tracking-widest text-stone-400 uppercase">
-                        Slide {currentIndex + 1} of {total}
-                      </span>
-                    </div>
+                {/* Quick in-image prev/next hover arrows on left & right sides */}
+                {total > 1 && (
+                  <div className="absolute inset-x-3 top-1/2 z-20 flex -translate-y-1/2 justify-between opacity-0 transition-opacity duration-300 group-hover:opacity-100 sm:inset-x-6 pointer-events-none">
+                    <button
+                      type="button"
+                      onClick={prevSlide}
+                      className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/70 bg-white/85 text-stone-700 backdrop-blur-md transition hover:bg-white hover:text-[#c97a8b] hover:scale-105 shadow-md"
+                      aria-label="Previous photo"
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={nextSlide}
+                      className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/70 bg-white/85 text-stone-700 backdrop-blur-md transition hover:bg-white hover:text-[#c97a8b] hover:scale-105 shadow-md"
+                      aria-label="Next photo"
+                    >
+                      <ArrowRight className="h-5 w-5" />
+                    </button>
+                  </div>
+                )}
 
-                    {/* Image Name / Title */}
-                    <h3 className="mt-5 font-display text-3xl font-semibold text-stone-900 sm:text-4xl lg:text-[2.6rem] leading-tight tracking-tight">
-                      {currentItem.title}
-                    </h3>
+                {/* Small Text Block ON the Image (Bottom Left) */}
+                <div className="absolute bottom-4 left-4 right-4 sm:right-auto sm:bottom-6 sm:left-6 z-30">
+                  {isDetailsMinimized ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsDetailsMinimized(false)}
+                      className="inline-flex items-center gap-2.5 rounded-full border border-white/80 bg-white/90 px-4 py-2 text-xs font-semibold text-stone-800 backdrop-blur-xl shadow-lg transition hover:bg-white hover:text-[#c97a8b] hover:scale-105"
+                      title="Show photo details"
+                    >
+                      <PastelTulip color="pink" size={15} />
+                      <span className="font-display font-medium text-sm">{currentItem.title}</span>
+                      <span className="text-stone-300">|</span>
+                      <span className="text-[11px] font-mono text-stone-500">{currentIndex + 1} / {total}</span>
+                      <ChevronUp className="h-3.5 w-3.5 text-stone-500 ml-0.5" />
+                    </button>
+                  ) : (
+                    <div className="w-full sm:max-w-md lg:max-w-lg rounded-3xl border border-white/80 bg-white/90 p-5 sm:p-6 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.22)] transition-all duration-300">
+                      {/* Top Header Row */}
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-pink-200 bg-[#fdf5f7] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#8a384b]">
+                          <PastelTulip color="pink" size={13} />
+                          {currentItem.category === 'venue' ? 'The Venue' : currentItem.category === 'couple' ? 'Our Moments' : (currentItem.category || 'Photograph')}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-semibold tracking-wider text-stone-400 uppercase">
+                            Slide {currentIndex + 1} of {total}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setIsDetailsMinimized(true)}
+                            className="p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100/70 transition"
+                            title="Minimize details"
+                            aria-label="Minimize details"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
 
-                    {/* Image Description */}
-                    <div className="mt-4 text-sm leading-relaxed text-stone-600 sm:text-base">
-                      <p>
+                      {/* Image Title & Caption */}
+                      <h3 className="mt-2.5 font-display text-2xl sm:text-3xl font-semibold text-stone-900 leading-tight">
+                        {currentItem.title}
+                      </h3>
+                      <p className="mt-1 text-xs sm:text-sm leading-relaxed text-stone-600 line-clamp-2">
                         {currentItem.caption ||
                           (currentItem.category === 'venue'
                             ? 'The beautiful setting where our vows and celebration will unfold.'
                             : 'A cherished moment from our journey together as we count down to our wedding day.')}
                       </p>
-                    </div>
-                  </div>
 
-                  {/* Bottom Controls & Indicators */}
-                  <div className="mt-8 pt-6 border-t border-[#f0d5de]/80 sm:mt-10">
-                    {/* Auto-slideshow Progress Bar */}
-                    {total > 1 && isPlaying && !isHovered && (
-                      <div className="mb-6 h-1 w-full overflow-hidden rounded-full bg-[#f3e3e8]">
-                        <div
-                          key={`${currentIndex}-${isPlaying}`}
-                          className="h-full rounded-full bg-[#c97a8b]"
-                          style={{
-                            animation: `progressBar ${SLIDE_DURATION_MS}ms linear forwards`,
-                          }}
-                        />
-                      </div>
-                    )}
-
-                    {/* Control buttons & Dots */}
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      {/* Dots / indicators */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        {galleryItems.map((item, idx) => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => goToSlide(idx)}
-                            className={`h-2.5 rounded-full transition-all duration-300 focus-visible:outline-none ${
-                              idx === currentIndex
-                                ? 'w-8 bg-[#c97a8b]'
-                                : 'w-2.5 bg-stone-200 hover:bg-stone-300'
-                            }`}
-                            aria-label={`Go to slide ${idx + 1}: ${item.title}`}
+                      {/* Progress bar */}
+                      {total > 1 && isPlaying && !isHovered && (
+                        <div className="mt-3.5 mb-2.5 h-1 w-full overflow-hidden rounded-full bg-stone-200/70">
+                          <div
+                            key={`${currentIndex}-${isPlaying}`}
+                            className="h-full rounded-full bg-[#c97a8b]"
+                            style={{
+                              animation: `progressBar ${SLIDE_DURATION_MS}ms linear forwards`,
+                            }}
                           />
-                        ))}
-                      </div>
+                        </div>
+                      )}
 
-                      {/* Navigation buttons */}
+                      {/* Controls Row */}
                       {total > 1 && (
-                        <div className="flex items-center gap-2">
+                        <div className="mt-3.5 flex items-center justify-between gap-3 border-t border-stone-200/60 pt-3">
                           <button
                             type="button"
                             onClick={() => setIsPlaying(prev => !prev)}
-                            className="grid h-10 w-10 place-items-center rounded-full border border-stone-200 text-stone-600 transition hover:border-[#c97a8b] hover:bg-[#fff7f9] hover:text-[#c97a8b]"
+                            className="flex items-center gap-1.5 rounded-full border border-stone-200 bg-white/80 px-3 py-1 text-xs font-semibold text-stone-700 transition hover:border-[#c97a8b] hover:bg-white hover:text-[#c97a8b]"
                             aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
-                            title={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
                           >
-                            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
+                            {isPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                            <span>{isPlaying ? 'Pause' : 'Play'}</span>
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={prevSlide}
-                            className="grid h-10 w-10 place-items-center rounded-full border border-stone-200 text-stone-600 transition hover:border-[#c97a8b] hover:bg-[#fff7f9] hover:text-[#c97a8b]"
-                            aria-label="Previous photo"
-                            title="Previous photo"
-                          >
-                            <ArrowLeft className="h-4 w-4" />
-                          </button>
+                          {/* Dots */}
+                          <div className="flex flex-wrap items-center gap-1.5 max-w-[180px] sm:max-w-[220px] overflow-hidden py-1">
+                            {galleryItems.map((item, idx) => (
+                              <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => goToSlide(idx)}
+                                className={`h-1.5 rounded-full transition-all duration-300 focus-visible:outline-none ${
+                                  idx === currentIndex
+                                    ? 'w-6 bg-[#c97a8b]'
+                                    : 'w-1.5 bg-stone-300 hover:bg-stone-400'
+                                }`}
+                                aria-label={`Go to slide ${idx + 1}: ${item.title}`}
+                              />
+                            ))}
+                          </div>
 
-                          <button
-                            type="button"
-                            onClick={nextSlide}
-                            className="grid h-10 w-10 place-items-center rounded-full border border-stone-200 text-stone-600 transition hover:border-[#c97a8b] hover:bg-[#fff7f9] hover:text-[#c97a8b]"
-                            aria-label="Next photo"
-                            title="Next photo"
-                          >
-                            <ArrowRight className="h-4 w-4" />
-                          </button>
+                          {/* Prev/Next buttons */}
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={prevSlide}
+                              className="grid h-8 w-8 place-items-center rounded-full border border-stone-200 bg-white/80 text-stone-600 transition hover:border-[#c97a8b] hover:bg-white hover:text-[#c97a8b] shadow-2xs"
+                              aria-label="Previous photo"
+                              title="Previous photo"
+                            >
+                              <ArrowLeft className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={nextSlide}
+                              className="grid h-8 w-8 place-items-center rounded-full border border-stone-200 bg-white/80 text-stone-600 transition hover:border-[#c97a8b] hover:bg-white hover:text-[#c97a8b] shadow-2xs"
+                              aria-label="Next photo"
+                              title="Next photo"
+                            >
+                              <ArrowRight className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </Reveal>
@@ -310,8 +375,8 @@ export function PhotoGallery() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="min-h-0 flex-1 bg-stone-100/50">
-              <img src={lightboxItem.src} alt={lightboxItem.alt} className="mx-auto max-h-[68svh] w-full object-contain" />
+            <div className="min-h-0 flex-1 bg-stone-950/90 flex items-center justify-center p-3 sm:p-6">
+              <img src={lightboxItem.src} alt={lightboxItem.alt} className="mx-auto max-h-[78svh] sm:max-h-[82svh] max-w-full object-contain drop-shadow-2xl rounded-lg sm:rounded-xl" />
             </div>
             <div className="flex items-center justify-between gap-4 border-t border-[#f0d5de] px-4 py-4 sm:px-6">
               <div className="min-w-0">

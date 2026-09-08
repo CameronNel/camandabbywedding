@@ -60,11 +60,14 @@ export const initialConfig: WeddingConfig = {
   },
   dressCode: {
     title: 'Formal Attire',
-    description: 'Dress code is formal. Please come as you are—while our wedding brand colours are shown below, wear any colour you already have and love! If you need ideas, we love this palette:',
+    description: 'Dress code formal, come as you are.',
     palette: ['#E4AEB5', '#9BBEAB', '#C0DCCC', '#F5D0C6', '#ECE3DF', '#E7AF9E'],
   },
   adminPin: '6385',
   mealOptions: [],
+  householdTags: {
+    'household-anri-henk': ['best_man'],
+  },
 };
 
 export const initialGuests: Guest[] = [

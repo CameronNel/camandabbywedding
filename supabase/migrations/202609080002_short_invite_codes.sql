@@ -1,10 +1,13 @@
--- Update default invite code generator to custom 3 letters + hyphen + 3 digits (e.g. Anr-658)
+-- 1. Drop legacy check constraint on household tags (allows groomsman, maid_of_honor, etc.)
+alter table public.households drop constraint if exists households_allowed_tags;
+
+-- 2. Update default invite code generator to custom 3 letters + hyphen + 3 digits (e.g. Anr-658)
 create or replace function public.generate_wedding_invite_code()
 returns text
 language sql
 volatile
 set search_path = ''
-as \$\$
+as $$
   select initcap(
     substring(
       coalesce(
@@ -13,26 +16,31 @@ as \$\$
       ) from 1 for 3
     )
   ) || '-' || lpad(floor(100 + random() * 900)::text, 3, '0');
-\$\$;
+$$;
 
--- Update lookup_invitation to support custom short codes (e.g. Anr-658) and case/punctuation-insensitive search
+-- 3. Update lookup_invitation to support custom short codes (e.g. Anr-658, Cam-101) and case/punctuation-insensitive search
 create or replace function public.lookup_invitation(raw_token text)
 returns jsonb
 language plpgsql
 security definer
 set search_path = ''
-as \$\$
+as $$
 declare
   household_id uuid;
+  clean_token text;
 begin
-  if raw_token is null or char_length(trim(raw_token)) < 4 then
+  if raw_token is null or char_length(trim(raw_token)) < 2 then
     return null;
   end if;
 
+  clean_token := upper(regexp_replace(raw_token, '[^a-zA-Z0-9]', '', 'g'));
+
   select id into household_id
   from public.households
-  where upper(regexp_replace(invite_code, '[^a-zA-Z0-9]', '', 'g')) = upper(regexp_replace(raw_token, '[^a-zA-Z0-9]', '', 'g'))
+  where upper(regexp_replace(invite_code, '[^a-zA-Z0-9]', '', 'g')) = clean_token
      or upper(trim(invite_code)) = upper(trim(raw_token))
+     or upper(regexp_replace(regexp_replace(invite_code, '^CA-', '', 'i'), '[^a-zA-Z0-9]', '', 'g')) = clean_token
+     or upper(regexp_replace(invite_code, '[^a-zA-Z0-9]', '', 'g')) = upper(regexp_replace(regexp_replace(raw_token, '^CA-', '', 'i'), '[^a-zA-Z0-9]', '', 'g'))
   limit 1;
 
   if household_id is null then
@@ -41,7 +49,7 @@ begin
 
   return public.invitation_bundle(household_id);
 end;
-\$\$;
+$$;
 
 -- Update submit_household_rsvp to support custom short codes (e.g. Anr-658)
 create or replace function public.submit_household_rsvp(raw_token text, response jsonb)
@@ -49,7 +57,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = ''
-as \$\$
+as $$
 declare
   household_row public.households%rowtype;
   member_payload jsonb;
@@ -64,8 +72,9 @@ declare
   submitted_new_count integer := 0;
   persisted_attending_count integer;
   submitted_member_ids uuid[] := '{}'::uuid[];
+  clean_token text;
 begin
-  if raw_token is null or char_length(trim(raw_token)) < 4 then
+  if raw_token is null or char_length(trim(raw_token)) < 2 then
     raise exception 'Invitation not found' using errcode = 'P0002';
   end if;
 
@@ -73,10 +82,14 @@ begin
     raise exception 'Invalid RSVP response' using errcode = '22023';
   end if;
 
+  clean_token := upper(regexp_replace(raw_token, '[^a-zA-Z0-9]', '', 'g'));
+
   select * into household_row
   from public.households
-  where upper(regexp_replace(invite_code, '[^a-zA-Z0-9]', '', 'g')) = upper(regexp_replace(raw_token, '[^a-zA-Z0-9]', '', 'g'))
+  where upper(regexp_replace(invite_code, '[^a-zA-Z0-9]', '', 'g')) = clean_token
      or upper(trim(invite_code)) = upper(trim(raw_token))
+     or upper(regexp_replace(regexp_replace(invite_code, '^CA-', '', 'i'), '[^a-zA-Z0-9]', '', 'g')) = clean_token
+     or upper(regexp_replace(invite_code, '[^a-zA-Z0-9]', '', 'g')) = upper(regexp_replace(regexp_replace(raw_token, '^CA-', '', 'i'), '[^a-zA-Z0-9]', '', 'g'))
   for update;
 
   if household_row.id is null then
@@ -183,9 +196,13 @@ begin
 
   return public.invitation_bundle(household_row.id);
 end;
-\$\$;
+$$;
 
--- Migrate existing households with old CA- format or long hex tokens to the new Anr-658 format
+-- 5. Grant execute permissions to anon and authenticated users
+grant execute on function public.lookup_invitation(text) to anon, authenticated;
+grant execute on function public.submit_household_rsvp(text, jsonb) to anon, authenticated;
+
+-- 6. Migrate existing households with old CA- format or long hex tokens to the new Anr-658 format
 update public.households
 set invite_code = initcap(substring(regexp_replace(coalesce(display_name, 'Wed'), '[^a-zA-Z]', '', 'g') from 1 for 3)) || '-' || lpad(floor(100 + random() * 900)::text, 3, '0')
 where invite_code like 'CA-%' or char_length(invite_code) > 10;

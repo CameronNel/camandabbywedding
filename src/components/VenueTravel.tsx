@@ -7,13 +7,10 @@ import {
   CalendarDays,
   CalendarPlus,
   Check,
-  CheckCheck,
   Clock3,
-  Copy,
   KeyRound,
   LockKeyhole,
   MapPin,
-  Palette,
   Sparkles,
 } from 'lucide-react';
 import type { SectionId } from './Navbar';
@@ -23,7 +20,6 @@ import { formatWeddingDate } from '../utils/dates';
 import { useWedding } from '../context/WeddingContext';
 import { generateIcsFile } from '../utils/storage';
 import { PastelTulip } from './decorations/TulipAccents';
-import { WEDDING_COLOR_PALETTE } from '../utils/seatingConstants';
 
 interface VenueTravelProps {
   onNavigate: (section: SectionId) => void;
@@ -63,17 +59,6 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
   const wedding = useWedding();
   const { site, activeHousehold, accommodations, services } = useGuestExperience();
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [copiedHex, setCopiedHex] = useState<string | null>(null);
-
-  const handleCopyHex = async (hex: string) => {
-    try {
-      await navigator.clipboard.writeText(hex);
-      setCopiedHex(hex);
-      window.setTimeout(() => setCopiedHex(null), 2000);
-    } catch {
-      setCopiedHex(null);
-    }
-  };
 
   const sortListings = (items: ListingView[]) => [...items].sort((a, b) => {
     if (a.price === b.price) return 0;
@@ -149,115 +134,32 @@ export function VenueTravel({ onNavigate }: VenueTravelProps) {
           </div>
         </Reveal>
 
-        {/* Wedding Colour Palette & Attire Card */}
-        <Reveal delay={120} className="mt-12 sm:mt-16">
-          <div className="overflow-hidden rounded-[2.2rem] border-2 border-[#edd3dc] bg-gradient-to-br from-[#fffdfd] via-[#fdf7fa] to-[#faf3f7] p-7 sm:p-10 shadow-[0_24px_70px_rgba(201,122,139,0.1)]">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-pink-200/60">
+        {/* Dress Code Card */}
+        <Reveal delay={120} className="mt-8 sm:mt-10">
+          <div className="overflow-hidden rounded-[2rem] border-2 border-[#eedce2] bg-gradient-to-br from-[#fffdfd] via-[#fffafc] to-[#faf5ec] p-6 sm:p-8 shadow-[0_16px_50px_rgba(201,122,139,0.08)]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
               <div>
                 <p className="eyebrow flex items-center gap-2">
-                  <Palette className="h-3.5 w-3.5 text-[#c97a8b]" />
-                  <span>Dress Code &amp; Palette</span>
+                  <Sparkles className="h-3.5 w-3.5 text-[#c97a8b]" />
+                  <span>Dress Code</span>
                 </p>
-                <h3 className="mt-2 font-display text-3xl sm:text-4xl font-semibold text-stone-900">
+                <h3 className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-stone-900">
                   Dress Code: Formal
                 </h3>
-                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-700">
-                  {wedding.config.dressCode?.description ||
-                    'Dress code is formal. Please come as you are—while our wedding brand colours are shown below, wear any colour you already have and love! If you need ideas, we love this palette:'}
+                <p className="mt-2 text-sm sm:text-base text-stone-600">
+                  {wedding.config.dressCode?.description || 'Dress code formal, come as you are.'}
                 </p>
               </div>
 
-              <div className="shrink-0 flex items-center gap-2 rounded-2xl border border-[#e4aeb5] bg-[#fdf5f6] px-4 py-2.5 text-xs font-bold text-[#8a424e] shadow-2xs">
-                <PastelTulip color="pink" size={20} className="drop-shadow-xs" />
+              <div className="shrink-0 self-start sm:self-auto flex items-center gap-2 rounded-2xl border border-[#e4aeb5] bg-[#fdf5f6] px-4 py-2.5 text-xs font-bold text-[#8a424e] shadow-2xs">
+                <PastelTulip color="pink" size={18} className="drop-shadow-xs" />
                 <span>{wedding.config.dressCode?.title || 'Formal Attire'}</span>
-              </div>
-            </div>
-
-            {/* 6 Brand Color Circles (Bouncy & Playful with Blooming Tulips) */}
-            <div className="mt-8">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 sm:gap-6 place-items-center">
-                {WEDDING_COLOR_PALETTE.map(color => {
-                  const isCopied = copiedHex === color.hex;
-                  return (
-                    <button
-                      key={color.hex}
-                      type="button"
-                      onClick={() => handleCopyHex(color.hex)}
-                      className="group flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-2 focus:outline-none cursor-pointer"
-                      title={`Click to copy ${color.hex}`}
-                    >
-                      {/* Bouncy Pastel Circle with glossy highlight shine & floating ring */}
-                      <div className="relative">
-                        {/* Outer soft glow ring on hover */}
-                        <div
-                          className="absolute -inset-2 rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-85"
-                          style={{ backgroundColor: color.hex }}
-                        />
-
-                        {/* Main Circle */}
-                        <div
-                          className="relative flex h-24 w-24 sm:h-26 sm:w-26 md:h-28 md:w-28 items-center justify-center rounded-full border-3 shadow-[0_10px_25px_rgba(0,0,0,0.07)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_16px_35px_rgba(0,0,0,0.14)] overflow-hidden"
-                          style={{
-                            backgroundColor: color.hex,
-                            borderColor: color.borderTint,
-                          }}
-                        >
-                          {/* Glossy top-light reflection arc */}
-                          <div className="pointer-events-none absolute inset-x-2 top-1.5 h-7 rounded-full bg-gradient-to-b from-white/65 via-white/20 to-transparent" />
-
-                          {/* Center cute blooming tulip & hex indicator */}
-                          <div className="flex flex-col items-center justify-center transition-transform duration-200 group-hover:scale-110">
-                            {isCopied ? (
-                              <div className="flex flex-col items-center">
-                                <CheckCheck className="h-6 w-6 text-emerald-700 animate-bounce" />
-                                <span className="text-[10px] font-bold text-emerald-800">Copied!</span>
-                              </div>
-                            ) : (
-                              <>
-                                <div className="my-0.5 flex items-center justify-center">
-                                  <PastelTulip color={color.tulipColor} size={28} interactive={false} className="filter drop-shadow-xs pointer-events-none" />
-                                </div>
-                                <span
-                                  className="mt-0.5 font-mono text-[10px] sm:text-[11px] font-extrabold tracking-wider rounded-full px-2 py-0.5 shadow-2xs backdrop-blur-xs"
-                                  style={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.94)',
-                                    color: color.textTint,
-                                  }}
-                                >
-                                  {color.hex.replace('#', '')}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Cute floating badge tag */}
-                        <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full border border-white bg-white text-stone-600 shadow-xs text-[11px] transition-transform duration-200 group-hover:rotate-12 group-hover:scale-110">
-                          {isCopied ? '✨' : <Copy className="h-3 w-3 text-stone-500" />}
-                        </span>
-                      </div>
-
-                      {/* Cute Name Label below */}
-                      <span className="mt-3 block font-serif text-sm sm:text-base font-bold text-stone-800 transition-colors group-hover:text-[#c97a8b]">
-                        {color.name}
-                      </span>
-                      <span className="text-[10px] font-semibold text-stone-400">
-                        {color.hex}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-8 flex items-center justify-center gap-2 text-center text-xs text-stone-500">
-                <Sparkles className="h-3.5 w-3.5 text-[#e597a8]" />
-                <span>Tap any circle to copy its colour hex for dresses, suits, or accessories!</span>
               </div>
             </div>
           </div>
         </Reveal>
 
-        <div className="mt-32 border-t border-stone-200/60 pt-12 sm:mt-48 sm:pt-16">
+        <div className="mt-16 border-t border-stone-200/60 pt-12 sm:mt-24 sm:pt-16">
           <Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
             <div>
               <p className="eyebrow">For invited guests</p>

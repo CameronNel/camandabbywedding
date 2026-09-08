@@ -349,6 +349,8 @@ export interface WeddingConfig {
   }>;
   bachelorParty?: BachelorPartyConfig;
   bacheloretteParty?: BachelorettePartyConfig;
+  householdTags?: Record<string, GuestTag[]>;
+  publicInvitations?: Record<string, HouseholdInvitation>;
 }
 
 export interface BachelorPartyAttendee {

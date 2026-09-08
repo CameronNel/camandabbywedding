@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { WeddingProvider } from './context/WeddingContext';
 import { Navbar, type SectionId } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -29,8 +29,12 @@ export function AppContent() {
     const initial = window.location.hash.slice(1).toLowerCase();
     return isSectionId(initial) ? initial : 'home';
   });
+  const isNavigatingRef = useRef(false);
 
   const navigate = useCallback((section: SectionId, behavior: ScrollBehavior = 'smooth') => {
+    isNavigatingRef.current = true;
+    setActiveSection(section);
+
     if (section === 'home' || section === 'bachelor' || section === 'bachelorette') {
       window.scrollTo({ top: 0, behavior });
     } else {
@@ -48,9 +52,17 @@ export function AppContent() {
         });
       }
     }
-    setActiveSection(section);
     const nextUrl = `${window.location.pathname}${window.location.search}#${section}`;
     window.history.replaceState(null, '', nextUrl);
+
+    const onScrollDone = () => {
+      isNavigatingRef.current = false;
+      window.removeEventListener('scrollend', onScrollDone);
+    };
+    window.addEventListener('scrollend', onScrollDone, { once: true });
+    window.setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, behavior === 'smooth' ? 850 : 80);
   }, []);
 
   useEffect(() => {
@@ -60,25 +72,77 @@ export function AppContent() {
     return () => window.clearTimeout(timer);
   }, [navigate]);
 
+  const isPartyView = activeSection === 'bachelor' || activeSection === 'bachelorette';
+
   useEffect(() => {
-    const sections = sectionIds
-      .map(id => document.getElementById(id))
-      .filter((element): element is HTMLElement => Boolean(element));
-    if (!sections.length) return;
+    if (isPartyView) return;
 
-    const observer = new IntersectionObserver(
-      entries => {
-        const visible = entries
-          .filter(entry => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible && isSectionId(visible.target.id)) setActiveSection(visible.target.id);
-      },
-      { rootMargin: '-22% 0px -60% 0px', threshold: [0.05, 0.25, 0.5] },
-    );
+    const mainSections: SectionId[] = ['home', 'rsvp', 'details', 'gallery', 'gifts'];
+    let ticking = false;
 
-    sections.forEach(section => observer.observe(section));
-    return () => observer.disconnect();
-  }, []);
+    const updateActiveSectionOnScroll = () => {
+      if (isNavigatingRef.current) return;
+
+      const scrollY = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+
+      // 1. If near top of page, always home
+      if (scrollY < 120) {
+        setActiveSection(prev => (prev !== 'home' ? 'home' : prev));
+        return;
+      }
+
+      // 2. If reached bottom of page, always gifts
+      if (scrollY + windowHeight >= docHeight - 70) {
+        setActiveSection(prev => (prev !== 'gifts' ? 'gifts' : prev));
+        return;
+      }
+
+      // 3. Find the section currently in view based on the top edge threshold
+      const nav = document.querySelector('.site-nav') as HTMLElement | null;
+      const navHeight = nav ? nav.offsetHeight : 76;
+      const triggerPoint = navHeight + Math.min(240, windowHeight * 0.32);
+
+      let current: SectionId = 'home';
+      for (const id of mainSections) {
+        const element = document.getElementById(id);
+        if (!element) continue;
+        const rect = element.getBoundingClientRect();
+        if (rect.top <= triggerPoint) {
+          current = id;
+        }
+      }
+
+      setActiveSection(prev => {
+        if (prev !== current) {
+          const nextUrl = `${window.location.pathname}${window.location.search}#${current}`;
+          window.history.replaceState(null, '', nextUrl);
+          return current;
+        }
+        return prev;
+      });
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          updateActiveSectionOnScroll();
+          ticking = false;
+        });
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [isPartyView]);
 
   return (
     <div className="relative min-h-screen overflow-x-clip bg-[#faf3f5] text-stone-800">

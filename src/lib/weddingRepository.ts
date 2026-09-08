@@ -73,6 +73,14 @@ function normalizeConfig(value: unknown): WeddingConfig {
     dressCode: { ...initialConfig.dressCode, ...saved.dressCode },
     adminPin: '6385',
   };
+  if (
+    !config.dressCode?.description ||
+    config.dressCode.description.includes('brand colours') ||
+    config.dressCode.description.includes('wedding brand') ||
+    config.dressCode.description.includes('palette')
+  ) {
+    config.dressCode.description = 'Dress code formal, come as you are.';
+  }
   if (!config.ceremonyVenue.time || config.ceremonyVenue.time.toLowerCase() === 'to be confirmed') {
     config.ceremonyVenue.time = '15:00';
   }
@@ -116,10 +124,24 @@ function mapHousehold(value: unknown, config: WeddingConfig): HouseholdInvitatio
     ? row.household_members
     : Array.isArray(row.members) ? row.members : [];
   const members = rawMembers.map(mapMember);
-  const tags = stringArray(row.tags) as GuestTag[];
+  const rowTags = stringArray(row.tags) as GuestTag[];
+  const id = text(row.id);
   const inviteCode = text(row.invite_code ?? row.inviteCode);
+
+  const backupTags = [
+    ...(config.householdTags?.[id] || []),
+    ...(config.householdTags?.[inviteCode] || []),
+    ...(config.householdTags?.[inviteCode.toUpperCase()] || []),
+  ] as GuestTag[];
+
+  const memberRoleTags = members
+    .map((m) => m.role)
+    .filter(Boolean) as GuestTag[];
+
+  const tags = Array.from(new Set([...rowTags, ...backupTags, ...memberRoleTags])) as GuestTag[];
+
   return {
-    id: text(row.id),
+    id,
     name: text(row.display_name ?? row.name),
     email: optionalText(row.email),
     phone: optionalText(row.phone),
@@ -431,6 +453,52 @@ export async function updateSiteConfig(config: WeddingConfig): Promise<void> {
   if (error) throw error;
 }
 
+async function persistHouseholdTagsBackup(id: string, inviteCode: string | undefined, tags: GuestTag[]): Promise<void> {
+  try {
+    const client = requireSupabase();
+    const { data } = await client.from('site_config').select('config').eq('id', 'main').maybeSingle();
+    const existingConfig = ((data as Row | null)?.config || {}) as Record<string, unknown>;
+    const existingHouseholdTags = (existingConfig.householdTags || {}) as Record<string, string[]>;
+    const updatedTags = {
+      ...existingHouseholdTags,
+      [id]: tags,
+    };
+    if (inviteCode) {
+      updatedTags[inviteCode] = tags;
+      updatedTags[inviteCode.toUpperCase()] = tags;
+    }
+    await client.from('site_config').upsert({
+      id: 'main',
+      config: {
+        ...existingConfig,
+        householdTags: updatedTags,
+      },
+    });
+  } catch (err) {
+    console.warn('Could not backup household tags to site_config:', err);
+  }
+}
+
+async function removeHouseholdTagsBackup(id: string): Promise<void> {
+  try {
+    const client = requireSupabase();
+    const { data } = await client.from('site_config').select('config').eq('id', 'main').maybeSingle();
+    const existingConfig = ((data as Row | null)?.config || {}) as Record<string, unknown>;
+    const existingHouseholdTags = (existingConfig.householdTags || {}) as Record<string, string[]>;
+    const updatedTags = { ...existingHouseholdTags };
+    delete updatedTags[id];
+    await client.from('site_config').upsert({
+      id: 'main',
+      config: {
+        ...existingConfig,
+        householdTags: updatedTags,
+      },
+    });
+  } catch (err) {
+    console.warn('Could not remove household tags from site_config:', err);
+  }
+}
+
 export async function createHousehold(draft: HouseholdDraft, config: WeddingConfig): Promise<HouseholdInvitation> {
   const client = requireSupabase();
   const inviteCode = draft.inviteCode?.trim().toUpperCase() || generateHouseholdInviteCode(draft.name);
@@ -479,6 +547,9 @@ export async function createHousehold(draft: HouseholdDraft, config: WeddingConf
     await client.from('households').delete().eq('id', householdId);
     throw memberResult.error;
   }
+  if (draft.tags && draft.tags.length > 0) {
+    void persistHouseholdTagsBackup(householdId, inviteCode, draft.tags);
+  }
   return mapHousehold({ ...row, household_members: memberResult.data }, config);
 }
 
@@ -522,6 +593,9 @@ export async function updateHousehold(id: string, updates: Partial<HouseholdInvi
       }
     }
   }
+  if (updates.tags !== undefined) {
+    void persistHouseholdTagsBackup(id, updates.inviteCode, updates.tags);
+  }
   if (updates.members) {
     const incomingIds = updates.members.map((member) => member.id).filter(Boolean);
     const existing = await client.from('household_members').select('id').eq('household_id', id);
@@ -553,6 +627,7 @@ export async function updateHousehold(id: string, updates: Partial<HouseholdInvi
 }
 
 export async function deleteHousehold(id: string): Promise<void> {
+  void removeHouseholdTagsBackup(id);
   const { error } = await requireSupabase().from('households').delete().eq('id', id);
   if (error) throw error;
 }

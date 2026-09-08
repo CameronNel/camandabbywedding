@@ -102,11 +102,11 @@ export const SiteSettings: React.FC<SiteSettingsProps> = ({ config, onSave, noti
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Palette className="h-4 w-4 text-[#8a2947]" />
-                <span className="text-xs font-semibold text-stone-800">Wedding Colour Palette (7 Shades)</span>
+                <span className="text-xs font-semibold text-stone-800">Wedding Colour Palette (6 Shades)</span>
               </div>
-              <span className="text-[10px] text-stone-500 font-medium">Shown to guests for attire inspiration</span>
+              <span className="text-[10px] text-stone-500 font-medium">Official wedding theme palette</span>
             </div>
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-6 gap-2">
               {WEDDING_COLOR_PALETTE.map(color => (
                 <div key={color.hex} className="flex flex-col items-center gap-1.5 text-center">
                   <div

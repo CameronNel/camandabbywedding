@@ -9,6 +9,7 @@ import type {
   ScheduleEvent,
   WeddingConfig,
   WeddingService,
+  HouseholdInvitation,
   BachelorPartyConfig,
   BachelorettePartyConfig,
 } from '../types/wedding';
@@ -86,6 +87,14 @@ export function loadConfig(): WeddingConfig {
     dressCode: { ...initialConfig.dressCode, ...saved.dressCode },
     adminPin: '6385',
   };
+  if (
+    !config.dressCode?.description ||
+    config.dressCode.description.includes('brand colours') ||
+    config.dressCode.description.includes('wedding brand') ||
+    config.dressCode.description.includes('palette')
+  ) {
+    config.dressCode.description = 'Dress code formal, come as you are.';
+  }
   if (!config.ceremonyVenue.time || config.ceremonyVenue.time.toLowerCase() === 'to be confirmed') {
     config.ceremonyVenue.time = '15:00';
   }
@@ -234,7 +243,7 @@ export function normalizeInviteCode(code?: string): string {
   return (code || '')
     .trim()
     .toLowerCase()
-    .replace(/^ca-?/i, '')
+    .replace(/^ca-/i, '')
     .replace(/[^a-z0-9]/g, '');
 }
 
@@ -242,7 +251,27 @@ export function inviteCodesMatch(a?: string, b?: string): boolean {
   if (!a || !b) return false;
   const normA = normalizeInviteCode(a);
   const normB = normalizeInviteCode(b);
-  return normA.length > 0 && normA === normB;
+  if (normA.length > 0 && normA === normB) return true;
+  const rawA = a.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  const rawB = b.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  return rawA.length > 0 && rawA === rawB;
+}
+
+export function buildPublicInvitationsMap(households: HouseholdInvitation[]): Record<string, HouseholdInvitation> {
+  const map: Record<string, HouseholdInvitation> = {};
+  for (const h of households) {
+    if (!h) continue;
+    if (h.id) map[h.id] = h;
+    if (h.inviteCode) {
+      map[h.inviteCode] = h;
+      map[h.inviteCode.toUpperCase()] = h;
+      const norm = normalizeInviteCode(h.inviteCode);
+      if (norm) map[norm] = h;
+      const raw = h.inviteCode.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (raw) map[raw] = h;
+    }
+  }
+  return map;
 }
 
 export function formatInviteCodeDisplay(code?: string, householdName?: string): string {

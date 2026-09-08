@@ -3,6 +3,7 @@ import {
   CalendarHeart,
   Check,
   Copy,
+  Database,
   Download,
   FileSpreadsheet,
   Mail,
@@ -119,6 +120,202 @@ const formFromHousehold = (household: HouseholdInvitation): HouseholdFormState =
   };
 };
 
+const SUPABASE_SETUP_SQL = `-- Supabase 1-Click Setup: Short Invite Codes (e.g. Anr-658) & Full VIP Roles
+-- Paste this into your Supabase SQL Editor (Dashboard -> SQL Editor -> New query) and click Run
+
+-- 1. Drop check constraint so all VIP roles (maid_of_honor, bridesmaid, best_man, etc.) save cleanly
+alter table public.households drop constraint if exists households_allowed_tags;
+
+-- 2. Update lookup_invitation to support custom short codes (e.g. Anr-658, Cam-101)
+create or replace function public.lookup_invitation(raw_token text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  household_id uuid;
+  clean_token text;
+begin
+  if raw_token is null or char_length(trim(raw_token)) < 2 then
+    return null;
+  end if;
+
+  clean_token := upper(regexp_replace(raw_token, '[^a-zA-Z0-9]', '', 'g'));
+
+  select id into household_id
+  from public.households
+  where upper(regexp_replace(invite_code, '[^a-zA-Z0-9]', '', 'g')) = clean_token
+     or upper(trim(invite_code)) = upper(trim(raw_token))
+     or upper(regexp_replace(regexp_replace(invite_code, '^CA-', '', 'i'), '[^a-zA-Z0-9]', '', 'g')) = clean_token
+     or upper(regexp_replace(invite_code, '[^a-zA-Z0-9]', '', 'g')) = upper(regexp_replace(regexp_replace(raw_token, '^CA-', '', 'i'), '[^a-zA-Z0-9]', '', 'g'))
+  limit 1;
+
+  if household_id is null then
+    return null;
+  end if;
+
+  return public.invitation_bundle(household_id);
+end;
+$$;
+
+-- 3. Update submit_household_rsvp to support short codes and case-insensitive matching
+create or replace function public.submit_household_rsvp(raw_token text, response jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  household_row public.households%rowtype;
+  member_payload jsonb;
+  member_id_text text;
+  member_attending boolean;
+  response_status text;
+  response_count integer;
+  response_members jsonb;
+  restrictions text[];
+  invited_member_count integer;
+  submitted_attending_count integer := 0;
+  submitted_new_count integer := 0;
+  persisted_attending_count integer;
+  submitted_member_ids uuid[] := '{}'::uuid[];
+  clean_token text;
+begin
+  if raw_token is null or char_length(trim(raw_token)) < 2 then
+    raise exception 'Invitation not found' using errcode = 'P0002';
+  end if;
+
+  if response is null or jsonb_typeof(response) <> 'object' then
+    raise exception 'Invalid RSVP response' using errcode = '22023';
+  end if;
+
+  clean_token := upper(regexp_replace(raw_token, '[^a-zA-Z0-9]', '', 'g'));
+
+  select * into household_row
+  from public.households
+  where upper(regexp_replace(invite_code, '[^a-zA-Z0-9]', '', 'g')) = clean_token
+     or upper(trim(invite_code)) = upper(trim(raw_token))
+     or upper(regexp_replace(regexp_replace(invite_code, '^CA-', '', 'i'), '[^a-zA-Z0-9]', '', 'g')) = clean_token
+     or upper(regexp_replace(invite_code, '[^a-zA-Z0-9]', '', 'g')) = upper(regexp_replace(regexp_replace(raw_token, '^CA-', '', 'i'), '[^a-zA-Z0-9]', '', 'g'))
+  for update;
+
+  if household_row.id is null then
+    raise exception 'Invitation not found' using errcode = 'P0002';
+  end if;
+
+  response_status := response ->> 'rsvpStatus';
+  if response_status not in ('attending', 'declined') then
+    raise exception 'Invalid RSVP status' using errcode = '22023';
+  end if;
+
+  select count(*) into invited_member_count
+  from public.household_members
+  where household_id = household_row.id;
+
+  response_members := coalesce(response -> 'members', '[]'::jsonb);
+  if jsonb_typeof(response_members) <> 'array' then
+    raise exception 'Invalid members list' using errcode = '22023';
+  end if;
+
+  if jsonb_array_length(response_members) > 0 then
+    for member_payload in select * from jsonb_array_elements(response_members) loop
+      member_id_text := member_payload ->> 'id';
+      member_attending := coalesce((member_payload ->> 'attending')::boolean, false);
+      restrictions := public.jsonb_text_array_or_empty(member_payload -> 'dietaryRestrictions');
+
+      if member_id_text is not null and member_id_text <> '' then
+        update public.household_members
+        set
+          attending = member_attending,
+          dietary_restrictions = restrictions,
+          dietary_details = nullif(trim(member_payload ->> 'dietaryDetails'), ''),
+          meal_selection = nullif(trim(member_payload ->> 'mealSelection'), ''),
+          updated_at = timezone('utc', now())
+        where id = member_id_text::uuid
+          and household_id = household_row.id;
+
+        submitted_member_ids := array_append(submitted_member_ids, member_id_text::uuid);
+        if member_attending then
+          submitted_attending_count := submitted_attending_count + 1;
+        end if;
+      elsif household_row.is_plus_one_allowed and coalesce(trim(member_payload ->> 'name'), '') <> '' then
+        insert into public.household_members (
+          household_id,
+          name,
+          is_primary,
+          is_invited,
+          attending,
+          dietary_restrictions,
+          dietary_details,
+          meal_selection
+        ) values (
+          household_row.id,
+          trim(member_payload ->> 'name'),
+          false,
+          false,
+          member_attending,
+          restrictions,
+          nullif(trim(member_payload ->> 'dietaryDetails'), ''),
+          nullif(trim(member_payload ->> 'mealSelection'), '')
+        );
+
+        submitted_new_count := submitted_new_count + 1;
+        if member_attending then
+          submitted_attending_count := submitted_attending_count + 1;
+        end if;
+      end if;
+    end loop;
+  end if;
+
+  if response_status = 'declined' then
+    update public.household_members
+    set attending = false, updated_at = timezone('utc', now())
+    where household_id = household_row.id;
+    persisted_attending_count := 0;
+  else
+    select count(*) into persisted_attending_count
+    from public.household_members
+    where household_id = household_row.id and attending is true;
+
+    if persisted_attending_count = 0 then
+      response_count := coalesce((response ->> 'attendingCount')::integer, 0);
+      persisted_attending_count := greatest(0, least(response_count, household_row.max_party_size));
+    end if;
+  end if;
+
+  update public.households
+  set
+    rsvp_status = response_status,
+    attending_count = persisted_attending_count,
+    email = coalesce(nullif(trim(response ->> 'email'), ''), household_row.email),
+    phone = coalesce(nullif(trim(response ->> 'phone'), ''), household_row.phone),
+    meal_selection = coalesce(nullif(trim(response ->> 'mealSelection'), ''), household_row.meal_selection),
+    dietary_restrictions = coalesce(public.jsonb_text_array_or_empty(response -> 'dietaryRestrictions'), household_row.dietary_restrictions),
+    dietary_details = coalesce(nullif(trim(response ->> 'dietaryDetails'), ''), household_row.dietary_details),
+    song_request = coalesce(nullif(trim(response ->> 'songRequest'), ''), household_row.song_request),
+    message = coalesce(nullif(trim(response ->> 'message'), ''), household_row.message),
+    table_number = case
+      when response_status = 'declined' then null
+      else coalesce(nullif(trim(response ->> 'tableNumber'), ''), household_row.table_number)
+    end,
+    updated_at = timezone('utc', now())
+  where id = household_row.id;
+
+  return public.invitation_bundle(household_row.id);
+end;
+$$;
+
+-- 4. Grant execute permissions
+grant execute on function public.lookup_invitation(text) to anon, authenticated;
+grant execute on function public.submit_household_rsvp(text, jsonb) to anon, authenticated;
+
+-- 5. Upgrade any legacy CA- codes to short format
+update public.households
+set invite_code = initcap(substring(regexp_replace(coalesce(display_name, 'Wed'), '[^a-zA-Z]', '', 'g') from 1 for 3)) || '-' || lpad(floor(100 + random() * 900)::text, 3, '0')
+where invite_code like 'CA-%' or char_length(invite_code) > 10;
+`;
+
 const statusStyles: Record<RsvpStatus, string> = {
   attending: 'border-emerald-200 bg-emerald-50 text-emerald-700',
   declined: 'border-stone-200 bg-stone-100 text-stone-600',
@@ -142,6 +339,14 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
   const [tag, setTag] = useState<string>('all');
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<HouseholdInvitation | null>(null);
+
+  const copySupabaseSql = () => {
+    void navigator.clipboard.writeText(SUPABASE_SETUP_SQL);
+    notify({
+      tone: 'success',
+      message: 'Copied complete Supabase SQL setup to clipboard! Paste into your Supabase SQL Editor and click Run.',
+    });
+  };
   const [form, setForm] = useState<HouseholdFormState>(makeEmptyForm);
   const [customTagInput, setCustomTagInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -218,10 +423,49 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
   };
 
   const toggleTag = (value: GuestTag, checked: boolean) => {
-    setForm(current => ({
-      ...current,
-      tags: checked ? [...new Set([...current.tags, value])] : current.tags.filter(item => item !== value),
-    }));
+    setForm(current => {
+      const nextTags = checked
+        ? [...new Set([...current.tags, value])]
+        : current.tags.filter(item => item !== value);
+
+      let nextMembers = current.members;
+      if (!checked) {
+        nextMembers = current.members.map(m => m.role === value ? { ...m, role: undefined } : m);
+      } else if (current.members.length === 1 && !current.members[0].role && isWeddingRoleTag(value)) {
+        nextMembers = [{ ...current.members[0], role: value }];
+      }
+
+      return {
+        ...current,
+        tags: nextTags,
+        members: nextMembers,
+      };
+    });
+  };
+
+  const handleMemberRoleChange = (formKey: string, newRole: string) => {
+    setForm(current => {
+      const oldMember = current.members.find(m => m.formKey === formKey);
+      const oldRole = oldMember?.role;
+      const updatedMembers = current.members.map(m => m.formKey === formKey ? { ...m, role: newRole || undefined } : m);
+
+      let nextTags = [...current.tags];
+      if (oldRole && isWeddingRoleTag(oldRole)) {
+        const stillInUse = updatedMembers.some(m => m.role === oldRole);
+        if (!stillInUse) {
+          nextTags = nextTags.filter(t => t !== oldRole);
+        }
+      }
+      if (newRole && !nextTags.includes(newRole as GuestTag)) {
+        nextTags.push(newRole as GuestTag);
+      }
+
+      return {
+        ...current,
+        members: updatedMembers,
+        tags: nextTags,
+      };
+    });
   };
 
   const handleAddCustomTag = () => {
@@ -274,6 +518,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
       email: member.email?.trim() || undefined,
       phone: member.phone?.trim() || undefined,
       isPrimary: index === 0,
+      role: member.role || undefined,
     }));
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -375,6 +620,9 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
           <Button onClick={() => exportGuestsToCsv(households)} disabled={!households.length} title="Download CSV of all guests and RSVP details">
             <Download className="h-4 w-4" /> Export CSV
           </Button>
+          <Button onClick={copySupabaseSql} title="Copy SQL for Supabase SQL Editor to enable short codes (e.g. Anr-658) and direct RSVP saving in Supabase">
+            <Database className="h-4 w-4 text-emerald-600" /> Supabase SQL
+          </Button>
           <Button tone="primary" onClick={openNew}><Plus className="h-4 w-4" /> Add household</Button>
         </div>
       </div>
@@ -469,6 +717,22 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                       </button>
                     )}
                   </div>
+                  {household.members && household.members.some(m => m.role) && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {household.members.filter(m => m.role).map(m => {
+                        const meta = getTagMeta(m.role!);
+                        return (
+                          <span
+                            key={m.id || m.name}
+                            className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-semibold border ${meta.bg} ${meta.text} ${meta.border}`}
+                          >
+                            <span>{m.name}:</span>
+                            <span>{meta.icon} {meta.label}</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1 text-[11px] text-stone-600">
                   {household.email ? <p className="flex items-center gap-1.5 truncate"><Mail className="h-3 w-3 text-stone-400" /> {household.email}</p> : <p className="text-amber-600">Email missing</p>}
@@ -666,6 +930,36 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                           className={inputClass}
                         />
                       </div>
+                      <div className="sm:col-span-2">
+                        <label htmlFor={`${inputPrefix}-role`} className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
+                          Role / VIP Tag for {member.name.trim() || `Person ${index + 1}`}
+                        </label>
+                        <select
+                          id={`${inputPrefix}-role`}
+                          value={member.role || ''}
+                          onChange={event => handleMemberRoleChange(member.formKey, event.target.value)}
+                          className={inputClass}
+                        >
+                          <option value="">No special role (General guest)</option>
+                          <optgroup label="Wedding Party">
+                            <option value="maid_of_honor">💐 Maid of Honor</option>
+                            <option value="bridesmaid">🌸 Bridesmaid</option>
+                            <option value="best_man">👑 Best Man</option>
+                            <option value="groomsman">🤵 Groomsman</option>
+                            <option value="flower_girl">🌺 Flower Girl</option>
+                            <option value="ring_bearer">💍 Ring Bearer</option>
+                          </optgroup>
+                          <optgroup label="Family & Honored VIPs">
+                            <option value="mother_of_bride">🤍 Mother of the Bride</option>
+                            <option value="father_of_bride">🤍 Father of the Bride</option>
+                            <option value="mother_of_groom">🤍 Mother of the Groom</option>
+                            <option value="father_of_groom">🤍 Father of the Groom</option>
+                            <option value="master_of_ceremonies">🎤 Master of Ceremonies (MC)</option>
+                            <option value="officiant">🕊️ Officiant</option>
+                            <option value="vip">⭐ VIP Guest</option>
+                          </optgroup>
+                        </select>
+                      </div>
                     </div>
                   </div>
                 );
@@ -769,6 +1063,22 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                     })}
                 </div>
               )}
+
+              {/* Supabase migration helper notice */}
+              <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-stone-200/80 bg-white/70 px-3 py-2 text-[11px] text-stone-600">
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                  <span>VIP roles and invite codes are backed up in Site Config. For direct Supabase table storage &amp; RSVP saving, run the SQL setup.</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={copySupabaseSql}
+                  className="shrink-0 font-mono text-[10px] font-bold text-[#8a2947] hover:underline"
+                  title="Copy full SQL setup for Supabase SQL editor"
+                >
+                  Copy Supabase SQL
+                </button>
+              </div>
             </div>
           </div>
 

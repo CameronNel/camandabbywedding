@@ -14,6 +14,7 @@ import type {
   BachelorPartyConfig,
   GalleryItem,
   Guest,
+  GuestTag,
   GuestWish,
   HouseholdDraft,
   HouseholdInvitation,
@@ -31,9 +32,11 @@ import type {
 } from '../types/wedding';
 import {
   buildInvitationUrl,
+  buildPublicInvitationsMap,
   formatInviteCodeDisplay,
   generateHouseholdInviteCode,
   inviteCodesMatch,
+  normalizeInviteCode,
   loadAccommodations,
   loadBachelorParty,
   loadBacheloretteParty,
@@ -175,11 +178,21 @@ function errorMessage(error: unknown): string {
 
 function normalizeHousehold(guest: Guest, config: WeddingConfig): HouseholdInvitation {
   const code = formatInviteCodeDisplay(guest.inviteCode, guest.name) || generateHouseholdInviteCode(guest.name);
+  const members = guest.members ?? [];
+  const backupTags = [
+    ...(config.householdTags?.[guest.id] || []),
+    ...(config.householdTags?.[code] || []),
+    ...(config.householdTags?.[code.toUpperCase()] || []),
+    ...(config.householdTags?.[guest.inviteCode] || []),
+  ] as GuestTag[];
+  const memberRoleTags = members.map((m) => m.role).filter(Boolean) as GuestTag[];
+  const tags = Array.from(new Set([...(guest.tags ?? []), ...backupTags, ...memberRoleTags])) as GuestTag[];
+
   return {
     ...guest,
     inviteCode: code,
-    tags: guest.tags ?? [],
-    members: guest.members ?? [],
+    tags,
+    members,
     invitationUrl: code ? buildInvitationUrl(config, code) : undefined,
   };
 }
@@ -206,7 +219,16 @@ function createLocalHousehold(
     mealSelection: member.mealSelection,
     dietaryRestrictions: member.dietaryRestrictions ?? [],
     dietaryDetails: member.dietaryDetails,
+    role: member.role,
   }));
+  const backupTags = [
+    ...(config.householdTags?.[id] || []),
+    ...(config.householdTags?.[inviteCode] || []),
+    ...(config.householdTags?.[inviteCode.toUpperCase()] || []),
+  ] as GuestTag[];
+  const memberRoleTags = members.map((m) => m.role).filter(Boolean) as GuestTag[];
+  const tags = Array.from(new Set([...(draft.tags ?? []), ...backupTags, ...memberRoleTags])) as GuestTag[];
+
   return {
     id,
     name: draft.name.trim(),
@@ -221,7 +243,7 @@ function createLocalHousehold(
     isPlusOneAllowed: draft.isPlusOneAllowed ?? false,
     companionNames: members.filter((member) => !member.isPrimary).map((member) => member.name),
     checkedIn: false,
-    tags: draft.tags ?? [],
+    tags,
     members,
     invitationUrl: buildInvitationUrl(config, inviteCode),
     createdAt: new Date().toISOString(),
@@ -293,7 +315,15 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
   }, [activeHousehold, adminSession]);
 
   const applyAdminBundle = useCallback((bundle: repository.AdminDataBundle) => {
-    setConfig(bundle.config);
+    const invitationsMap = buildPublicInvitationsMap(bundle.households);
+    const updatedConfig: WeddingConfig = {
+      ...bundle.config,
+      publicInvitations: {
+        ...(bundle.config.publicInvitations || {}),
+        ...invitationsMap,
+      },
+    };
+    setConfig(updatedConfig);
     setHouseholds(bundle.households);
     setAccommodations(bundle.accommodations);
     setServices(bundle.services);
@@ -302,7 +332,11 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     setWishes(bundle.wishes);
     setInvitationTemplates(bundle.invitationTemplates);
     setInvitationDeliveries(bundle.invitationDeliveries);
-  }, []);
+
+    if (dataMode === 'supabase' && adminSession && bundle.households.length > 0) {
+      void repository.updateSiteConfig(updatedConfig);
+    }
+  }, [adminSession, dataMode]);
 
   const refreshData = useCallback(async () => {
     if (dataMode === 'local') return;
@@ -365,7 +399,31 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
             return bundle.household;
           }
         } catch (supabaseError) {
-          console.warn('Supabase lookup failed or code not found, checking sample codes:', supabaseError);
+          console.warn('Supabase lookup failed or code not found, checking fallback:', supabaseError);
+        }
+      }
+
+      // Check config.publicInvitations (synced from site_config so guests can unlock immediately)
+      if (config.publicInvitations) {
+        const normCode = normalizeInviteCode(normalized);
+        const upperCode = normalized.toUpperCase();
+        const rawCode = normalized.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        const directMatch = config.publicInvitations[normCode]
+          || config.publicInvitations[upperCode]
+          || config.publicInvitations[normalized]
+          || config.publicInvitations[rawCode];
+
+        const publicMatch = directMatch || Object.values(config.publicInvitations).find((h) =>
+          inviteCodesMatch(h.inviteCode, normalized)
+        );
+
+        if (publicMatch) {
+          setActiveHouseholdState(publicMatch);
+          setAccommodations((curr) => curr.length > 0 ? curr : initialAccommodations);
+          setServices((curr) => curr.length > 0 ? curr : initialServices);
+          setRegistryItems((curr) => curr.length > 0 ? curr : initialRegistry);
+          return publicMatch;
         }
       }
 
@@ -402,6 +460,28 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         ? await repository.createHousehold(draftWithCode, config)
         : createLocalHousehold(draftWithCode, config, households.map((h) => h.inviteCode));
       setHouseholds((current) => [household, ...current]);
+
+      const invitationsMap = buildPublicInvitationsMap([household]);
+      const updatedHouseholdTags = (draft.tags && draft.tags.length > 0) ? {
+        ...(config.householdTags || {}),
+        [household.id]: draft.tags,
+        [code]: draft.tags,
+      } : config.householdTags;
+      const updatedConfig: WeddingConfig = {
+        ...config,
+        householdTags: updatedHouseholdTags,
+        publicInvitations: {
+          ...(config.publicInvitations || {}),
+          ...invitationsMap,
+        },
+      };
+      setConfig(updatedConfig);
+      if (dataMode === 'local') {
+        saveConfig(updatedConfig);
+      } else {
+        void repository.updateSiteConfig(updatedConfig);
+      }
+
       return household;
     } catch (error) {
       setDataError(errorMessage(error));
@@ -427,6 +507,32 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
       household.id === id ? { ...household, ...normalizedUpdates } : household,
     ));
     setActiveHouseholdState((current) => current?.id === id ? { ...current, ...normalizedUpdates } : current);
+
+    const existing = households.find((h) => h.id === id);
+    const updatedFull = existing ? { ...existing, ...normalizedUpdates } : null;
+    const invitationsMap = updatedFull ? buildPublicInvitationsMap([updatedFull]) : {};
+
+    const updatedHouseholdTags = updates.tags !== undefined ? {
+      ...(config.householdTags || {}),
+      [id]: updates.tags,
+      ...(code ? { [code]: updates.tags } : {}),
+    } : config.householdTags;
+
+    const updatedConfig: WeddingConfig = {
+      ...config,
+      householdTags: updatedHouseholdTags,
+      publicInvitations: {
+        ...(config.publicInvitations || {}),
+        ...invitationsMap,
+      },
+    };
+    setConfig(updatedConfig);
+    if (dataMode === 'local') {
+      saveConfig(updatedConfig);
+    } else {
+      void repository.updateSiteConfig(updatedConfig);
+    }
+
     if (dataMode === 'supabase') {
       try {
         await repository.updateHousehold(id, normalizedUpdates);
@@ -440,9 +546,30 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
 
   const deleteHousehold = useCallback(async (id: string): Promise<void> => {
     if (dataMode === 'supabase') await repository.deleteHousehold(id);
+
+    const updatedPublicInvitations = { ...(config.publicInvitations || {}) };
+    delete updatedPublicInvitations[id];
+    const targetH = households.find((h) => h.id === id);
+    if (targetH?.inviteCode) {
+      delete updatedPublicInvitations[targetH.inviteCode];
+      delete updatedPublicInvitations[targetH.inviteCode.toUpperCase()];
+      delete updatedPublicInvitations[normalizeInviteCode(targetH.inviteCode)];
+    }
+
+    const updatedHouseholdTags = { ...(config.householdTags || {}) };
+    delete updatedHouseholdTags[id];
+    const updatedConfig: WeddingConfig = {
+      ...config,
+      householdTags: updatedHouseholdTags,
+      publicInvitations: updatedPublicInvitations,
+    };
+    setConfig(updatedConfig);
+    if (dataMode === 'local') saveConfig(updatedConfig);
+    else void repository.updateSiteConfig(updatedConfig);
+
     setHouseholds((current) => current.filter((household) => household.id !== id));
     setActiveHouseholdState((current) => current?.id === id ? null : current);
-  }, [dataMode]);
+  }, [config, dataMode, households]);
 
   const submitHouseholdRsvp = useCallback(async (input: HouseholdRsvpInput): Promise<boolean> => {
     if (!activeHousehold) return false;
