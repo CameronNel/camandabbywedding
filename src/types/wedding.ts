@@ -1,6 +1,23 @@
 export type RsvpStatus = 'attending' | 'declined' | 'pending';
 
-export type GuestTag = 'free_venue_housing' | 'presence_is_our_gift';
+export type WeddingPartyRole =
+  | 'maid_of_honor'
+  | 'bridesmaid'
+  | 'best_man'
+  | 'groomsman'
+  | 'master_of_ceremonies'
+  | 'flower_girl'
+  | 'ring_bearer'
+  | 'mother_of_bride'
+  | 'father_of_bride'
+  | 'mother_of_groom'
+  | 'father_of_groom'
+  | 'officiant'
+  | 'vip';
+
+export type AccessTag = 'free_venue_housing' | 'presence_is_our_gift';
+
+export type GuestTag = AccessTag | WeddingPartyRole | (string & {});
 export type DataMode = 'supabase' | 'local';
 
 export interface ActionResult {
@@ -26,6 +43,7 @@ export interface HouseholdMember {
   mealSelection?: string;
   dietaryRestrictions: string[];
   dietaryDetails?: string;
+  role?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -39,6 +57,7 @@ export interface HouseholdMemberRsvp {
   mealSelection?: string;
   dietaryRestrictions?: string[];
   dietaryDetails?: string;
+  role?: string;
 }
 
 /**

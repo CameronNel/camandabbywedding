@@ -6,7 +6,6 @@ import {
   Copy,
   Download,
   FileSpreadsheet,
-  Home,
   Layers,
   Printer,
   Search,
@@ -17,6 +16,7 @@ import {
 import type { HouseholdInvitation, WeddingConfig } from '../../types/wedding';
 import { exportGuestsToCsv } from '../../utils/storage';
 import { normalizeDietary, type NormalizedDietary } from '../../utils/dietary';
+import { getTagMeta } from '../../utils/guestTags';
 import { Button, inputClass } from './AdminPrimitives';
 
 interface MasterWeddingReportModalProps {
@@ -379,10 +379,23 @@ RSVP & GUEST SUMMARY:
                             )}
                           </td>
                           <td className="px-3 py-2.5 text-[10px]">
-                            {household.tags?.includes('free_venue_housing') && (
-                              <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 font-bold text-amber-800 border border-amber-200">
-                                <Home className="h-3 w-3" /> Lodge
-                              </span>
+                            {household.tags && household.tags.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {household.tags.map(item => {
+                                  const meta = getTagMeta(item);
+                                  return (
+                                    <span
+                                      key={item}
+                                      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-semibold ${meta.bg} ${meta.text} ${meta.border}`}
+                                    >
+                                      <span>{meta.icon}</span>
+                                      <span>{meta.label}</span>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <span className="text-stone-400 text-[10px]">—</span>
                             )}
                           </td>
                         </tr>

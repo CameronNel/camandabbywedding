@@ -90,6 +90,7 @@ function mapMember(value: unknown): HouseholdMember {
     mealSelection: optionalText(row.meal_selection),
     dietaryRestrictions: stringArray(row.dietary_restrictions),
     dietaryDetails: optionalText(row.dietary_details),
+    role: optionalText(row.role),
     createdAt: optionalText(row.created_at),
     updatedAt: optionalText(row.updated_at),
   };
@@ -101,9 +102,7 @@ function mapHousehold(value: unknown, config: WeddingConfig): HouseholdInvitatio
     ? row.household_members
     : Array.isArray(row.members) ? row.members : [];
   const members = rawMembers.map(mapMember);
-  const tags = stringArray(row.tags).filter(
-    (tag): tag is GuestTag => tag === 'free_venue_housing' || tag === 'presence_is_our_gift',
-  );
+  const tags = stringArray(row.tags) as GuestTag[];
   const inviteCode = text(row.invite_code ?? row.inviteCode);
   return {
     id: text(row.id),
@@ -420,7 +419,7 @@ export async function updateSiteConfig(config: WeddingConfig): Promise<void> {
 
 export async function createHousehold(draft: HouseholdDraft, config: WeddingConfig): Promise<HouseholdInvitation> {
   const client = requireSupabase();
-  const { data, error } = await client.from('households').insert({
+  let insertResult = await client.from('households').insert({
     display_name: draft.name.trim(),
     email: draft.email?.trim() || null,
     phone: draft.phone?.trim() || null,
@@ -429,8 +428,22 @@ export async function createHousehold(draft: HouseholdDraft, config: WeddingConf
     is_plus_one_allowed: draft.isPlusOneAllowed ?? false,
     tags: draft.tags ?? [],
   }).select('*').single();
-  if (error) throw error;
-  const row = data as Row;
+
+  if (insertResult.error && insertResult.error.message?.includes('households_allowed_tags') && draft.tags?.length) {
+    console.warn('Database has legacy households_allowed_tags constraint. Run migration 202609080001_expand_household_tags.sql to store all tags in Supabase.');
+    const fallbackTags = (draft.tags as string[]).filter(t => t === 'free_venue_housing' || t === 'presence_is_our_gift');
+    insertResult = await client.from('households').insert({
+      display_name: draft.name.trim(),
+      email: draft.email?.trim() || null,
+      phone: draft.phone?.trim() || null,
+      max_party_size: Math.max(1, draft.partySize ?? draft.members?.length ?? 1),
+      table_number: draft.tableNumber?.trim() || null,
+      is_plus_one_allowed: draft.isPlusOneAllowed ?? false,
+      tags: fallbackTags,
+    }).select('*').single();
+  }
+  if (insertResult.error) throw insertResult.error;
+  const row = insertResult.data as Row;
   const householdId = text(row.id);
   const members = draft.members?.length
     ? draft.members
@@ -477,7 +490,19 @@ export async function updateHousehold(id: string, updates: Partial<HouseholdInvi
   const payload = householdUpdatePayload(updates);
   if (Object.keys(payload).length > 0) {
     const { error } = await client.from('households').update(payload).eq('id', id);
-    if (error) throw error;
+    if (error) {
+      if (error.message?.includes('households_allowed_tags') && Array.isArray(payload.tags)) {
+        console.warn('Database has legacy households_allowed_tags constraint. Run migration 202609080001_expand_household_tags.sql to store all tags in Supabase.');
+        const fallbackPayload = {
+          ...payload,
+          tags: (payload.tags as string[]).filter(t => t === 'free_venue_housing' || t === 'presence_is_our_gift'),
+        };
+        const fallbackResult = await client.from('households').update(fallbackPayload).eq('id', id);
+        if (fallbackResult.error) throw fallbackResult.error;
+      } else {
+        throw error;
+      }
+    }
   }
   if (updates.members) {
     const incomingIds = updates.members.map((member) => member.id).filter(Boolean);

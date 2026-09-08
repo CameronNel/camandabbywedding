@@ -15,7 +15,7 @@ import {
   Utensils,
   Wine,
 } from 'lucide-react';
-import type { HouseholdInvitation, WeddingConfig } from '../../types/wedding';
+import type { GuestTag, HouseholdInvitation, WeddingConfig } from '../../types/wedding';
 import {
   TABLES,
   WEDDING_FAVOUR_OPTIONS,
@@ -23,6 +23,7 @@ import {
 } from '../../utils/seatingConstants';
 import { exportGuestsToCsv } from '../../utils/storage';
 import { normalizeDietary, type NormalizedDietary } from '../../utils/dietary';
+import { getTagMeta, isWeddingRoleTag } from '../../utils/guestTags';
 import { Button, inputClass } from './AdminPrimitives';
 
 interface RsvpManagerProps {
@@ -48,6 +49,7 @@ interface SeatDetail {
   dietary?: string;
   dietaryNormalized?: NormalizedDietary;
   favour?: string;
+  tags?: GuestTag[];
 }
 
 const DIETARY_CATEGORIES = [
@@ -85,6 +87,7 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
     dietary?: string;
     dietaryNormalized?: NormalizedDietary;
     favour?: string;
+    tags?: GuestTag[];
     x: number;
     y: number;
   } | null>(null);
@@ -232,6 +235,7 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
             dietary: dietarySummary,
             dietaryNormalized,
             favour: h.songRequest,
+            tags: h.tags,
           });
         }
       }
@@ -899,6 +903,7 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                                     dietary: occupant.dietary,
                                     dietaryNormalized: occupant.dietaryNormalized,
                                     favour: occupant.favour,
+                                    tags: occupant.tags,
                                     x: sx,
                                     y: sy,
                                   });
@@ -914,30 +919,43 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                                     cx={sx}
                                     cy={sy}
                                     r={seatRadius}
-                                    fill="#059669"
-                                    stroke="#047857"
-                                    strokeWidth="2"
-                                    className="group-hover:scale-110 transition-transform"
+                                    fill={table.id === 0 ? '#fbcfe8' : hasDietary ? '#fef08a' : '#dcfce7'}
+                                    stroke={table.id === 0 ? '#db2777' : hasDietary ? '#ca8a04' : '#16a34a'}
+                                    strokeWidth="1.8"
+                                    className="transition-transform duration-150 group-hover:scale-125 origin-center"
                                   />
-                                  <text x={sx} y={sy + 4} textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="bold" className="select-none font-mono">
+                                  <text
+                                    x={sx}
+                                    y={sy + 3}
+                                    textAnchor="middle"
+                                    fontSize="8"
+                                    fontWeight="bold"
+                                    fill={table.id === 0 ? '#9d174d' : hasDietary ? '#854d0e' : '#166534'}
+                                    className="select-none pointer-events-none font-mono"
+                                  >
                                     {seatNum}
                                   </text>
-                                  {hasDietary && (
-                                    <circle cx={sx + 9} cy={sy - 9} r="4.5" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.5" />
-                                  )}
                                 </g>
                               ) : (
                                 <g>
                                   <circle
                                     cx={sx}
                                     cy={sy}
-                                    r={seatRadius}
-                                    fill="#ffffff"
-                                    stroke="#cbd5e1"
-                                    strokeWidth="1.8"
-                                    strokeDasharray="3 2"
+                                    r={seatRadius - 1}
+                                    fill="#f5f5f4"
+                                    stroke="#d6d3d1"
+                                    strokeWidth="1.2"
+                                    strokeDasharray="2 2"
+                                    className="transition-colors group-hover:fill-stone-200"
                                   />
-                                  <text x={sx} y={sy + 4} textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="bold" className="select-none font-mono">
+                                  <text
+                                    x={sx}
+                                    y={sy + 3}
+                                    textAnchor="middle"
+                                    fontSize="7.5"
+                                    fill="#a8a29e"
+                                    className="select-none pointer-events-none font-mono"
+                                  >
                                     {seatNum}
                                   </text>
                                 </g>
@@ -974,6 +992,22 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                       <p className="text-xs font-bold text-stone-900 mt-0.5">
                         {hoveredSeat.occupantName}
                       </p>
+                      {hoveredSeat.tags && hoveredSeat.tags.some(isWeddingRoleTag) && (
+                        <div className="mt-1 flex flex-wrap justify-center gap-1">
+                          {hoveredSeat.tags.filter(isWeddingRoleTag).map(tag => {
+                            const meta = getTagMeta(tag);
+                            return (
+                              <span
+                                key={tag}
+                                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold ${meta.bg} ${meta.text} ${meta.border}`}
+                              >
+                                <span>{meta.icon}</span>
+                                <span>{meta.label}</span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                       <p className="text-[10px] text-stone-500">
                         Party of: {hoveredSeat.householdName}
                       </p>
@@ -1121,9 +1155,28 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                                 <div className="min-w-0 truncate">
                                   {occupant ? (
                                     <>
-                                      <p className="text-xs font-bold text-stone-900 truncate">
-                                        {occupant.occupantName}
-                                      </p>
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <p className="text-xs font-bold text-stone-900 truncate">
+                                          {occupant.occupantName}
+                                        </p>
+                                        {occupant.tags && occupant.tags.some(isWeddingRoleTag) && (
+                                          <span className="flex flex-wrap gap-1">
+                                            {occupant.tags.filter(isWeddingRoleTag).map(tag => {
+                                              const meta = getTagMeta(tag);
+                                              return (
+                                                <span
+                                                  key={tag}
+                                                  className={`inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.2 text-[9px] font-bold ${meta.bg} ${meta.text} ${meta.border}`}
+                                                  title={meta.label}
+                                                >
+                                                  <span>{meta.icon}</span>
+                                                  <span>{meta.label}</span>
+                                                </span>
+                                              );
+                                            })}
+                                          </span>
+                                        )}
+                                      </div>
                                       <p className="text-[10px] text-stone-500 truncate">
                                         {occupant.householdName}
                                       </p>

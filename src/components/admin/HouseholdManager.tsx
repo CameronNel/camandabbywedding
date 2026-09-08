@@ -5,16 +5,16 @@ import {
   Copy,
   Download,
   FileSpreadsheet,
-  Gift,
-  Home,
   Mail,
   MessageCircle,
   Pencil,
   Plus,
   Search,
   ShieldCheck,
+  Tag,
   Trash2,
   Users,
+  X,
 } from 'lucide-react';
 import type {
   GuestTag,
@@ -26,6 +26,12 @@ import type {
 } from '../../types/wedding';
 import { sendOrShareWhatsAppWithPdf, type InvitationVariant } from '../../utils/invitations';
 import { exportGuestsToCsv } from '../../utils/storage';
+import {
+  WEDDING_ROLE_TAGS,
+  ACCESS_TAG_DEFS,
+  getTagMeta,
+  isWeddingRoleTag,
+} from '../../utils/guestTags';
 import { Button, EmptyState, Field, Modal, Toggle, inputClass } from './AdminPrimitives';
 import type { ToastState } from './contracts';
 
@@ -71,6 +77,7 @@ const makeMemberFormState = (member?: Partial<HouseholdMember>): MemberFormState
   mealSelection: member?.mealSelection,
   dietaryRestrictions: member?.dietaryRestrictions || [],
   dietaryDetails: member?.dietaryDetails,
+  role: member?.role,
   createdAt: member?.createdAt,
   updatedAt: member?.updatedAt,
   formKey: member?.id || `new-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -108,11 +115,6 @@ const formFromHousehold = (household: HouseholdInvitation): HouseholdFormState =
   };
 };
 
-const tagLabel: Record<GuestTag, string> = {
-  free_venue_housing: 'Venue stay provided',
-  presence_is_our_gift: 'Presence is the gift',
-};
-
 const statusStyles: Record<RsvpStatus, string> = {
   attending: 'border-emerald-200 bg-emerald-50 text-emerald-700',
   declined: 'border-stone-200 bg-stone-100 text-stone-600',
@@ -133,10 +135,11 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<'all' | RsvpStatus>('all');
-  const [tag, setTag] = useState<'all' | GuestTag>('all');
+  const [tag, setTag] = useState<string>('all');
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<HouseholdInvitation | null>(null);
   const [form, setForm] = useState<HouseholdFormState>(makeEmptyForm);
+  const [customTagInput, setCustomTagInput] = useState('');
   const [saving, setSaving] = useState(false);
 
   const filtered = useMemo(() => {
@@ -147,7 +150,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
         || household.members.some(member => [member.name, member.email, member.phone]
           .some(value => value?.toLowerCase().includes(query)));
       const matchesStatus = status === 'all' || household.rsvpStatus === status;
-      const matchesTag = tag === 'all' || household.tags.includes(tag);
+      const matchesTag = tag === 'all' || household.tags.includes(tag as GuestTag);
       return matchesQuery && matchesStatus && matchesTag;
     });
   }, [households, search, status, tag]);
@@ -155,12 +158,14 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
   const openNew = () => {
     setEditing(null);
     setForm(makeEmptyForm());
+    setCustomTagInput('');
     setEditorOpen(true);
   };
 
   const openEdit = (household: HouseholdInvitation) => {
     setEditing(household);
     setForm(formFromHousehold(household));
+    setCustomTagInput('');
     setEditorOpen(true);
   };
 
@@ -169,6 +174,18 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
       ...current,
       tags: checked ? [...new Set([...current.tags, value])] : current.tags.filter(item => item !== value),
     }));
+  };
+
+  const handleAddCustomTag = () => {
+    const clean = customTagInput.trim().toLowerCase().replace(/\s+/g, '_');
+    if (!clean) return;
+    if (!form.tags.includes(clean as GuestTag)) {
+      setForm(current => ({
+        ...current,
+        tags: [...current.tags, clean as GuestTag],
+      }));
+    }
+    setCustomTagInput('');
   };
 
   const updateMember = (formKey: string, updates: Partial<MemberFormState>) => {
@@ -314,10 +331,18 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
           <option value="attending">Attending</option>
           <option value="declined">Declined</option>
         </select>
-        <select value={tag} onChange={event => setTag(event.target.value as 'all' | GuestTag)} className={inputClass}>
-          <option value="all">All access tags</option>
-          <option value="free_venue_housing">Venue housing</option>
-          <option value="presence_is_our_gift">No gifts</option>
+        <select value={tag} onChange={event => setTag(event.target.value)} className={inputClass}>
+          <option value="all">All tags &amp; roles</option>
+          <optgroup label="Wedding Party &amp; VIP Roles">
+            {WEDDING_ROLE_TAGS.map(t => (
+              <option key={t.id} value={t.id}>{t.icon} {t.label}</option>
+            ))}
+          </optgroup>
+          <optgroup label="Access Rules">
+            {ACCESS_TAG_DEFS.map(t => (
+              <option key={t.id} value={t.id}>{t.icon} {t.label}</option>
+            ))}
+          </optgroup>
         </select>
         <Button onClick={toggleAllVisible}>{filtered.every(item => selectedIds.has(item.id)) && filtered.length ? <Check className="h-4 w-4" /> : <Users className="h-4 w-4" />} Select visible</Button>
       </div>
@@ -339,7 +364,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
       ) : (
         <div className="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
           <div className="hidden grid-cols-[44px_minmax(190px,1.35fr)_minmax(150px,1fr)_120px_minmax(170px,1fr)_180px] gap-3 border-b border-stone-200 bg-stone-50 px-4 py-3 text-[9px] font-bold uppercase tracking-[0.16em] text-stone-400 lg:grid">
-            <span /> <span>Household</span><span>Contact</span><span>RSVP</span><span>Access</span><span className="text-right">Actions</span>
+            <span /> <span>Household</span><span>Contact</span><span>RSVP</span><span>Tags &amp; Roles</span><span className="text-right">Actions</span>
           </div>
           <div className="divide-y divide-stone-100">
             {filtered.map(household => (
@@ -365,11 +390,19 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                   {household.rsvpStatus === 'attending' && <p className="mt-1 text-[10px] text-stone-500">{household.attendingCount} / {household.partySize} attending</p>}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {household.tags.length ? household.tags.map(item => (
-                    <span key={item} className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2 py-1 text-[9px] font-semibold text-stone-600">
-                      {item === 'free_venue_housing' ? <Home className="h-3 w-3" /> : <Gift className="h-3 w-3" />} {tagLabel[item]}
-                    </span>
-                  )) : <span className="text-[10px] text-stone-400">Standard access</span>}
+                  {household.tags.length ? household.tags.map(item => {
+                    const meta = getTagMeta(item);
+                    return (
+                      <span
+                        key={item}
+                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-semibold ${meta.bg} ${meta.text} ${meta.border}`}
+                        title={meta.description || meta.label}
+                      >
+                        <span>{meta.icon}</span>
+                        <span>{meta.label}</span>
+                      </span>
+                    );
+                  }) : <span className="text-[10px] text-stone-400">Standard</span>}
                 </div>
                 <div className="flex flex-wrap items-center justify-start gap-1.5 lg:justify-end">
                   {config && (
@@ -516,6 +549,105 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
               })}
             </div>
           </fieldset>
+
+          {/* Wedding Party & VIP Roles */}
+          <div className="rounded-2xl border border-stone-200 bg-stone-50/70 p-4">
+            <div className="mb-2.5 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-600">Wedding Party &amp; VIP Roles</p>
+                <p className="text-[11px] text-stone-500">Click to assign roles for key wedding members (bridesmaids, groomsmen, MC, flower girl, parents, etc.).</p>
+              </div>
+              <span className="text-[10px] font-medium text-stone-400">
+                {form.tags.filter(isWeddingRoleTag).length} assigned
+              </span>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {WEDDING_ROLE_TAGS.map(role => {
+                const isActive = form.tags.includes(role.id as GuestTag);
+                return (
+                  <button
+                    key={role.id}
+                    type="button"
+                    onClick={() => toggleTag(role.id as GuestTag, !isActive)}
+                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all duration-150 shadow-2xs ${
+                      isActive
+                        ? `${role.activeBg} ring-2 ring-stone-400/30 scale-[1.02]`
+                        : `${role.bg} ${role.text} ${role.border} hover:opacity-100 hover:scale-[1.02] opacity-80`
+                    }`}
+                    title={role.description}
+                  >
+                    <span>{role.icon}</span>
+                    <span>{role.label}</span>
+                    {isActive ? (
+                      <Check className="h-3.5 w-3.5 stroke-[2.5]" />
+                    ) : (
+                      <span className="text-[10px] opacity-40">+</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Custom Tag Input */}
+            <div className="mt-3.5 border-t border-stone-200/80 pt-3">
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Tag className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-400" />
+                  <input
+                    type="text"
+                    value={customTagInput}
+                    onChange={e => setCustomTagInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomTag();
+                      }
+                    }}
+                    placeholder="Add custom role or tag (e.g. Reader, Musician, Cousin)…"
+                    className={`${inputClass} pl-8.5 py-1.5 text-xs`}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleAddCustomTag}
+                  disabled={!customTagInput.trim()}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add Tag
+                </Button>
+              </div>
+
+              {/* Removable pills for custom tags */}
+              {form.tags.some(t => !isWeddingRoleTag(t) && t !== 'free_venue_housing' && t !== 'presence_is_our_gift') && (
+                <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 mr-1">Custom tags:</span>
+                  {form.tags
+                    .filter(t => !isWeddingRoleTag(t) && t !== 'free_venue_housing' && t !== 'presence_is_our_gift')
+                    .map(t => {
+                      const meta = getTagMeta(t);
+                      return (
+                        <span
+                          key={t}
+                          className="inline-flex items-center gap-1 rounded-full border border-stone-300 bg-white px-2.5 py-0.5 text-xs font-semibold text-stone-700 shadow-2xs"
+                        >
+                          <span>{meta.icon}</span>
+                          <span>{meta.label}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleTag(t, false)}
+                            className="ml-0.5 rounded-full p-0.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+                            title="Remove tag"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          </div>
 
           <div>
             <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">Access rules</p>
