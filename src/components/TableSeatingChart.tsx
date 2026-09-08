@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Wine, Check, Users, Info, RotateCcw, Sparkles, Heart } from 'lucide-react';
+import { Wine, Check, Users, Info, RotateCcw, Sparkles, Heart, Dices } from 'lucide-react';
 import type { HouseholdInvitation } from '../types/wedding';
 
 export interface TableConfig {
@@ -236,9 +236,68 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
     updateSelection([]);
   };
 
-  const handleLetCoupleAssign = () => {
+  const handlePlaceAnywhere = () => {
     setAlertMessage(null);
-    updateSelection([]);
+    const countNeeded = attendingCount > 0 ? attendingCount : 1;
+
+    // Find all available guest seats across all 7 guest tables (exclude bridal table 0)
+    const tablesWithFreeSeats: { tableId: number; freeSeatNums: number[] }[] = [];
+    const allFreeSeatIds: string[] = [];
+
+    for (const table of TABLES) {
+      const freeAtTable: number[] = [];
+      for (let s = 1; s <= table.capacity; s++) {
+        const seatId = `T${table.id}-S${s}`;
+        if (!occupiedSeatsMap.has(seatId)) {
+          freeAtTable.push(s);
+          allFreeSeatIds.push(seatId);
+        }
+      }
+      if (freeAtTable.length > 0) {
+        tablesWithFreeSeats.push({ tableId: table.id, freeSeatNums: freeAtTable });
+      }
+    }
+
+    if (allFreeSeatIds.length < countNeeded) {
+      setAlertMessage(
+        allFreeSeatIds.length === 0
+          ? 'All seats are currently reserved!'
+          : `Only ${allFreeSeatIds.length} seat${allFreeSeatIds.length === 1 ? '' : 's'} available, but your party has ${countNeeded} guests.`
+      );
+      return;
+    }
+
+    // Try to seat everyone at the same table if possible
+    const tablesWithEnoughSeats = tablesWithFreeSeats.filter(t => t.freeSeatNums.length >= countNeeded);
+
+    let chosenSeatIds: string[] = [];
+
+    if (tablesWithEnoughSeats.length > 0) {
+      // Pick a random suitable table
+      const randomTable = tablesWithEnoughSeats[Math.floor(Math.random() * tablesWithEnoughSeats.length)];
+      const freeNums = [...randomTable.freeSeatNums];
+      // Check if there are consecutive blocks
+      let bestBlock: number[] = [];
+      for (let i = 0; i <= freeNums.length - countNeeded; i++) {
+        const candidate = freeNums.slice(i, i + countNeeded);
+        const isConsecutive = candidate.every((val, idx) => idx === 0 || val === candidate[idx - 1] + 1);
+        if (isConsecutive) {
+          bestBlock = candidate;
+          break;
+        }
+      }
+
+      const seatsToTake = bestBlock.length === countNeeded ? bestBlock : freeNums.slice(0, countNeeded);
+      chosenSeatIds = seatsToTake.map(s => `T${randomTable.tableId}-S${s}`);
+    } else {
+      // Fallback: shuffle all free seats across different tables
+      const shuffled = [...allFreeSeatIds].sort(() => Math.random() - 0.5);
+      chosenSeatIds = shuffled.slice(0, countNeeded);
+    }
+
+    updateSelection(chosenSeatIds);
+    const tableDesc = formatSeatsToTableNumber(chosenSeatIds);
+    setAlertMessage(`🎲 Randomly placed at: ${tableDesc}`);
   };
 
   const seatsRemaining = Math.max(0, attendingCount - selectedSeatIds.length);
@@ -991,76 +1050,136 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
       )}
 
       {/* SELECTED SEATS LIVE SUMMARY & CONTROLS */}
-      <div className="rounded-2xl border border-pink-200/80 bg-gradient-to-br from-[#fffdfd] to-[#fbf5f7] p-5 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-2xl border border-pink-200/90 bg-gradient-to-br from-[#ffffff] via-[#fffcfd] to-[#faf3f5] p-5 sm:p-6 shadow-sm">
+        {/* Header with Title & Status Badge */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-pink-100/80 pb-4">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-[#b8697a]">
-              Your Table &amp; Seat Assignment
-            </p>
+            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#b8697a]">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Your Table &amp; Seat Assignment</span>
+            </div>
             {selectedSeatIds.length > 0 ? (
-              <div className="mt-1">
-                <p className="text-base font-bold text-stone-800">
-                  {formatSeatsToTableNumber(selectedSeatIds)}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {selectedSeatIds.map((seatId, idx) => {
-                    const match = seatId.match(/T(\d+)-S(\d+)/);
-                    const t = match ? parseInt(match[1], 10) : 0;
-                    const s = match ? match[2] : '';
-                    const tableName = t === 0 ? 'C & A Table' : `Table ${t}`;
-                    const memberName = attendingMembers[idx] || `Guest ${idx + 1}`;
-
-                    return (
-                      <span
-                        key={seatId}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-pink-200 bg-white px-3 py-1 text-xs font-medium text-stone-800 shadow-2xs"
-                      >
-                        <span className="h-2 w-2 rounded-full bg-[#c97a8b]" />
-                        <strong>{memberName}:</strong> {tableName}, Seat {s}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const matchNum = seatId.match(/T(\d+)-S(\d+)/);
-                            if (matchNum) handleSeatClick(parseInt(matchNum[1], 10), parseInt(matchNum[2], 10));
-                          }}
-                          className="ml-1 text-stone-400 hover:text-red-500 font-bold px-0.5 cursor-pointer"
-                          title="Remove seat"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
+              <h5 className="mt-1 font-display text-lg sm:text-xl font-bold text-stone-800">
+                {formatSeatsToTableNumber(selectedSeatIds)}
+              </h5>
             ) : (
-              <p className="mt-1 text-xs text-stone-500">
-                No seats selected yet. Click any available seat above to assign your party.
-              </p>
+              <h5 className="mt-1 font-display text-base font-semibold text-stone-600">
+                No seats selected yet ({attendingCount} {attendingCount === 1 ? 'seat' : 'seats'} needed)
+              </h5>
             )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {selectedSeatIds.length > 0 && (
+          <div className="shrink-0">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-semibold shadow-2xs ${
+                selectedSeatIds.length === attendingCount
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-pink-50 text-[#b8697a] border border-pink-200'
+              }`}
+            >
+              {selectedSeatIds.length === attendingCount ? (
+                <>
+                  <Check className="h-3.5 w-3.5 text-emerald-600" />
+                  All {attendingCount} seats chosen
+                </>
+              ) : (
+                <>
+                  {selectedSeatIds.length} of {attendingCount} selected
+                </>
+              )}
+            </span>
+          </div>
+        </div>
+
+        {/* Selected Seats Cards / Empty State */}
+        <div className="py-4">
+          {selectedSeatIds.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+              {selectedSeatIds.map((seatId, idx) => {
+                const match = seatId.match(/T(\d+)-S(\d+)/);
+                const t = match ? parseInt(match[1], 10) : 0;
+                const s = match ? match[2] : '';
+                const tableObj = TABLES.find(tbl => tbl.id === t);
+                const tableName = t === 0 ? 'C & A Sweetheart Table' : `Table ${t} (${tableObj?.theme || 'Banquet'})`;
+                const memberName = attendingMembers[idx] || (idx === 0 ? 'Primary Guest' : `Guest ${idx + 1}`);
+
+                return (
+                  <div
+                    key={seatId}
+                    className="flex items-center justify-between gap-2.5 rounded-xl border border-pink-100 bg-white/95 px-3.5 py-2.5 shadow-2xs hover:border-pink-200 transition"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#fdf2f4] border border-pink-200 text-xs font-bold text-[#b8697a]">
+                        {s}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-stone-800 truncate">{memberName}</p>
+                        <p className="text-[11px] text-stone-500 truncate">{tableName}, Seat {s}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const matchNum = seatId.match(/T(\d+)-S(\d+)/);
+                        if (matchNum) handleSeatClick(parseInt(matchNum[1], 10), parseInt(matchNum[2], 10));
+                      }}
+                      className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-500 transition cursor-pointer"
+                      title={`Remove seat for ${memberName}`}
+                      aria-label={`Remove seat for ${memberName}`}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 rounded-xl border border-dashed border-pink-200/80 bg-white/60 p-4 text-xs text-stone-500">
+              <Users className="h-5 w-5 text-pink-300 shrink-0" />
+              <div>
+                <p className="font-semibold text-stone-700">Choose your seats above or let us place you</p>
+                <p className="mt-0.5 text-[11px] text-stone-500">
+                  Click on any open circle on the floor plan, or click "Place me anywhere" below to receive a random seat.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Actions Bar: Clear on Bottom Left, Place me anywhere on Bottom Right */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-pink-100/80 pt-4">
+          {/* Bottom Left: Clear option */}
+          <div>
+            {selectedSeatIds.length > 0 ? (
               <button
                 type="button"
                 onClick={handleClearSelection}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-50 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50 hover:text-red-600 hover:border-red-200 transition shadow-2xs cursor-pointer"
               >
                 <RotateCcw className="h-3.5 w-3.5 text-stone-400" />
-                Clear
+                <span>Clear</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200/60 bg-stone-50/60 px-3.5 py-2 text-xs font-medium text-stone-400 cursor-not-allowed opacity-60"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>Clear</span>
               </button>
             )}
-
-            <button
-              type="button"
-              onClick={handleLetCoupleAssign}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-pink-200 bg-pink-50/70 px-3 py-1.5 text-xs font-semibold text-[#b8697a] hover:bg-pink-100 transition cursor-pointer"
-            >
-              <Heart className="h-3.5 w-3.5 text-[#c97a8b]" />
-              Let Abby &amp; Cam place us
-            </button>
           </div>
+
+          {/* Bottom Right: Place me anywhere */}
+          <button
+            type="button"
+            onClick={handlePlaceAnywhere}
+            className="inline-flex items-center gap-2 rounded-xl border border-pink-300 bg-gradient-to-r from-[#d48b99] to-[#b8697a] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:from-[#c97a8b] hover:to-[#a75869] active:scale-[0.99] transition cursor-pointer"
+          >
+            <Dices className="h-3.5 w-3.5 text-pink-100" />
+            <span>{attendingCount > 1 ? 'Place us anywhere' : 'Place me anywhere'}</span>
+          </button>
         </div>
       </div>
     </div>
