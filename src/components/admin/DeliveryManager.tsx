@@ -168,6 +168,20 @@ export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
     onSelectionChange(next);
   };
 
+  const sampleHousehold = useMemo(() => {
+    return households.find(h => selectedIds.has(h.id)) || households[0] || {
+      id: 'sample-preview',
+      name: 'Anri Daniel',
+      inviteCode: 'CA-ANRI-D-DSF',
+      partySize: 2,
+      attendingCount: 0,
+      rsvpStatus: 'pending' as const,
+      dietaryRestrictions: [],
+      tags: [],
+      members: [],
+    };
+  }, [households, selectedIds]);
+
   const getPersonalizedMessage = (household: HouseholdInvitation): string => {
     const base = buildInvitationMessage(
       { ...config, websiteUrl: household.invitationUrl || config.siteUrl },
@@ -341,31 +355,27 @@ export const DeliveryManager: React.FC<DeliveryManagerProps> = ({
                 Live WhatsApp Message Preview (Sample):
               </p>
               <div className="whitespace-pre-line rounded-xl bg-white p-3.5 font-sans text-xs text-stone-800 shadow-sm border border-emerald-100/60">
-                {households[0] ? getPersonalizedMessage(households[0]) : templateDraft.body}
+                {getPersonalizedMessage(sampleHousehold)}
               </div>
             </div>
 
             <div className="flex flex-wrap items-center justify-end gap-2 border-t border-stone-100 pt-4">
-              {households[0] && (
-                <Button size="sm" onClick={() => onPreview(households[0], variant)}>
-                  <Eye className="h-4 w-4" /> Preview Card
-                </Button>
-              )}
-              {households[0] && (
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    try {
-                      await downloadInvitationPdf({ ...config, websiteUrl: households[0].invitationUrl || config.siteUrl }, households[0], variant);
-                      notify({ tone: 'success', message: 'Sample 5×7 PDF downloaded.' });
-                    } catch (error) {
-                      notify({ tone: 'error', message: error instanceof Error ? error.message : 'PDF download failed.' });
-                    }
-                  }}
-                >
-                  <Download className="h-4 w-4" /> Sample 5×7 PDF
-                </Button>
-              )}
+              <Button size="sm" onClick={() => onPreview(sampleHousehold, variant)}>
+                <Eye className="h-4 w-4" /> Preview Card
+              </Button>
+              <Button
+                size="sm"
+                onClick={async () => {
+                  try {
+                    await downloadInvitationPdf({ ...config, websiteUrl: sampleHousehold.invitationUrl || config.siteUrl }, sampleHousehold, variant);
+                    notify({ tone: 'success', message: 'Sample 5×7 PDF downloaded.' });
+                  } catch (error) {
+                    notify({ tone: 'error', message: error instanceof Error ? error.message : 'PDF download failed.' });
+                  }
+                }}
+              >
+                <Download className="h-4 w-4" /> Sample 5×7 PDF
+              </Button>
               <Button
                 size="sm"
                 tone="primary"

@@ -89,7 +89,6 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
   const contextRecord = wedding.activeGuest as RecipientLike | null;
   const config = wedding.config as unknown as InvitationConfig & Record<string, unknown>;
   const selectedRecord = recipient || household || contextRecord;
-  const [prevInvitationType, setPrevInvitationType] = useState<InvitationVariant>(invitationType);
   const [variant, setVariant] = useState<InvitationVariant>(invitationType);
   const [addressee, setAddressee] = useState(
     guestNameOverride || selectedRecord?.householdName || selectedRecord?.name || '',
@@ -99,12 +98,6 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-
-  if (prevInvitationType !== invitationType) {
-    setPrevInvitationType(invitationType);
-    setVariant(invitationType);
-  }
-
   const inviteRecipient = useMemo(() => normaliseRecipient(
     selectedRecord,
     addressee || guestNameOverride,
@@ -164,7 +157,7 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
       const canvas = await html2canvas(cardRef.current, {
         scale: 3,
         useCORS: true,
-        backgroundColor: '#fcf9f5',
+        backgroundColor: '#fdfbf7',
         logging: false,
       });
       const link = document.createElement('a');
@@ -207,7 +200,7 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
 
   const modal = (
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto bg-stone-950/80 p-2 backdrop-blur-md sm:p-5"
+      className="fixed inset-0 z-[100050] flex items-center justify-center overflow-y-auto bg-stone-950/80 p-2 backdrop-blur-md sm:p-5"
       role="dialog"
       aria-modal="true"
       aria-label="Invitation studio"
@@ -223,7 +216,7 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#9b5b6d]">Invitation studio</p>
-              <h2 className="font-serif text-lg font-semibold text-stone-900">Print-ready, private and personalised</h2>
+              <h2 className="font-serif text-lg font-semibold text-stone-900">Cute &amp; simple personalised cards</h2>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -234,7 +227,7 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
               className="inline-flex items-center gap-2 rounded-full bg-[#7f2540] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#681d34] disabled:opacity-50"
             >
               {isGeneratingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-              Download PDF
+              Download 5×7 PDF
             </button>
             <button type="button" onClick={onClose} className="rounded-full p-2 text-stone-500 transition hover:bg-stone-100" aria-label="Close invitation studio">
               <X className="h-5 w-5" />
@@ -267,26 +260,30 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
                   id="invitation-addressee"
                   value={addressee}
                   onChange={event => setAddressee(event.target.value)}
-                  placeholder="The Daniels family"
+                  placeholder="e.g. Anri Daniel or The Daniels Family"
                   className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm text-stone-800 outline-none transition focus:border-[#bd7890] focus:ring-2 focus:ring-[#ead3db]"
                 />
-                <p className="mt-1.5 text-[11px] leading-relaxed text-stone-400">This name appears on the card. The private invite code remains tied to the selected household.</p>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-stone-400">Personal name or family name shown on the card.</p>
               </div>
 
               <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
                 <label className="flex cursor-pointer items-center justify-between gap-3">
                   <span>
                     <span className="block text-xs font-semibold text-stone-800">Include QR code</span>
-                    <span className="mt-0.5 block text-[10px] text-stone-500">Links directly to this household&apos;s RSVP.</span>
+                    <span className="mt-0.5 block text-[10px] text-stone-500">Guests can scan with their phone camera to visit the website &amp; RSVP.</span>
                   </span>
                   <input type="checkbox" checked={includeQr} onChange={event => setIncludeQr(event.target.checked)} className="h-4 w-4 rounded border-stone-300 text-[#8b2946] focus:ring-[#bd7890]" />
                 </label>
               </div>
 
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-[11px] text-emerald-900">
-                <div className="mb-1.5 flex items-center gap-2 font-semibold"><QrCode className="h-4 w-4" /> Personal link ready</div>
+                <div className="mb-1.5 flex items-center gap-2 font-semibold"><QrCode className="h-4 w-4" /> Personal RSVP link ready</div>
                 <p className="break-all leading-relaxed opacity-80">{invitationUrl}</p>
-                {!inviteRecipient.inviteCode && !selectedRecord?.invitationUrl && <p className="mt-2 font-semibold text-amber-700">Select a household to add its private invite code.</p>}
+                {inviteRecipient.inviteCode ? (
+                  <p className="mt-2 font-mono font-bold text-[#7f2540]">Private Code: {inviteRecipient.inviteCode}</p>
+                ) : (
+                  <p className="mt-2 font-semibold text-amber-700">Generic preview link.</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -307,75 +304,161 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
               </div>
             )}
 
+            {/* Cute, Clean & Simple 5x7 Card */}
             <div
               ref={cardRef}
               id="printable-invitation-card"
-              className="relative mx-auto flex aspect-[5/7] w-full max-w-[430px] flex-col overflow-hidden rounded-[1.4rem] border border-[#c6a468] bg-[#fcf9f5] p-7 text-center shadow-[0_30px_70px_-25px_rgba(70,42,35,0.55)] sm:p-9"
+              className="relative mx-auto flex aspect-[5/7] w-full max-w-[430px] flex-col overflow-hidden rounded-[1.4rem] border-2 border-[#e4aeb5]/80 bg-[#fdfbf7] p-6 text-center shadow-[0_20px_50px_-20px_rgba(70,42,35,0.35)] sm:p-8"
               style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
             >
-              <div className="pointer-events-none absolute inset-3 rounded-[1rem] border border-[#e5c9cf]" />
-              <div className="pointer-events-none absolute -left-7 -top-8 h-32 w-32 rounded-full bg-[#eec9d1]/45 blur-2xl" />
-              <div className="pointer-events-none absolute -bottom-7 -right-8 h-36 w-36 rounded-full bg-[#dce4d6]/60 blur-2xl" />
-              <CornerBotanical className="absolute left-1 top-1 h-24 w-24 opacity-80" />
-              <CornerBotanical className="absolute right-1 top-1 h-24 w-24 -scale-x-100 opacity-80" />
-              <CornerBotanical className="absolute bottom-1 left-1 h-24 w-24 -scale-y-100 opacity-70" />
-              <CornerBotanical className="absolute bottom-1 right-1 h-24 w-24 scale-x-[-1] scale-y-[-1] opacity-70" />
+              {/* Subtle inner hairline border */}
+              <div className="pointer-events-none absolute inset-2.5 rounded-[1.1rem] border border-[#e4aeb5]/40" />
 
-              <div className="relative z-10 flex h-full flex-col">
-                <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-[#7b213e] via-[#ab4664] to-[#d47791] text-[10px] font-bold tracking-[0.16em] text-white shadow-lg ring-1 ring-[#c5a05d]">
-                  C&amp;A
-                </div>
-
-                <p className="mt-4 text-[8px] font-semibold uppercase tracking-[0.3em] text-stone-500 sm:text-[9px]">
-                  {variant === 'save-the-date' ? 'Please save the date' : 'Together with their families'}
-                </p>
-                {addressee && (
-                  <div className="mx-auto mt-2 max-w-[85%] rounded-full border border-[#e9c6d0] bg-[#fff1f4] px-4 py-1 text-[8px] font-bold uppercase tracking-[0.18em] text-[#7f2540] sm:text-[9px]">
-                    For {addressee}
+              <div className="relative z-10 flex h-full flex-col justify-between">
+                {/* TOP HEADER */}
+                <div>
+                  <div className="mx-auto mb-1 flex items-center justify-center gap-2">
+                    <span className="h-px w-8 bg-[#e4aeb5]" />
+                    <p className="font-sans text-[10px] font-bold uppercase tracking-[0.25em] text-[#8a2947]">
+                      {variant === 'save-the-date' ? 'Save the Date' : 'Wedding Invitation'}
+                    </p>
+                    <span className="h-px w-8 bg-[#e4aeb5]" />
                   </div>
-                )}
-
-                <div className="my-auto py-3">
-                  <h3 className="font-serif text-3xl font-normal leading-none text-stone-900 sm:text-4xl">{config.brideName}</h3>
-                  <p className="my-1 font-serif text-2xl italic leading-none text-[#a23d5c]">&amp;</p>
-                  <h3 className="font-serif text-3xl font-normal leading-none text-stone-900 sm:text-4xl">{config.groomName}</h3>
-                  <div className="mx-auto my-4 h-px w-20 bg-gradient-to-r from-transparent via-[#b99555] to-transparent" />
-
-                  {variant === 'save-the-date' ? (
-                    <>
-                      <p className="font-serif text-lg font-semibold uppercase tracking-[0.04em] text-stone-800 sm:text-xl">
-                        {dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(config.weddingDate, true)}
-                      </p>
-                      <p className="mt-2 text-[8px] font-semibold uppercase tracking-[0.28em] text-stone-500 sm:text-[9px]">George · Western Cape</p>
-                      <p className="mx-auto mt-5 max-w-[270px] font-serif text-[11px] italic leading-relaxed text-stone-600 sm:text-sm">
-                        {config.tagline || 'A beautiful celebration is on the horizon.'}
-                      </p>
-                      <p className="mt-4 text-[8px] font-semibold uppercase tracking-[0.2em] text-[#8b2946]">Formal invitation to follow</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-serif text-[11px] italic text-stone-600 sm:text-sm">request the pleasure of your company at their wedding</p>
-                      <p className="mt-4 font-serif text-sm font-semibold text-stone-800 sm:text-base">
-                        {dateIsTbc ? 'Date and time to be confirmed' : formatWeddingDate(config.weddingDate)}
-                      </p>
-                      {!dateIsTbc && <p className="mt-1 text-[8px] font-medium uppercase tracking-[0.17em] text-stone-500">{config.ceremonyVenue.time}</p>}
-                      <p className="mt-4 font-serif text-sm font-semibold text-[#7f2540] sm:text-base">
-                        {venueIsTbc ? 'Venue details to follow' : config.ceremonyVenue.name}
-                      </p>
-                      {!venueIsTbc && <p className="mx-auto mt-1 max-w-[270px] text-[8px] leading-relaxed text-stone-500 sm:text-[9px]">{[config.ceremonyVenue.address, config.ceremonyVenue.city].filter(Boolean).join(', ')}</p>}
-                      {config.receptionVenue?.name && <p className="mt-2 font-serif text-[9px] italic text-stone-600 sm:text-[11px]">Celebration to follow at {config.receptionVenue.name}</p>}
-                    </>
+                  {addressee && (
+                    <div className="mx-auto mt-1 inline-block rounded-full bg-[#fdf2f4] border border-[#e4aeb5]/50 px-3.5 py-0.5 font-sans text-[10px] font-bold tracking-wider text-[#8a2947] uppercase">
+                      For {addressee}
+                    </div>
                   )}
                 </div>
 
-                <div className={`grid items-end gap-3 border-t border-[#ead3d9] pt-3 text-left ${includeQr && qrDataUrl ? 'grid-cols-[1fr_68px]' : 'grid-cols-1 text-center'}`}>
-                  <div className="min-w-0">
-                    <p className="text-[7px] font-bold uppercase tracking-[0.19em] text-stone-500">{variant === 'official' ? 'Kindly RSVP online' : 'Details & updates'}</p>
-                    <p className="mt-1 break-all text-[7px] leading-relaxed text-stone-600 sm:text-[8px]">{displayUrl}</p>
-                    {inviteRecipient.inviteCode && <p className="mt-1 font-mono text-[8px] font-bold text-[#8b2946]">CODE: {inviteRecipient.inviteCode}</p>}
-                    {variant === 'official' && config.rsvpDeadline && <p className="mt-1 text-[7px] text-stone-500">Please respond by {formatWeddingDate(config.rsvpDeadline, true)}</p>}
+                {/* MIDDLE CONTENT */}
+                <div className="my-auto py-1">
+                  {variant === 'official' && (
+                    <p className="mb-2 font-serif text-xs italic text-stone-500">
+                      request the pleasure of your company at the wedding of
+                    </p>
+                  )}
+
+                  <h3 className="font-serif text-3xl font-normal leading-tight text-stone-900 sm:text-4xl">
+                    {config.brideShortName || config.brideName}
+                  </h3>
+                  <p className="my-1 font-serif text-2xl italic text-[#c97a8e]">&amp;</p>
+                  <h3 className="font-serif text-3xl font-normal leading-tight text-stone-900 sm:text-4xl">
+                    {config.groomShortName || config.groomName}
+                  </h3>
+
+                  {/* Delicate romantic heart divider */}
+                  <div className="mx-auto my-3 flex items-center justify-center gap-2 text-[#e4aeb5]">
+                    <span className="h-px w-10 bg-[#e4aeb5]/60" />
+                    <Heart className="h-3 w-3 fill-[#e4aeb5]" />
+                    <span className="h-px w-10 bg-[#e4aeb5]/60" />
                   </div>
-                  {includeQr && qrDataUrl && <img src={qrDataUrl} alt={`QR code for ${inviteRecipient.name}'s private RSVP`} className="h-[68px] w-[68px] rounded-md bg-white p-0.5 shadow-sm" />}
+
+                  {/* Date & Time */}
+                  <p className="font-serif text-base font-semibold tracking-wide text-stone-800 sm:text-lg">
+                    {dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(config.weddingDate)}
+                  </p>
+                  {variant === 'official' && !dateIsTbc && config.ceremonyVenue.time && (
+                    <p className="font-sans text-[10px] font-semibold tracking-wider text-stone-500 uppercase mt-0.5">
+                      at {config.ceremonyVenue.time}
+                    </p>
+                  )}
+
+                  {/* Venue */}
+                  <p className="mt-2 font-serif text-sm font-semibold text-[#8a2947]">
+                    {venueIsTbc ? 'Venue to follow' : config.ceremonyVenue.name}
+                  </p>
+                  {!venueIsTbc && (
+                    <p className="font-sans text-[10px] text-stone-500">
+                      {[config.ceremonyVenue.address, config.ceremonyVenue.city].filter(Boolean).join(', ')}
+                    </p>
+                  )}
+
+                  {variant === 'save-the-date' ? (
+                    <p className="mt-3 font-serif text-xs italic text-[#8a2947]">
+                      Formal invitation to follow
+                    </p>
+                  ) : (
+                    <p className="mt-2 font-serif text-xs italic text-stone-600">
+                      Celebration to follow
+                    </p>
+                  )}
+                </div>
+
+                {/* BOTTOM SECTION */}
+                <div className="mt-auto border-t border-[#f0dce1] pt-3 font-sans">
+                  {variant === 'official' ? (
+                    <>
+                      {/* Explicit instruction to RSVP on website */}
+                      <div className="mb-2 rounded-xl bg-[#fdf2f4] border border-[#e4aeb5]/60 px-3 py-1.5 text-center">
+                        <p className="text-[11px] font-bold text-[#8a2947]">
+                          ✉️ Please RSVP on our website
+                        </p>
+                        {config.rsvpDeadline && (
+                          <p className="text-[9px] text-stone-500">
+                            Kindly respond by {formatWeddingDate(config.rsvpDeadline, true)}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 text-left">
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-stone-500">
+                            Your Private Invite Code
+                          </p>
+                          <p className="mt-0.5 font-mono text-xs font-extrabold text-[#7f2540] tracking-wider">
+                            {inviteRecipient.inviteCode || 'Provided with your invite'}
+                          </p>
+                          <p className="mt-1 break-all text-[8px] text-stone-400">
+                            {displayUrl}
+                          </p>
+                        </div>
+
+                        {includeQr && qrDataUrl && (
+                          <div className="shrink-0 text-center">
+                            <img
+                              src={qrDataUrl}
+                              alt="Scan QR code to RSVP"
+                              className="h-16 w-16 rounded-lg bg-white p-1 border border-[#e4aeb5]/60 shadow-xs"
+                            />
+                            <p className="mt-0.5 text-[8px] font-semibold text-stone-500">
+                              Scan to RSVP
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    /* Save the date bottom */
+                    <div className="flex items-center justify-between gap-3 text-left">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-stone-700">
+                          Visit our wedding website
+                        </p>
+                        <p className="mt-0.5 break-all text-[9px] text-stone-500">
+                          {displayUrl}
+                        </p>
+                        {inviteRecipient.inviteCode && (
+                          <p className="mt-1 font-mono text-[9px] font-bold text-[#8a2947]">
+                            Your Code: {inviteRecipient.inviteCode}
+                          </p>
+                        )}
+                      </div>
+
+                      {includeQr && qrDataUrl && (
+                        <div className="shrink-0 text-center">
+                          <img
+                            src={qrDataUrl}
+                            alt="Scan QR code to visit website"
+                            className="h-16 w-16 rounded-lg bg-white p-1 border border-[#e4aeb5]/60 shadow-xs"
+                          />
+                          <p className="mt-0.5 text-[8px] font-semibold text-stone-500">
+                            Scan to visit
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -387,17 +470,6 @@ export const PrintInvitationModal: React.FC<PrintInvitationModalProps> = ({
 
   return createPortal(modal, document.body);
 };
-
-const CornerBotanical: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} viewBox="0 0 100 100" fill="none" aria-hidden="true">
-    <path d="M1 2C28 19 42 38 53 74" stroke="#9c7b62" strokeWidth="1.4" />
-    <path d="M23 26C37 18 47 18 57 21M35 45C48 38 60 39 70 45" stroke="#9c7b62" strokeWidth="1.1" />
-    <ellipse cx="42" cy="20" rx="11" ry="7" fill="#d8aaaf" fillOpacity=".66" />
-    <ellipse cx="67" cy="45" rx="9" ry="6" fill="#e7c2ca" fillOpacity=".8" />
-    <ellipse cx="29" cy="31" rx="8" ry="4" transform="rotate(26 29 31)" fill="#aabd9f" fillOpacity=".75" />
-    <ellipse cx="46" cy="52" rx="8" ry="4" transform="rotate(35 46 52)" fill="#aabd9f" fillOpacity=".62" />
-  </svg>
-);
 
 export const CutePrintButton: React.FC<{
   className?: string;

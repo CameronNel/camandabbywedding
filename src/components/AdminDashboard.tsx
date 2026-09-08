@@ -207,6 +207,7 @@ export const AdminDashboard: React.FC = () => {
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
       {preview && (
         <PrintInvitationModal
+          key={`${preview.household.id}-${preview.variant}`}
           isOpen
           onClose={() => setPreview(null)}
           household={preview.household}
