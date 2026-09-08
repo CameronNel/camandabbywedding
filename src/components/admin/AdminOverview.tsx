@@ -5,6 +5,7 @@ import {
   CalendarHeart,
   Camera,
   CheckCircle2,
+  ClipboardList,
   FileSpreadsheet,
   Gift,
   MailCheck,
@@ -22,7 +23,7 @@ import type {
 } from '../../types/wedding';
 import { Button } from './AdminPrimitives';
 
-export type AdminSection = 'overview' | 'households' | 'invitations' | 'content' | 'gallery' | 'settings';
+export type AdminSection = 'overview' | 'rsvps' | 'households' | 'invitations' | 'content' | 'gallery' | 'settings';
 
 interface AdminOverviewProps {
   config: WeddingConfig;
@@ -94,8 +95,11 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           <h3 className="font-serif text-lg font-semibold text-stone-900">Quick actions</h3>
           <p className="mt-0.5 text-[11px] text-stone-500">Jump straight into the next useful task.</p>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+            <Button tone="primary" className="justify-start !bg-[#7f2540] !text-white" onClick={() => onNavigate('rsvps')}>
+              <ClipboardList className="h-4 w-4" /> RSVP Details, Seating &amp; Favours
+            </Button>
             {onOpenReport && (
-              <Button tone="primary" className="justify-start !bg-[#7f2540] !text-white" onClick={onOpenReport}>
+              <Button className="justify-start" onClick={onOpenReport}>
                 <FileSpreadsheet className="h-4 w-4" /> View Master Wedding Report
               </Button>
             )}

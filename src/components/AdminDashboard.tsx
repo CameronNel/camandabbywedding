@@ -4,6 +4,7 @@ import {
   BedDouble,
   CalendarHeart,
   Camera,
+  ClipboardList,
   Eye,
   EyeOff,
   FileSpreadsheet,
@@ -33,11 +34,13 @@ import { DeliveryManager } from './admin/DeliveryManager';
 import { GalleryManager } from './admin/GalleryManager';
 import { HouseholdManager } from './admin/HouseholdManager';
 import { MasterWeddingReportModal } from './admin/MasterWeddingReportModal';
+import { RsvpManager } from './admin/RsvpManager';
 import { SiteSettings } from './admin/SiteSettings';
 import type { ProviderStatus, ToastState } from './admin/contracts';
 
 const navigation: Array<{ id: AdminSection; label: string; icon: React.ReactNode }> = [
   { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="h-4 w-4" /> },
+  { id: 'rsvps', label: 'RSVP Details & Seating', icon: <ClipboardList className="h-4 w-4" /> },
   { id: 'households', label: 'Households', icon: <Users className="h-4 w-4" /> },
   { id: 'invitations', label: 'Invitations', icon: <CalendarHeart className="h-4 w-4" /> },
   { id: 'content', label: 'Stay, services & gifts', icon: <BedDouble className="h-4 w-4" /> },
@@ -187,6 +190,7 @@ export const AdminDashboard: React.FC = () => {
                 ) : (
                   <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
                     {section === 'overview' && <AdminOverview config={wedding.config} households={wedding.households} accommodations={wedding.accommodations} services={wedding.services} gallery={wedding.galleryItems} registry={wedding.registryItems} deliveries={wedding.invitationDeliveries} onNavigate={navigate} onOpenReport={() => setReportOpen(true)} />}
+                    {section === 'rsvps' && <RsvpManager config={wedding.config} households={wedding.households} onOpenReport={() => setReportOpen(true)} notify={notify} />}
                     {section === 'households' && <HouseholdManager config={wedding.config} households={wedding.households} selectedIds={activeSelectedIds} onSelectionChange={setSelectedIds} onCreate={async draft => { await wedding.createHousehold(draft); }} onUpdate={wedding.updateHousehold} onDelete={wedding.deleteHousehold} onPreview={(household, variant) => setPreview({ household, variant })} onOpenReport={() => setReportOpen(true)} notify={notify} />}
                     {section === 'invitations' && <DeliveryManager config={wedding.config} dataMode={wedding.dataMode} households={wedding.households} selectedIds={activeSelectedIds} onSelectionChange={setSelectedIds} templates={wedding.invitationTemplates} deliveries={wedding.invitationDeliveries} providerStatus={providerStatus} onUpsertTemplate={wedding.upsertInvitationTemplate} onSend={wedding.sendInvitations} onPreview={(household, variant) => setPreview({ household, variant })} notify={notify} />}
                     {section === 'content' && <ContentManager accommodations={wedding.accommodations} services={wedding.services} registryItems={wedding.registryItems} onAddAccommodation={async item => { await wedding.addAccommodation(item); }} onUpdateAccommodation={async (id, updates) => { await wedding.updateAccommodation(id, updates); }} onDeleteAccommodation={wedding.deleteAccommodation} onAddService={async item => { await wedding.addService(item); }} onUpdateService={wedding.updateService} onDeleteService={wedding.deleteService} onAddRegistry={async item => { await wedding.addRegistryItem(item); }} onUpdateRegistry={wedding.updateRegistryItem} onDeleteRegistry={wedding.deleteRegistryItem} notify={notify} />}

@@ -23,39 +23,13 @@ import { Reveal } from './Reveal';
 import { type HouseholdView, useGuestExperience } from './guestExperience';
 import { TableSeatingChart } from './TableSeatingChart';
 import { TulipDuo, TulipCorner } from './decorations/TulipAccents';
+import { WEDDING_FAVOUR_OPTIONS } from '../utils/seatingConstants';
 
 interface RsvpSectionProps {
   onNavigate: (section: SectionId) => void;
 }
 
 const INVITATION_SESSION_KEY = 'camabby_active_invitation';
-
-const WEDDING_FAVOUR_OPTIONS = [
-  {
-    id: 'Stroopwaffels',
-    label: 'Stroopwaffels',
-    description: 'Traditional Dutch Stroopwaffels',
-    emoji: '🧇',
-  },
-  {
-    id: 'Bubbles / Glasses',
-    label: 'Bubbles / Glasses',
-    description: 'Cool glasses or bubbles',
-    emoji: '🫧',
-  },
-  {
-    id: 'Something from the netherlands',
-    label: 'Something from the netherlands',
-    description: 'A special Dutch keepsake chosen with love',
-    emoji: '🌷',
-  },
-  {
-    id: 'Nothing',
-    label: 'Nothing',
-    description: "We don't want anything",
-    emoji: '🤍',
-  },
-] as const;
 
 export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   const {
