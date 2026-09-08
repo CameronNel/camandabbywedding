@@ -347,4 +347,95 @@ export interface WeddingConfig {
     icon: string;
     tags: string[];
   }>;
+  bachelorParty?: BachelorPartyConfig;
+  bacheloretteParty?: BachelorettePartyConfig;
+}
+
+export interface BachelorPartyAttendee {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  relationship?: string;
+  notes?: string;
+  isConfirmed?: boolean;
+}
+
+export type BachelorPartyIdeaCategory =
+  | 'adventure'
+  | 'outdoor'
+  | 'nightlife'
+  | 'braai_chill'
+  | 'sports'
+  | 'weekend_trip'
+  | 'food_drinks'
+  | 'other';
+
+export interface BachelorPartyIdea {
+  id: string;
+  title: string;
+  description: string;
+  category: BachelorPartyIdeaCategory;
+  estimatedCost?: string;
+  location?: string;
+  suggestedBy?: string;
+  status: 'idea' | 'top_pick' | 'booked';
+  votes?: number;
+}
+
+export interface BachelorPartyConfig {
+  title: string;
+  tagline: string;
+  dateOrWeekend: string;
+  destination: string;
+  organizerNotes: string;
+  groomNotes: string;
+  budgetPerPerson?: string;
+  attendees: BachelorPartyAttendee[];
+  ideas: BachelorPartyIdea[];
+}
+
+export interface BachelorettePartyAttendee {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  relationship?: string;
+  notes?: string;
+  isConfirmed?: boolean;
+}
+
+export type BachelorettePartyIdeaCategory =
+  | 'spa_wellness'
+  | 'wine_tasting'
+  | 'high_tea'
+  | 'weekend_trip'
+  | 'nightlife'
+  | 'creative_workshop'
+  | 'adventure'
+  | 'food_drinks'
+  | 'other';
+
+export interface BachelorettePartyIdea {
+  id: string;
+  title: string;
+  description: string;
+  category: BachelorettePartyIdeaCategory;
+  estimatedCost?: string;
+  location?: string;
+  suggestedBy?: string;
+  status: 'idea' | 'top_pick' | 'booked';
+  votes?: number;
+}
+
+export interface BachelorettePartyConfig {
+  title: string;
+  tagline: string;
+  dateOrWeekend: string;
+  destination: string;
+  organizerNotes: string;
+  brideNotes: string;
+  budgetPerPerson?: string;
+  attendees: BachelorettePartyAttendee[];
+  ideas: BachelorettePartyIdea[];
 }

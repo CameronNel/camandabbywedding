@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   BedDouble,
+  Beer,
   CalendarHeart,
   Camera,
   ClipboardList,
@@ -29,6 +30,8 @@ import { compressImageForLocalPreview } from '../utils/storage';
 import { PrintInvitationModal } from './PrintInvitationModal';
 import { AdminOverview, type AdminSection } from './admin/AdminOverview';
 import { Button, Toast, inputClass } from './admin/AdminPrimitives';
+import { BachelorPartyManager } from './admin/BachelorPartyManager';
+import { BachelorettePartyManager } from './admin/BachelorettePartyManager';
 import { ContentManager } from './admin/ContentManager';
 import { DeliveryManager } from './admin/DeliveryManager';
 import { GalleryManager } from './admin/GalleryManager';
@@ -45,6 +48,8 @@ const navigation: Array<{ id: AdminSection; label: string; icon: React.ReactNode
   { id: 'invitations', label: 'Invitations', icon: <CalendarHeart className="h-4 w-4" /> },
   { id: 'content', label: 'Stay, services & gifts', icon: <BedDouble className="h-4 w-4" /> },
   { id: 'gallery', label: 'Gallery', icon: <Camera className="h-4 w-4" /> },
+  { id: 'bachelor', label: 'Bachelor Party Hub', icon: <Beer className="h-4 w-4" /> },
+  { id: 'bachelorette', label: 'Bachelorette Party Hub', icon: <Sparkles className="h-4 w-4" /> },
   { id: 'settings', label: 'Site settings', icon: <Settings2 className="h-4 w-4" /> },
 ];
 
@@ -195,6 +200,30 @@ export const AdminDashboard: React.FC = () => {
                     {section === 'invitations' && <DeliveryManager config={wedding.config} dataMode={wedding.dataMode} households={wedding.households} selectedIds={activeSelectedIds} onSelectionChange={setSelectedIds} templates={wedding.invitationTemplates} deliveries={wedding.invitationDeliveries} providerStatus={providerStatus} onUpsertTemplate={wedding.upsertInvitationTemplate} onSend={wedding.sendInvitations} onPreview={(household, variant) => setPreview({ household, variant })} notify={notify} />}
                     {section === 'content' && <ContentManager accommodations={wedding.accommodations} services={wedding.services} registryItems={wedding.registryItems} onAddAccommodation={async item => { await wedding.addAccommodation(item); }} onUpdateAccommodation={async (id, updates) => { await wedding.updateAccommodation(id, updates); }} onDeleteAccommodation={wedding.deleteAccommodation} onAddService={async item => { await wedding.addService(item); }} onUpdateService={wedding.updateService} onDeleteService={wedding.deleteService} onAddRegistry={async item => { await wedding.addRegistryItem(item); }} onUpdateRegistry={wedding.updateRegistryItem} onDeleteRegistry={wedding.deleteRegistryItem} notify={notify} />}
                     {section === 'gallery' && <GalleryManager items={wedding.galleryItems} onUpload={handleLocalGalleryUpload} onUpdate={wedding.updateGalleryItem} onDelete={wedding.deleteGalleryItem} notify={notify} />}
+                    {section === 'bachelor' && (
+                      <BachelorPartyManager
+                        bachelorParty={wedding.bachelorParty}
+                        households={wedding.households}
+                        onUpdate={wedding.updateBachelorParty}
+                        notify={notify}
+                        onPreviewLive={() => {
+                          wedding.setIsAdminOpen(false);
+                          window.location.hash = '#bachelor';
+                        }}
+                      />
+                    )}
+                    {section === 'bachelorette' && (
+                      <BachelorettePartyManager
+                        bacheloretteParty={wedding.bacheloretteParty}
+                        households={wedding.households}
+                        onUpdate={wedding.updateBacheloretteParty}
+                        notify={notify}
+                        onPreviewLive={() => {
+                          wedding.setIsAdminOpen(false);
+                          window.location.hash = '#bachelorette';
+                        }}
+                      />
+                    )}
                     {section === 'settings' && <SiteSettings config={wedding.siteConfig} onSave={wedding.updateSiteConfig} notify={notify} />}
                   </div>
                 )}

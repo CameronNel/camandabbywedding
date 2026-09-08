@@ -9,9 +9,13 @@ import type {
   ScheduleEvent,
   WeddingConfig,
   WeddingService,
+  BachelorPartyConfig,
+  BachelorettePartyConfig,
 } from '../types/wedding';
 import {
   initialAccommodations,
+  initialBachelorParty,
+  initialBacheloretteParty,
   initialConfig,
   initialGallery,
   initialGuests,
@@ -36,6 +40,8 @@ const STORAGE_KEYS = {
   gallery: `${STORAGE_PREFIX}_gallery`,
   invitationTemplates: `${STORAGE_PREFIX}_invitation_templates`,
   invitationDeliveries: `${STORAGE_PREFIX}_invitation_deliveries`,
+  bachelorParty: `${STORAGE_PREFIX}_bachelor_party`,
+  bacheloretteParty: `${STORAGE_PREFIX}_bachelorette_party`,
 } as const;
 
 const LEGACY_PREFIXES = [
@@ -140,6 +146,29 @@ export const saveServices = (items: WeddingService[]): void => safeSave(STORAGE_
 
 export const loadGallery = (): GalleryItem[] => safeLoad(STORAGE_KEYS.gallery, initialGallery);
 export const saveGallery = (items: GalleryItem[]): void => safeSave(STORAGE_KEYS.gallery, items);
+
+export const loadBachelorParty = (): BachelorPartyConfig => {
+  const saved = safeLoad<Partial<BachelorPartyConfig>>(STORAGE_KEYS.bachelorParty, {});
+  return {
+    ...initialBachelorParty,
+    ...saved,
+    attendees: saved.attendees && saved.attendees.length > 0 ? saved.attendees : initialBachelorParty.attendees,
+    ideas: saved.ideas && saved.ideas.length > 0 ? saved.ideas : initialBachelorParty.ideas,
+  };
+};
+export const saveBachelorParty = (data: BachelorPartyConfig): void => safeSave(STORAGE_KEYS.bachelorParty, data);
+
+export const loadBacheloretteParty = (): BachelorettePartyConfig => {
+  const saved = safeLoad<Partial<BachelorettePartyConfig>>(STORAGE_KEYS.bacheloretteParty, {});
+  return {
+    ...initialBacheloretteParty,
+    ...saved,
+    attendees: saved.attendees && saved.attendees.length > 0 ? saved.attendees : initialBacheloretteParty.attendees,
+    ideas: saved.ideas && saved.ideas.length > 0 ? saved.ideas : initialBacheloretteParty.ideas,
+  };
+};
+export const saveBacheloretteParty = (data: BachelorettePartyConfig): void => safeSave(STORAGE_KEYS.bacheloretteParty, data);
+
 
 export const loadInvitationTemplates = (): InvitationTemplate[] => {
   const templates = safeLoad(STORAGE_KEYS.invitationTemplates, initialInvitationTemplates);

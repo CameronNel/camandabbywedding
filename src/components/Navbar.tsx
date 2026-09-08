@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
-import { CalendarCheck, Gift, Home, Images, MapPinned, Menu, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Beer, CalendarCheck, Gift, Home, Images, MapPinned, Menu, Sparkles, X } from 'lucide-react';
 import { useGuestExperience } from './guestExperience';
 import { formatWeddingDate } from '../utils/dates';
 
-export type SectionId = 'home' | 'rsvp' | 'details' | 'gallery' | 'gifts';
+export type SectionId = 'home' | 'rsvp' | 'details' | 'gallery' | 'gifts' | 'bachelor' | 'bachelorette';
 
 interface NavbarProps {
   activeSection: SectionId;
   onNavigate: (section: SectionId) => void;
 }
 
-const navigation: Array<{ id: SectionId; label: string; icon: typeof Home }> = [
+const baseNavigation: Array<{ id: SectionId; label: string; icon: typeof Home }> = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'rsvp', label: 'RSVP', icon: CalendarCheck },
   { id: 'details', label: 'Venue & stay', icon: MapPinned },
@@ -19,11 +19,22 @@ const navigation: Array<{ id: SectionId; label: string; icon: typeof Home }> = [
 ];
 
 export function Navbar({ activeSection, onNavigate }: NavbarProps) {
-  const { activeHousehold, site } = useGuestExperience();
+  const { activeHousehold, site, isGroomsmenEligible, isBridalPartyEligible } = useGuestExperience();
   const [menuOpen, setMenuOpen] = useState(false);
   const navDate = site.dateIsTbc
     ? 'Date TBC'
     : formatWeddingDate(site.weddingDate, { day: '2-digit', month: 'short', year: 'numeric' });
+
+  const navigation = useMemo(() => {
+    const items = [...baseNavigation];
+    if (isGroomsmenEligible) {
+      items.push({ id: 'bachelor' as SectionId, label: "Groom's Crew", icon: Beer });
+    }
+    if (isBridalPartyEligible) {
+      items.push({ id: 'bachelorette' as SectionId, label: "Bridal Crew", icon: Sparkles });
+    }
+    return items;
+  }, [isGroomsmenEligible, isBridalPartyEligible]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -64,14 +75,36 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
         <nav className="hidden items-center gap-1 rounded-full border border-stone-200/80 bg-white/[0.65] p-1.5 shadow-sm lg:flex" aria-label="Wedding website">
           {navigation.map(item => {
             const active = activeSection === item.id;
+            const isBachelor = item.id === 'bachelor';
+            const isBachelorette = item.id === 'bachelorette';
             return (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => choose(item.id)}
                 aria-current={active ? 'page' : undefined}
-                className={`nav-pill ${active ? 'is-active' : ''}`}
+                className={`nav-pill ${active ? 'is-active' : ''} ${
+                  isBachelor && !active
+                    ? 'border border-[#a2ac94] bg-[#f0f2ec] text-[#3e4437] font-bold hover:bg-[#e4e7de]'
+                    : isBachelorette && !active
+                      ? 'border border-[#e4aeb5] bg-[#fdf2f4] text-[#9c2743] font-bold hover:bg-[#fae4ea]'
+                      : ''
+                }`}
               >
+                {isBachelor && (
+                  <Beer
+                    className={`inline-block mr-1.5 h-3.5 w-3.5 ${
+                      active ? 'text-white' : 'text-[#404c24]'
+                    } -mt-0.5`}
+                  />
+                )}
+                {isBachelorette && (
+                  <Sparkles
+                    className={`inline-block mr-1.5 h-3.5 w-3.5 ${
+                      active ? 'text-white' : 'text-[#9c2743]'
+                    } -mt-0.5`}
+                  />
+                )}
                 {item.label}
               </button>
             );
@@ -110,6 +143,8 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
           {navigation.map(item => {
             const Icon = item.icon;
             const active = activeSection === item.id;
+            const isBachelor = item.id === 'bachelor';
+            const isBachelorette = item.id === 'bachelorette';
             return (
               <button
                 key={item.id}
@@ -117,11 +152,28 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
                 onClick={() => choose(item.id)}
                 aria-current={active ? 'page' : undefined}
                 className={`flex min-h-12 items-center gap-3 rounded-2xl px-4 text-left text-sm font-semibold transition-colors ${
-                  active ? 'bg-[#c97a8b] text-white shadow-md shadow-pink-200/50' : 'text-stone-700 hover:bg-white'
+                  active
+                    ? isBachelor
+                      ? 'bg-[#404c24] text-white shadow-md shadow-[#404c24]/30'
+                      : isBachelorette
+                        ? 'bg-[#9c2743] text-white shadow-md shadow-rose-900/30'
+                        : 'bg-[#c97a8b] text-white shadow-md shadow-pink-200/50'
+                    : isBachelor
+                      ? 'border border-[#a2ac94] bg-[#f0f2ec] text-[#3e4437] font-bold'
+                      : isBachelorette
+                        ? 'border border-[#e4aeb5] bg-[#fdf2f4] text-[#9c2743] font-bold'
+                        : 'text-stone-700 hover:bg-white'
                 }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className={`h-4 w-4 ${isBachelor && !active ? 'text-[#404c24]' : isBachelorette && !active ? 'text-[#9c2743]' : ''}`} />
                 {item.label}
+                {(isBachelor || isBachelorette) && (
+                  <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                    isBachelor ? 'bg-[#404c24]/15 text-[#404c24]' : 'bg-[#9c2743]/15 text-[#9c2743]'
+                  }`}>
+                    Unlocked
+                  </span>
+                )}
               </button>
             );
           })}

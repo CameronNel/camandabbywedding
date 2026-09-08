@@ -23,7 +23,7 @@ import type {
 } from '../../types/wedding';
 import { Button } from './AdminPrimitives';
 
-export type AdminSection = 'overview' | 'rsvps' | 'households' | 'invitations' | 'content' | 'gallery' | 'settings';
+export type AdminSection = 'overview' | 'rsvps' | 'households' | 'invitations' | 'content' | 'gallery' | 'bachelor' | 'bachelorette' | 'settings';
 
 interface AdminOverviewProps {
   config: WeddingConfig;

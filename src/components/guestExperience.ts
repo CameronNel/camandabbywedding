@@ -14,6 +14,7 @@ export interface HouseholdMemberView {
   name: string;
   attending: boolean;
   isPrimary?: boolean;
+  role?: string;
   dietaryRestrictions?: string[];
   dietaryDetails?: string;
 }
@@ -80,10 +81,11 @@ function normalizeHousehold(household: HouseholdInvitation | null): HouseholdVie
         name: member.name,
         attending: member.attending === true,
         isPrimary: member.isPrimary,
+        role: member.role,
         dietaryRestrictions: member.dietaryRestrictions || [],
         dietaryDetails: member.dietaryDetails || '',
       }))
-    : [{ id: household.id, name: household.name, attending: household.rsvpStatus === 'attending', isPrimary: true, dietaryRestrictions: [], dietaryDetails: '' }];
+    : [{ id: household.id, name: household.name, attending: household.rsvpStatus === 'attending', isPrimary: true, role: undefined, dietaryRestrictions: [], dietaryDetails: '' }];
 
   const isPlusOneAllowed = Boolean(household.isPlusOneAllowed);
   const companionNames = household.companionNames || [];
@@ -224,5 +226,12 @@ export function useGuestExperience() {
     households: context.households,
     clearInvitation: () => context.setActiveHousehold(null),
     openAdmin: () => context.setIsAdminOpen(true),
+    bachelorParty: context.bachelorParty,
+    updateBachelorParty: context.updateBachelorParty,
+    isGroomsmenEligible: context.isGroomsmenEligible,
+    bacheloretteParty: context.bacheloretteParty,
+    updateBacheloretteParty: context.updateBacheloretteParty,
+    isBridalPartyEligible: context.isBridalPartyEligible,
+    isAdminLoggedIn: context.isAdminAuthenticated || Boolean(context.adminSession),
   };
 }

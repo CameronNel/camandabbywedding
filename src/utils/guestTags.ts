@@ -208,3 +208,37 @@ export function getTagMeta(tagId: string): RoleTagDef {
 export function isWeddingRoleTag(tagId: string): boolean {
   return WEDDING_ROLE_TAGS.some(t => t.id === tagId);
 }
+
+export function isBestManOrGroomsmanTag(tagId: string): boolean {
+  const norm = (tagId || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  return norm === 'best_man' || norm === 'groomsman' || norm === 'groomsmen';
+}
+
+export function isBestManOrGroomsmanHousehold(
+  household: { tags?: string[]; members?: Array<{ role?: string }> } | null | undefined,
+): boolean {
+  if (!household) return false;
+  const hasTag = (household.tags || []).some(isBestManOrGroomsmanTag);
+  const hasMemberRole = (household.members || []).some(m => Boolean(m.role && isBestManOrGroomsmanTag(m.role)));
+  return hasTag || hasMemberRole;
+}
+
+export function isMaidOfHonorOrBridesmaidTag(tagId: string): boolean {
+  const norm = (tagId || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  return (
+    norm === 'maid_of_honor' ||
+    norm === 'bridesmaid' ||
+    norm === 'bridesmaids' ||
+    norm === 'matron_of_honor'
+  );
+}
+
+export function isMaidOfHonorOrBridesmaidHousehold(
+  household: { tags?: string[]; members?: Array<{ role?: string }> } | null | undefined,
+): boolean {
+  if (!household) return false;
+  const hasTag = (household.tags || []).some(isMaidOfHonorOrBridesmaidTag);
+  const hasMemberRole = (household.members || []).some(m => Boolean(m.role && isMaidOfHonorOrBridesmaidTag(m.role)));
+  return hasTag || hasMemberRole;
+}
+

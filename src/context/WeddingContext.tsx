@@ -11,6 +11,7 @@ import type {
   Accommodation,
   ActionResult,
   AdminSession,
+  BachelorPartyConfig,
   GalleryItem,
   Guest,
   GuestWish,
@@ -26,6 +27,7 @@ import type {
   SendInvitationResult,
   WeddingConfig,
   WeddingService,
+  BachelorettePartyConfig,
 } from '../types/wedding';
 import {
   buildInvitationUrl,
@@ -33,6 +35,8 @@ import {
   generateHouseholdInviteCode,
   inviteCodesMatch,
   loadAccommodations,
+  loadBachelorParty,
+  loadBacheloretteParty,
   loadConfig,
   loadGallery,
   loadGuests,
@@ -44,6 +48,8 @@ import {
   loadWishes,
   resetAppToFactoryDefaults,
   saveAccommodations,
+  saveBachelorParty,
+  saveBacheloretteParty,
   saveConfig,
   saveGallery,
   saveGuests,
@@ -54,6 +60,7 @@ import {
   saveServices,
   saveWishes,
 } from '../utils/storage';
+import { isBestManOrGroomsmanHousehold, isMaidOfHonorOrBridesmaidHousehold } from '../utils/guestTags';
 import {
   initialAccommodations,
   initialGuests,
@@ -135,6 +142,14 @@ export interface WeddingContextType {
   authenticateAdmin: (pin: string) => boolean;
   logoutAdmin: () => Promise<void>;
   resetAllData: () => void;
+
+  bachelorParty: BachelorPartyConfig;
+  updateBachelorParty: (updates: Partial<BachelorPartyConfig>) => Promise<void>;
+  isGroomsmenEligible: boolean;
+
+  bacheloretteParty: BachelorettePartyConfig;
+  updateBacheloretteParty: (updates: Partial<BachelorettePartyConfig>) => Promise<void>;
+  isBridalPartyEligible: boolean;
 }
 
 interface RegisterGuestInput {
@@ -228,6 +243,14 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(loadGallery);
   const [invitationTemplates, setInvitationTemplates] = useState<InvitationTemplate[]>(loadInvitationTemplates);
   const [invitationDeliveries, setInvitationDeliveries] = useState<InvitationDelivery[]>(loadInvitationDeliveries);
+  const [bachelorParty, setBachelorParty] = useState<BachelorPartyConfig>(() => {
+    if (config.bachelorParty) return config.bachelorParty;
+    return loadBachelorParty();
+  });
+  const [bacheloretteParty, setBacheloretteParty] = useState<BachelorettePartyConfig>(() => {
+    if (config.bacheloretteParty) return config.bacheloretteParty;
+    return loadBacheloretteParty();
+  });
   const [activeHousehold, setActiveHouseholdState] = useState<HouseholdInvitation | null>(null);
   const [adminSession, setAdminSession] = useState<AdminSession | null>(() => {
     if (dataMode === 'supabase' || typeof window === 'undefined') return null;
@@ -252,6 +275,8 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
   useEffect(() => { if (dataMode === 'local') saveGallery(galleryItems); }, [galleryItems, dataMode]);
   useEffect(() => { if (dataMode === 'local') saveInvitationTemplates(invitationTemplates); }, [invitationTemplates, dataMode]);
   useEffect(() => { if (dataMode === 'local') saveInvitationDeliveries(invitationDeliveries); }, [invitationDeliveries, dataMode]);
+  useEffect(() => { if (dataMode === 'local') saveBachelorParty(bachelorParty); }, [bachelorParty, dataMode]);
+  useEffect(() => { if (dataMode === 'local') saveBacheloretteParty(bacheloretteParty); }, [bacheloretteParty, dataMode]);
 
   const applyPublicBundle = useCallback((bundle: repository.PublicDataBundle) => {
     setConfig(bundle.config);
@@ -625,6 +650,58 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     setConfig(next);
   }, [config, dataMode]);
 
+  const updateBachelorParty = useCallback(async (updates: Partial<BachelorPartyConfig>): Promise<void> => {
+    const next: BachelorPartyConfig = {
+      ...bachelorParty,
+      ...updates,
+      attendees: updates.attendees ?? bachelorParty.attendees,
+      ideas: updates.ideas ?? bachelorParty.ideas,
+    };
+    setBachelorParty(next);
+    saveBachelorParty(next);
+    const nextConfig: WeddingConfig = { ...config, bachelorParty: next };
+    setConfig(nextConfig);
+    if (dataMode === 'local') {
+      saveConfig(nextConfig);
+    } else {
+      try {
+        await repository.updateSiteConfig(nextConfig);
+      } catch (e) {
+        console.warn('Could not sync bachelor party to Supabase:', e);
+      }
+    }
+  }, [bachelorParty, config, dataMode]);
+
+  const updateBacheloretteParty = useCallback(async (updates: Partial<BachelorettePartyConfig>): Promise<void> => {
+    const next: BachelorettePartyConfig = {
+      ...bacheloretteParty,
+      ...updates,
+      attendees: updates.attendees ?? bacheloretteParty.attendees,
+      ideas: updates.ideas ?? bacheloretteParty.ideas,
+    };
+    setBacheloretteParty(next);
+    saveBacheloretteParty(next);
+    const nextConfig: WeddingConfig = { ...config, bacheloretteParty: next };
+    setConfig(nextConfig);
+    if (dataMode === 'local') {
+      saveConfig(nextConfig);
+    } else {
+      try {
+        await repository.updateSiteConfig(nextConfig);
+      } catch (e) {
+        console.warn('Could not sync bachelorette party to Supabase:', e);
+      }
+    }
+  }, [bacheloretteParty, config, dataMode]);
+
+  const isGroomsmenEligible = useMemo(() => {
+    return isBestManOrGroomsmanHousehold(activeHousehold);
+  }, [activeHousehold]);
+
+  const isBridalPartyEligible = useMemo(() => {
+    return isMaidOfHonorOrBridesmaidHousehold(activeHousehold);
+  }, [activeHousehold]);
+
   const addWish = useCallback((name: string, message: string) => {
     const localWish: GuestWish = {
       id: crypto.randomUUID(),
@@ -891,15 +968,21 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     authenticateAdmin,
     logoutAdmin,
     resetAllData: resetAppToFactoryDefaults,
+    bachelorParty,
+    updateBachelorParty,
+    isGroomsmenEligible,
+    bacheloretteParty,
+    updateBacheloretteParty,
+    isBridalPartyEligible,
   }), [
     accommodations, activeHousehold, addAccommodation, addGalleryItem, addGuest, addRegistryItem,
-    addService, addWish, adminSession, authenticateAdmin, bulkAddGuests, config, createHousehold,
+    addService, addWish, adminSession, authenticateAdmin, bachelorParty, bacheloretteParty, bulkAddGuests, config, createHousehold,
     dataError, dataMode, deleteAccommodation, deleteGalleryItem, deleteGuest, deleteHousehold,
     deleteRegistryItem, deleteService, galleryItems, households, invitationDeliveries,
-    invitationTemplates, isAdminOpen, isLoading, likeWish, logoutAdmin, lookupInvitation,
+    invitationTemplates, isBridalPartyEligible, isGroomsmenEligible, isAdminOpen, isLoading, likeWish, logoutAdmin, lookupInvitation,
     refreshData, registerAndRsvp, registryItems, scheduleEvents, searchGuest, sendAdminMagicLink,
     sendInvitations, services, setActiveGuest, setActiveHousehold, signInAdmin, submitHouseholdRsvp,
-    submitRsvp, toggleCheckIn, updateAccommodation, updateConfig, updateGalleryItem, updateGuest,
+    submitRsvp, toggleCheckIn, updateAccommodation, updateBachelorParty, updateBacheloretteParty, updateConfig, updateGalleryItem, updateGuest,
     updateHousehold, updateRegistryItem, updateScheduleEvent, updateService, updateSiteConfig,
     uploadGalleryPhoto, upsertInvitationTemplate, wishes,
   ]);
