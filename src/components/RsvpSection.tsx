@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import {
+  ArrowLeft,
   ArrowRight,
   Check,
   CheckCircle2,
@@ -11,6 +12,7 @@ import {
   Phone,
   RefreshCw,
   Users,
+  Utensils,
   X,
 } from 'lucide-react';
 import type { SectionId } from './Navbar';
@@ -23,6 +25,33 @@ interface RsvpSectionProps {
 }
 
 const INVITATION_SESSION_KEY = 'camabby_active_invitation';
+
+const WEDDING_FAVOUR_OPTIONS = [
+  {
+    id: 'Stroopwaffels',
+    label: 'Stroopwaffels',
+    description: 'Traditional Dutch caramel syrup waffles',
+    emoji: '🧇',
+  },
+  {
+    id: 'Bubbles / Glasses',
+    label: 'Bubbles / Glasses',
+    description: 'Celebratory toast glasses or bubbles',
+    emoji: '🥂',
+  },
+  {
+    id: 'Something from the netherlands',
+    label: 'Something from the netherlands',
+    description: 'A special Dutch keepsake chosen with love',
+    emoji: '🌷',
+  },
+  {
+    id: 'Nothing',
+    label: 'Nothing',
+    description: 'Your presence is the only gift we need!',
+    emoji: '🤍',
+  },
+] as const;
 
 export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   const {
@@ -41,11 +70,14 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   });
   const [lookupPending, setLookupPending] = useState(false);
   const [lookupError, setLookupError] = useState('');
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [response, setResponse] = useState<'attending' | 'declined'>('attending');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [plusOneAttending, setPlusOneAttending] = useState(false);
   const [plusOneName, setPlusOneName] = useState('');
   const [dietaryDetails, setDietaryDetails] = useState('');
+  const [foodDrinkPreferences, setFoodDrinkPreferences] = useState('');
+  const [weddingFavour, setWeddingFavour] = useState<string>('Stroopwaffels');
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -73,8 +105,13 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     setPlusOneAttending(hasCompanion);
     setPlusOneName(companionName);
     setDietaryDetails(household.dietaryDetails || '');
+    setFoodDrinkPreferences(household.mealSelection || '');
+    if (household.songRequest) {
+      setWeddingFavour(household.songRequest);
+    }
     setMessage(household.message || '');
     setSaved(false);
+    setCurrentStep(1);
   }, [household]);
 
   const findInvitation = useCallback(async (invitationCode: string) => {
@@ -124,8 +161,28 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     );
   };
 
+  const handleNextFromStep1 = () => {
+    setSubmitError('');
+    if (response === 'attending' && attendingCount === 0) {
+      setSubmitError('Select at least one guest who will attend, or choose “Unable to attend”.');
+      return;
+    }
+    setCurrentStep(2);
+  };
+
+  const handleNextFromStep2 = () => {
+    setSubmitError('');
+    setCurrentStep(3);
+  };
+
   const saveResponse = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (currentStep !== 3) {
+      if (currentStep === 1) handleNextFromStep1();
+      else if (currentStep === 2) handleNextFromStep2();
+      return;
+    }
+
     if (!household) return;
     if (response === 'attending' && attendingCount === 0) {
       setSubmitError('Select at least one guest who will attend, or choose “Unable to attend”.');
@@ -157,6 +214,8 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
         dietaryDetails: dietaryDetails.trim() || undefined,
+        mealSelection: foodDrinkPreferences.trim() || undefined,
+        songRequest: weddingFavour || undefined,
         message: message.trim() || undefined,
         members: submittedMembers,
       });
@@ -317,7 +376,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   View guest details <ArrowRight className="h-4 w-4" />
                 </button>
               )}
-              <button type="button" className="button-secondary min-h-11 px-6" onClick={() => setSaved(false)}>
+              <button type="button" className="button-secondary min-h-11 px-6" onClick={() => { setSaved(false); setCurrentStep(1); }}>
                 <RefreshCw className="h-4 w-4" /> Update response
               </button>
             </div>
@@ -344,141 +403,403 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
               </button>
             </aside>
 
-            <form onSubmit={saveResponse}>
-              <fieldset>
-                <legend className="text-sm font-semibold text-stone-800">Will your household attend?</legend>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => setResponse('attending')}
-                    aria-pressed={response === 'attending'}
-                    className={`response-choice ${response === 'attending' ? 'is-selected' : ''}`}
-                  >
-                    <Check className="h-5 w-5" /> We’ll be there
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setResponse('declined')}
-                    aria-pressed={response === 'declined'}
-                    className={`response-choice ${response === 'declined' ? 'is-selected' : ''}`}
-                  >
-                    <X className="h-5 w-5" /> Unable to attend
-                  </button>
-                </div>
-              </fieldset>
-
-              {response === 'attending' && (
-                <fieldset className="mt-8">
-                  <legend className="flex items-center gap-2 text-sm font-semibold text-stone-800">
-                    <Users className="h-4 w-4 text-[#7a8870]" /> Who will join us?
-                  </legend>
-                  <div className="mt-3 divide-y divide-stone-100 overflow-hidden rounded-2xl border border-stone-200">
-                    {household.members.map(member => {
-                      const checked = selectedMemberSet.has(member.id);
-                      return (
-                        <label key={member.id} className="flex min-h-14 cursor-pointer items-center gap-3 bg-white px-4 transition-colors hover:bg-stone-50">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggleMember(member.id)}
-                            className="h-4 w-4 rounded border-pink-200 text-[#5c7a59] focus:ring-[#9cb59b]"
-                          />
-                          <span className="flex-1 text-sm font-medium text-stone-700">{member.name}</span>
-                          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">{checked ? 'Attending' : 'Not attending'}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-
-                  {household.isPlusOneAllowed && (
-                    <div className="mt-3 rounded-2xl border border-pink-100 bg-[#fdfafb] p-4 transition-all">
-                      <label className="flex cursor-pointer items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={plusOneAttending}
-                          onChange={e => setPlusOneAttending(e.target.checked)}
-                          className="h-4 w-4 rounded border-pink-200 text-[#5c7a59] focus:ring-[#9cb59b]"
-                        />
-                        <div className="flex-1">
+            <form onSubmit={saveResponse} className="flex flex-col justify-between">
+              {/* Step Progress Bar */}
+              <nav aria-label="RSVP Steps" className="mb-8">
+                <ol className="flex items-center justify-between gap-2 border-b border-pink-100/80 pb-5">
+                  {[
+                    { step: 1 as const, label: 'Attendance', hint: 'Who’s coming' },
+                    { step: 2 as const, label: 'Preferences', hint: 'Dietary & favours' },
+                    { step: 3 as const, label: 'Table Seating', hint: 'Seating & submit' },
+                  ].map(item => {
+                    const isActive = currentStep === item.step;
+                    const isCompleted = currentStep > item.step;
+                    return (
+                      <li key={item.step} className="flex-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (item.step === 1) {
+                              setCurrentStep(1);
+                            } else if (response === 'attending' && attendingCount === 0) {
+                              setSubmitError('Select at least one attending guest before continuing.');
+                            } else {
+                              setSubmitError('');
+                              setCurrentStep(item.step);
+                            }
+                          }}
+                          className={`group flex w-full flex-col gap-1 text-left transition-all ${
+                            isActive ? 'opacity-100' : 'opacity-65 hover:opacity-100'
+                          }`}
+                        >
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-stone-800">Bring a Guest (+1 Companion)</span>
-                            <span className="rounded bg-[#fdebf0] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#b8697a]">+1 Included</span>
+                            <span
+                              className={`grid h-6 w-6 place-items-center rounded-full text-xs font-bold transition-colors ${
+                                isActive
+                                  ? 'bg-[#c97a8b] text-white shadow-sm'
+                                  : isCompleted
+                                  ? 'bg-[#edf6ec] text-[#4c6b4b] border border-[#9cb59b]'
+                                  : 'bg-stone-100 text-stone-500'
+                              }`}
+                            >
+                              {isCompleted ? <Check className="h-3.5 w-3.5 stroke-[2.5]" /> : item.step}
+                            </span>
+                            <span className={`text-xs font-semibold tracking-wide ${isActive ? 'text-[#c97a8b]' : 'text-stone-700'}`}>
+                              {item.label}
+                            </span>
                           </div>
-                          <p className="text-[11px] text-stone-500">Your invitation allows an accompanying guest.</p>
-                        </div>
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">
-                          {plusOneAttending ? 'Attending' : 'Not attending'}
-                        </span>
-                      </label>
+                          <div
+                            className={`mt-2 h-1 w-full rounded-full transition-colors ${
+                              isActive ? 'bg-[#c97a8b]' : isCompleted ? 'bg-[#9cb59b]' : 'bg-stone-200/70'
+                            }`}
+                          />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </nav>
 
-                      {plusOneAttending && (
-                        <div className="mt-3 border-t border-pink-100 pt-3">
-                          <label className="block text-xs font-semibold text-stone-700">
-                            Companion Full Name <span className="font-normal text-stone-400">(optional)</span>
+              {/* SLIDE 1: Attendance & Guests */}
+              {currentStep === 1 && (
+                <div className="space-y-8">
+                  <fieldset>
+                    <legend className="text-sm font-semibold text-stone-800">Will your household attend?</legend>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => setResponse('attending')}
+                        aria-pressed={response === 'attending'}
+                        className={`response-choice ${response === 'attending' ? 'is-selected' : ''}`}
+                      >
+                        <Check className="h-5 w-5" /> We’ll be there
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setResponse('declined')}
+                        aria-pressed={response === 'declined'}
+                        className={`response-choice ${response === 'declined' ? 'is-selected' : ''}`}
+                      >
+                        <X className="h-5 w-5" /> Unable to attend
+                      </button>
+                    </div>
+                  </fieldset>
+
+                  {response === 'attending' ? (
+                    <fieldset>
+                      <legend className="flex items-center gap-2 text-sm font-semibold text-stone-800">
+                        <Users className="h-4 w-4 text-[#5c7a59]" /> Who will join us?
+                      </legend>
+                      <p className="mt-1 text-xs text-stone-500">Select each person in your household who will attend.</p>
+                      <div className="mt-3 divide-y divide-stone-100 overflow-hidden rounded-2xl border border-stone-200">
+                        {household.members.map(member => {
+                          const checked = selectedMemberSet.has(member.id);
+                          return (
+                            <label key={member.id} className="flex min-h-14 cursor-pointer items-center gap-3 bg-white px-4 transition-colors hover:bg-stone-50">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleMember(member.id)}
+                                className="h-4 w-4 rounded border-pink-200 text-[#5c7a59] focus:ring-[#9cb59b]"
+                              />
+                              <span className="flex-1 text-sm font-medium text-stone-700">{member.name}</span>
+                              <span className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${checked ? 'text-[#4c6b4b]' : 'text-stone-400'}`}>
+                                {checked ? 'Attending' : 'Not attending'}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+
+                      {household.isPlusOneAllowed && (
+                        <div className="mt-4 rounded-2xl border border-pink-100 bg-[#fdfafb] p-4 transition-all">
+                          <label className="flex cursor-pointer items-center gap-3">
                             <input
-                              type="text"
-                              value={plusOneName}
-                              onChange={e => setPlusOneName(e.target.value)}
-                              placeholder="e.g. Partner or Guest Name"
-                              className="form-field mt-1 text-xs"
+                              type="checkbox"
+                              checked={plusOneAttending}
+                              onChange={e => setPlusOneAttending(e.target.checked)}
+                              className="h-4 w-4 rounded border-pink-200 text-[#5c7a59] focus:ring-[#9cb59b]"
                             />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-stone-800">Bring a Guest (+1 Companion)</span>
+                                <span className="rounded bg-[#fdebf0] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#b8697a]">+1 Included</span>
+                              </div>
+                              <p className="text-[11px] text-stone-500">Your invitation allows an accompanying guest.</p>
+                            </div>
+                            <span className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${plusOneAttending ? 'text-[#4c6b4b]' : 'text-stone-400'}`}>
+                              {plusOneAttending ? 'Attending' : 'Not attending'}
+                            </span>
                           </label>
+
+                          {plusOneAttending && (
+                            <div className="mt-3 border-t border-pink-100 pt-3">
+                              <label className="block text-xs font-semibold text-stone-700">
+                                Companion Full Name <span className="font-normal text-stone-400">(optional)</span>
+                                <input
+                                  type="text"
+                                  value={plusOneName}
+                                  onChange={e => setPlusOneName(e.target.value)}
+                                  placeholder="e.g. Partner or Guest Name"
+                                  className="form-field mt-1 text-xs"
+                                />
+                              </label>
+                            </div>
+                          )}
                         </div>
                       )}
+                    </fieldset>
+                  ) : (
+                    <div className="rounded-2xl border border-stone-200 bg-stone-50/70 p-5 text-sm text-stone-600">
+                      <p className="font-medium text-stone-800">We’ll miss celebrating with you!</p>
+                      <p className="mt-1 text-xs text-stone-500">
+                        On the next page, you can update your contact information or leave a message for Abby &amp; Cam.
+                      </p>
                     </div>
                   )}
-                </fieldset>
-              )}
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                <label className="text-xs font-semibold text-stone-700">
-                  Email <span className="font-normal text-stone-400">(optional)</span>
-                  <span className="relative mt-2 block">
-                    <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-                    <input type="email" value={email} onChange={event => setEmail(event.target.value)} className="form-field pl-10" autoComplete="email" />
-                  </span>
-                </label>
-                <label className="text-xs font-semibold text-stone-700">
-                  Phone <span className="font-normal text-stone-400">(optional)</span>
-                  <span className="relative mt-2 block">
-                    <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-                    <input type="tel" value={phone} onChange={event => setPhone(event.target.value)} className="form-field pl-10" autoComplete="tel" />
-                  </span>
-                </label>
-              </div>
+                  {submitError && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{submitError}</p>}
 
-              {response === 'attending' && (
-                <div className="mt-6 space-y-4">
-                  <label className="block text-xs font-semibold text-stone-700">
-                    Dietary requirements or allergies <span className="font-normal text-stone-400">(optional)</span>
-                    <input
-                      type="text"
-                      value={dietaryDetails}
-                      onChange={e => setDietaryDetails(e.target.value)}
-                      placeholder="e.g. Vegetarian, Gluten-free, Nut allergy, Halal, None"
-                      className="form-field mt-1.5 text-xs"
-                    />
-                  </label>
-
-                  <label className="block text-xs font-semibold text-stone-700">
-                    Message or song request for Cam &amp; Abby <span className="font-normal text-stone-400">(optional)</span>
-                    <textarea
-                      rows={2}
-                      value={message}
-                      onChange={e => setMessage(e.target.value)}
-                      placeholder="Share a wish or suggest a song to dance to…"
-                      className="form-field mt-1.5 text-xs"
-                    />
-                  </label>
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={handleNextFromStep1}
+                      className="button-primary min-h-12 w-full justify-center"
+                    >
+                      {response === 'attending' ? 'Next: Preferences & Favours' : 'Next: Contact & Message'} <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               )}
 
-              {submitError && <p role="alert" className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{submitError}</p>}
+              {/* SLIDE 2: Dietary, Food/Drinks, Wedding Favour, Contact & Message */}
+              {currentStep === 2 && (
+                <div className="space-y-6">
+                  {response === 'attending' && (
+                    <>
+                      {/* Dietary requirements */}
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700">
+                          Dietary requirements or allergies <span className="font-normal text-stone-400">(optional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={dietaryDetails}
+                          onChange={e => setDietaryDetails(e.target.value)}
+                          placeholder="e.g. Vegetarian, Gluten-free, Nut allergy, Halal, None"
+                          className="form-field mt-1.5 text-xs"
+                        />
+                      </div>
 
-              <button type="submit" disabled={submitting} className="button-primary mt-7 min-h-12 w-full justify-center disabled:cursor-wait disabled:opacity-60">
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                {submitting ? 'Saving your response…' : household.status === 'pending' ? 'Send RSVP' : 'Update RSVP'}
-              </button>
+                      {/* Food & Drinks preferences */}
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700">
+                          What type of food or drinks would you like to see at the venue? <span className="font-normal text-stone-400">(optional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={foodDrinkPreferences}
+                          onChange={e => setFoodDrinkPreferences(e.target.value)}
+                          placeholder="e.g. Favorite cocktails, mocktails, sweet or savory treats..."
+                          className="form-field mt-1.5 text-xs"
+                        />
+                      </div>
+
+                      {/* Wedding favour choice */}
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700">
+                          What type of wedding favour would you like?
+                        </label>
+                        <p className="mt-0.5 text-[11px] text-stone-500">Pick the keepsake or treat you would love to take home with you:</p>
+                        <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+                          {WEDDING_FAVOUR_OPTIONS.map(option => {
+                            const isSelected = weddingFavour === option.id;
+                            return (
+                              <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => setWeddingFavour(option.id)}
+                                className={`flex items-center gap-3 rounded-2xl border p-3.5 text-left transition-all ${
+                                  isSelected
+                                    ? 'border-[#c97a8b] bg-[#fdf2f4] shadow-sm ring-1 ring-[#c97a8b]'
+                                    : 'border-stone-200 bg-white hover:border-pink-200 hover:bg-[#fdfafb]'
+                                }`}
+                              >
+                                <span className="text-2xl">{option.emoji}</span>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-xs font-bold leading-tight ${isSelected ? 'text-[#c97a8b]' : 'text-stone-800'}`}>
+                                    {option.label}
+                                  </p>
+                                  <p className="mt-0.5 text-[10px] text-stone-500 leading-snug">
+                                    {option.description}
+                                  </p>
+                                </div>
+                                <div className={`grid h-5 w-5 place-items-center rounded-full border transition-colors ${
+                                  isSelected ? 'border-[#c97a8b] bg-[#c97a8b] text-white' : 'border-stone-300 bg-white'
+                                }`}>
+                                  {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Contact details */}
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="text-xs font-semibold text-stone-700">
+                      Email <span className="font-normal text-stone-400">(optional)</span>
+                      <span className="relative mt-1.5 block">
+                        <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={event => setEmail(event.target.value)}
+                          placeholder="add if not already here"
+                          className="form-field pl-10 text-xs"
+                          autoComplete="email"
+                        />
+                      </span>
+                    </label>
+                    <label className="text-xs font-semibold text-stone-700">
+                      Phone <span className="font-normal text-stone-400">(optional)</span>
+                      <span className="relative mt-1.5 block">
+                        <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={event => setPhone(event.target.value)}
+                          placeholder="add if not already here"
+                          className="form-field pl-10 text-xs"
+                          autoComplete="tel"
+                        />
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Message for Abby and Cam */}
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700">
+                      Message for Abby &amp; Cam <span className="font-normal text-stone-400">(optional)</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={message}
+                      onChange={e => setMessage(e.target.value)}
+                      placeholder="Share a wish, note, or song recommendation for Abby &amp; Cam…"
+                      className="form-field mt-1.5 text-xs"
+                    />
+                  </div>
+
+                  {submitError && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{submitError}</p>}
+
+                  <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(1)}
+                      className="button-secondary min-h-12 px-6 justify-center"
+                    >
+                      <ArrowLeft className="h-4 w-4" /> Back to Attendance
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNextFromStep2}
+                      className="button-primary min-h-12 px-6 justify-center"
+                    >
+                      Next: Table Seating <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* SLIDE 3: Table Seating & Final Confirmation */}
+              {currentStep === 3 && (
+                <div className="space-y-6">
+                  {/* Table Seating Placeholder Card */}
+                  <div className="rounded-[1.75rem] border border-pink-100 bg-gradient-to-br from-[#fdfafb] to-[#fcf5f7] p-6 sm:p-8 text-center shadow-sm">
+                    <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#fdebf0] text-[#c97a8b] shadow-sm">
+                      <Utensils className="h-6 w-6" />
+                    </div>
+                    <h4 className="mt-4 font-display text-2xl font-semibold text-stone-800 sm:text-3xl">
+                      Table Seating
+                    </h4>
+                    {household.tableNumber ? (
+                      <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#9cb59b] bg-[#edf6ec] px-4 py-1.5 text-xs font-semibold text-[#3b543a]">
+                        <Check className="h-3.5 w-3.5" /> Assigned: Table {household.tableNumber}
+                      </div>
+                    ) : (
+                      <p className="mx-auto mt-3 max-w-md text-xs leading-6 text-stone-600 sm:text-sm">
+                        Table arrangements and seating placement are being carefully curated by Abby &amp; Cameron.
+                        Seating details will be published here as the wedding day approaches!
+                      </p>
+                    )}
+                    <div className="mt-5 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#b8697a]">
+                      <TulipDuo size={18} />
+                      <span>Seating to follow</span>
+                    </div>
+                  </div>
+
+                  {/* Summary of RSVP choices */}
+                  <div className="rounded-2xl border border-stone-200 bg-white p-5 text-xs text-stone-600 space-y-2.5">
+                    <p className="font-bold text-stone-800 uppercase tracking-wider text-[10px]">Response Summary</p>
+                    <div className="flex justify-between border-b border-stone-100 pb-2">
+                      <span className="text-stone-500">Attendance:</span>
+                      <span className="font-semibold text-stone-800">
+                        {response === 'attending' ? `Attending (${attendingCount} guest${attendingCount === 1 ? '' : 's'})` : 'Unable to attend'}
+                      </span>
+                    </div>
+                    {response === 'attending' && (
+                      <>
+                        <div className="flex justify-between border-b border-stone-100 pb-2">
+                          <span className="text-stone-500">Wedding Favour:</span>
+                          <span className="font-semibold text-[#c97a8b]">{weddingFavour}</span>
+                        </div>
+                        {dietaryDetails && (
+                          <div className="flex justify-between border-b border-stone-100 pb-2">
+                            <span className="text-stone-500">Dietary:</span>
+                            <span className="font-semibold text-stone-800 truncate max-w-[200px]">{dietaryDetails}</span>
+                          </div>
+                        )}
+                        {foodDrinkPreferences && (
+                          <div className="flex justify-between border-b border-stone-100 pb-2">
+                            <span className="text-stone-500">Food/Drink Wish:</span>
+                            <span className="font-semibold text-stone-800 truncate max-w-[200px]">{foodDrinkPreferences}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {(email || phone) && (
+                      <div className="flex justify-between">
+                        <span className="text-stone-500">Contact:</span>
+                        <span className="font-semibold text-stone-800">{[email, phone].filter(Boolean).join(' · ')}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {submitError && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{submitError}</p>}
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(2)}
+                      className="button-secondary min-h-12 px-6 justify-center"
+                    >
+                      <ArrowLeft className="h-4 w-4" /> Back to Preferences
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="button-primary min-h-12 px-8 justify-center disabled:cursor-wait disabled:opacity-60"
+                    >
+                      {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                      {submitting ? 'Saving your response…' : household.status === 'pending' ? 'Submit RSVP' : 'Update RSVP'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </form>
           </Reveal>
         )}

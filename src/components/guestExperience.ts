@@ -34,8 +34,10 @@ export interface HouseholdView {
   companionNames?: string[];
   dietaryRestrictions?: string[];
   dietaryDetails?: string;
+  mealSelection?: string;
   songRequest?: string;
   message?: string;
+  tableNumber?: string;
 }
 
 export interface ListingView {
@@ -102,8 +104,10 @@ function normalizeHousehold(household: HouseholdInvitation | null): HouseholdVie
     companionNames,
     dietaryRestrictions: household.dietaryRestrictions || [],
     dietaryDetails: household.dietaryDetails || '',
+    mealSelection: household.mealSelection || '',
     songRequest: household.songRequest || '',
     message: household.message || '',
+    tableNumber: household.tableNumber || '',
   };
 }
 
