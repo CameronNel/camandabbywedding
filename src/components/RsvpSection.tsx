@@ -5,12 +5,15 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  Gift,
   KeyRound,
   Loader2,
   LockKeyhole,
   Mail,
+  MessageSquare,
   Phone,
   RefreshCw,
+  Sparkles,
   Users,
   Utensils,
   X,
@@ -72,7 +75,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
   });
   const [lookupPending, setLookupPending] = useState(false);
   const [lookupError, setLookupError] = useState('');
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [response, setResponse] = useState<'attending' | 'declined'>('attending');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [plusOneAttending, setPlusOneAttending] = useState(false);
@@ -190,11 +193,17 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
     setCurrentStep(3);
   };
 
+  const handleNextFromStep3 = () => {
+    setSubmitError('');
+    setCurrentStep(4);
+  };
+
   const saveResponse = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (currentStep !== 3) {
+    if (currentStep !== 4) {
       if (currentStep === 1) handleNextFromStep1();
       else if (currentStep === 2) handleNextFromStep2();
+      else if (currentStep === 3) handleNextFromStep3();
       return;
     }
 
@@ -427,7 +436,8 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   {[
                     { step: 1 as const, label: 'Attendance', hint: 'Who’s coming' },
                     { step: 2 as const, label: 'Preferences', hint: 'Dietary & favours' },
-                    { step: 3 as const, label: 'Table Seating', hint: 'Seating & submit' },
+                    { step: 3 as const, label: 'Table Seating', hint: 'Floor plan' },
+                    { step: 4 as const, label: 'Summary', hint: 'Review & submit' },
                   ].map(item => {
                     const isActive = currentStep === item.step;
                     const isCompleted = currentStep > item.step;
@@ -763,49 +773,6 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                     </div>
                   )}
 
-                  {/* Summary of RSVP choices */}
-                  <div className="rounded-2xl border border-stone-200 bg-white p-5 text-xs text-stone-600 space-y-2.5">
-                    <p className="font-bold text-stone-800 uppercase tracking-wider text-[10px]">Response Summary</p>
-                    <div className="flex justify-between border-b border-stone-100 pb-2">
-                      <span className="text-stone-500">Attendance:</span>
-                      <span className="font-semibold text-stone-800">
-                        {response === 'attending' ? `Attending (${attendingCount} guest${attendingCount === 1 ? '' : 's'})` : 'Unable to attend'}
-                      </span>
-                    </div>
-                    {response === 'attending' && (
-                      <>
-                        <div className="flex justify-between border-b border-stone-100 pb-2">
-                          <span className="text-stone-500">Table &amp; Seats:</span>
-                          <span className="font-semibold text-[#c97a8b]">
-                            {tableNumber ? tableNumber : 'Abby & Cam to assign'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between border-b border-stone-100 pb-2">
-                          <span className="text-stone-500">Wedding Favour:</span>
-                          <span className="font-semibold text-[#c97a8b]">{weddingFavour}</span>
-                        </div>
-                        {dietaryDetails && (
-                          <div className="flex justify-between border-b border-stone-100 pb-2">
-                            <span className="text-stone-500">Dietary:</span>
-                            <span className="font-semibold text-stone-800 truncate max-w-[200px]">{dietaryDetails}</span>
-                          </div>
-                        )}
-                        {foodDrinkPreferences && (
-                          <div className="flex justify-between border-b border-stone-100 pb-2">
-                            <span className="text-stone-500">Food/Drink Wish:</span>
-                            <span className="font-semibold text-stone-800 truncate max-w-[200px]">{foodDrinkPreferences}</span>
-                          </div>
-                        )}
-                      </>
-                    )}
-                    {(email || phone) && (
-                      <div className="flex justify-between">
-                        <span className="text-stone-500">Contact:</span>
-                        <span className="font-semibold text-stone-800">{[email, phone].filter(Boolean).join(' · ')}</span>
-                      </div>
-                    )}
-                  </div>
-
                   {submitError && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{submitError}</p>}
 
                   {/* Action Buttons */}
@@ -816,6 +783,273 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                       className="button-secondary min-h-12 px-6 justify-center"
                     >
                       <ArrowLeft className="h-4 w-4" /> Back to Preferences
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNextFromStep3}
+                      className="button-primary min-h-12 px-8 justify-center"
+                    >
+                      Next: Review Summary <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* SLIDE 4: Full RSVP Summary & Submission */}
+              {currentStep === 4 && (
+                <div className="space-y-6">
+                  {/* Title & Introduction */}
+                  <div>
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#b8697a]">
+                      <Sparkles className="h-4 w-4" />
+                      <span>Review &amp; Confirm</span>
+                    </div>
+                    <h4 className="mt-1 font-display text-2xl sm:text-3xl font-semibold text-stone-800">
+                      Your RSVP Summary
+                    </h4>
+                    <p className="mt-1 text-xs sm:text-sm text-stone-600 leading-relaxed">
+                      Please review your details and choices below before submitting your response.
+                    </p>
+                  </div>
+
+                  {/* Comprehensive Summary Cards */}
+                  <div className="rounded-3xl border border-pink-200/90 bg-gradient-to-br from-white via-[#fffdfd] to-[#faf4f6] p-5 sm:p-7 shadow-sm space-y-5">
+                    {/* 1. Attendance Card */}
+                    <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
+                      <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className={`grid h-8 w-8 place-items-center rounded-full text-xs font-bold ${
+                            response === 'attending' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-600'
+                          }`}>
+                            <Users className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-stone-800">Attendance</p>
+                            <p className="text-[11px] text-stone-500">
+                              {response === 'attending' ? `${attendingCount} ${attendingCount === 1 ? 'Guest' : 'Guests'} Attending` : 'Unable to Attend'}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentStep(1)}
+                          className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                      </div>
+
+                      <div className="mt-3.5">
+                        {response === 'attending' ? (
+                          <div className="flex flex-wrap gap-2">
+                            {attendingMemberNames.map(name => (
+                              <span
+                                key={name}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/70 px-3 py-1 text-xs font-semibold text-emerald-800 shadow-2xs"
+                              >
+                                <Check className="h-3 w-3 text-emerald-600" />
+                                {name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-stone-600 italic">
+                            You’ve let Cam and Abby know that you won’t be able to celebrate in person.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 2. Table & Seating Card (if attending) */}
+                    {response === 'attending' && (
+                      <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="grid h-8 w-8 place-items-center rounded-full bg-pink-100 text-[#b8697a]">
+                              <Utensils className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-stone-800">Table &amp; Seat Assignment</p>
+                              <p className="text-[11px] text-stone-500">Dining room floor plan</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setCurrentStep(3)}
+                            className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                          >
+                            Change Seats
+                          </button>
+                        </div>
+                        <div className="mt-3.5">
+                          {tableNumber ? (
+                            <div className="rounded-xl border border-pink-200/80 bg-[#fdf8f9] p-3">
+                              <p className="text-sm font-bold text-[#b8697a]">
+                                {tableNumber}
+                              </p>
+                              <p className="mt-0.5 text-[11px] text-stone-500">
+                                Reserved for your party on the interactive seating chart.
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="rounded-xl border border-dashed border-stone-200 bg-stone-50/60 p-3">
+                              <p className="text-xs font-medium text-stone-700">
+                                Cam &amp; Abby will assign seats for your party
+                              </p>
+                              <p className="mt-0.5 text-[11px] text-stone-500">
+                                No specific seats chosen; the couple will assign great seats for you!
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 3. Wedding Favour (if attending) */}
+                    {response === 'attending' && (
+                      <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="grid h-8 w-8 place-items-center rounded-full bg-pink-100 text-[#b8697a]">
+                              <Gift className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-stone-800">Wedding Favour</p>
+                              <p className="text-[11px] text-stone-500">Selected wedding keepsake</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setCurrentStep(2)}
+                            className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                        <div className="mt-3.5 flex items-center gap-3">
+                          <span className="text-2xl">
+                            {WEDDING_FAVOUR_OPTIONS.find(o => o.id === weddingFavour)?.emoji || '🎁'}
+                          </span>
+                          <div>
+                            <p className="text-xs font-bold text-stone-800">
+                              {weddingFavour}
+                            </p>
+                            <p className="text-[11px] text-stone-500">
+                              {WEDDING_FAVOUR_OPTIONS.find(o => o.id === weddingFavour)?.description || ''}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 4. Dietary & Food Wishes (if attending and provided) */}
+                    {response === 'attending' && (dietaryDetails || foodDrinkPreferences) && (
+                      <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="grid h-8 w-8 place-items-center rounded-full bg-pink-100 text-[#b8697a]">
+                              <Utensils className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-stone-800">Dietary &amp; Food Wishes</p>
+                              <p className="text-[11px] text-stone-500">Venue catering details</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setCurrentStep(2)}
+                            className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                        <div className="mt-3.5 space-y-2 text-xs">
+                          {dietaryDetails && (
+                            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1">
+                              <span className="font-semibold text-stone-700 min-w-[130px]">Allergies / Dietary:</span>
+                              <span className="text-stone-800 bg-stone-50 rounded-lg px-2.5 py-1 border border-stone-100 font-medium">{dietaryDetails}</span>
+                            </div>
+                          )}
+                          {foodDrinkPreferences && (
+                            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1">
+                              <span className="font-semibold text-stone-700 min-w-[130px]">Food &amp; Drinks Wish:</span>
+                              <span className="text-stone-800 bg-stone-50 rounded-lg px-2.5 py-1 border border-stone-100 font-medium">{foodDrinkPreferences}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 5. Contact Information */}
+                    <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
+                      <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="grid h-8 w-8 place-items-center rounded-full bg-pink-100 text-[#b8697a]">
+                            <Mail className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-stone-800">Contact Details</p>
+                            <p className="text-[11px] text-stone-500">Updates &amp; coordination</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentStep(2)}
+                          className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                      <div className="mt-3.5 flex flex-wrap gap-4 text-xs">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-3.5 w-3.5 text-stone-400" />
+                          <span className="text-stone-700 font-medium">{email || <span className="text-stone-400 italic">No email provided</span>}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-3.5 w-3.5 text-stone-400" />
+                          <span className="text-stone-700 font-medium">{phone || <span className="text-stone-400 italic">No phone provided</span>}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 6. Message for Abby & Cam */}
+                    {message && (
+                      <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="grid h-8 w-8 place-items-center rounded-full bg-pink-100 text-[#b8697a]">
+                              <MessageSquare className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-stone-800">Message for Abby &amp; Cam</p>
+                              <p className="text-[11px] text-stone-500">Your personal note</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setCurrentStep(2)}
+                            className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                        <div className="mt-3.5 rounded-xl border border-pink-100/80 bg-[#fefbfc] p-3.5 text-xs text-stone-700 italic leading-relaxed">
+                          “{message}”
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {submitError && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{submitError}</p>}
+
+                  {/* Submission Action Buttons */}
+                  <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(3)}
+                      className="button-secondary min-h-12 px-6 justify-center"
+                    >
+                      <ArrowLeft className="h-4 w-4" /> Back to Table Seating
                     </button>
                     <button
                       type="submit"
