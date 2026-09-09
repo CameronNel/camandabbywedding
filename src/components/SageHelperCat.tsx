@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Cat,
   ChevronRight,
   Gift,
   GlassWater,
   Heart,
   Home,
+  KeyRound,
   MapPin,
   PartyPopper,
   Search,
@@ -33,6 +35,17 @@ interface FAQItem {
 }
 
 const FAQ_LIST: FAQItem[] = [
+  {
+    id: 'lost_code',
+    icon: <KeyRound className="h-4 w-4 text-amber-600" />,
+    question: 'I lost my invite code, what should I do?',
+    shortLabel: 'Lost Invite Code 🔑',
+    category: 'Popular',
+    answer:
+      "No worries at all! If you lost or misplaced your invite code, simply message Abby or Cameron (the bride or groom) directly. They will gladly look up your household code and send you your private invitation link!",
+    actionText: 'Go to RSVP Section 💌',
+    actionSection: 'rsvp',
+  },
   {
     id: 'bachelorette',
     icon: <GlassWater className="h-4 w-4 text-pink-500" />,
@@ -121,6 +134,15 @@ const FAQ_LIST: FAQItem[] = [
       "That's me! 🐾 I'm Cameron and Abby's calico cat! You might have noticed my funny slouched sitting pose on the stairs in the Photo Gallery. I'm here on the website to keep an eye on things and give all our wedding guests a helping paw!",
     actionText: 'See Me in Photo Gallery 📸',
     actionSection: 'gallery',
+  },
+  {
+    id: 'who_is_anne',
+    icon: <Cat className="h-4 w-4 text-pink-500" />,
+    question: 'Who is Anne the cat?',
+    shortLabel: 'Who is Anne? 🐾',
+    category: 'Fun',
+    answer:
+      "Anne is our other beloved cat! She is a little sneaky and loves exploring — you can find her on the website somewhere! 🐱 Keep an eye out while browsing, and you might just catch her peeking out to say hello! (Hint: give her a little scratch when you see her!)",
   },
 ];
 
@@ -394,7 +416,7 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
           <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#e4aeb5]/40 to-[#f5d0c6]/50 blur-sm opacity-70 group-hover:opacity-100 transition-opacity" />
 
           {/* Sage Cartoon Sticker */}
-          <div className="relative h-14 w-14 sm:h-22 sm:w-22 drop-shadow-[0_8px_16px_rgba(0,0,0,0.18)] transition-transform group-hover:-translate-y-1">
+          <div className="relative h-20 w-20 sm:h-28 sm:w-28 drop-shadow-[0_10px_20px_rgba(0,0,0,0.16)] transition-transform group-hover:-translate-y-1">
             <img
               src={`${import.meta.env.BASE_URL}images/sage-helper.png`}
               alt="Sage the helper cat"
@@ -402,8 +424,8 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
             />
 
             {/* Notification Badge / Online Dot */}
-            <span className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 flex h-3 w-3 sm:h-3.5 sm:w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white shadow-xs">
-              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+            <span className="absolute bottom-1 right-2 sm:bottom-2 sm:right-3 flex h-3.5 w-3.5 sm:h-4 sm:w-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white shadow-xs">
+              <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-white" />
             </span>
           </div>
         </button>
@@ -412,10 +434,10 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
         {!isOpen && showBubble && !speechBubbleDismissed && (
           <div
             role="status"
-            className="mb-2 sm:mb-4 relative rounded-2xl border-2 border-[#e4aeb5] bg-white px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-stone-800 shadow-xl flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-200"
+            className="mb-4 sm:mb-7 relative rounded-2xl border-2 border-[#e4aeb5] bg-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-stone-800 shadow-xl flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-200"
           >
             {/* Speech bubble pointer arrow */}
-            <div className="absolute -left-2 bottom-3 h-3 w-3 -rotate-45 border-l-2 border-b-2 border-[#e4aeb5] bg-white" />
+            <div className="absolute -left-2 bottom-3.5 sm:bottom-4 h-3 w-3 -rotate-45 border-l-2 border-b-2 border-[#e4aeb5] bg-white" />
 
             <button
               type="button"
