@@ -24,9 +24,9 @@ export function Registry({ onNavigate }: RegistryProps) {
   };
 
   return (
-    <section id="gifts" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-gradient-to-b from-transparent via-[#fff7f9]/50 to-transparent px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
-      <div className="absolute -right-48 -top-48 h-[34rem] w-[34rem] rounded-full border border-[#e3b8c3]/30" aria-hidden="true" />
-      <div className="absolute -bottom-64 -left-56 h-[40rem] w-[40rem] rounded-full border border-[#e3b8c3]/25" aria-hidden="true" />
+    <section id="gifts" className="anchor-section relative z-10 min-h-[calc(100svh-76px)] overflow-hidden bg-gradient-to-b from-transparent via-[#fbf8f5]/60 to-transparent px-5 pt-8 pb-32 sm:px-8 sm:pt-10 sm:pb-44">
+      <div className="absolute -right-48 -top-48 h-[34rem] w-[34rem] rounded-full border border-[#e5ded6]/40" aria-hidden="true" />
+      <div className="absolute -bottom-64 -left-56 h-[40rem] w-[40rem] rounded-full border border-[#e5ded6]/30" aria-hidden="true" />
       <div className="relative z-10 mx-auto max-w-6xl">
         <Reveal className="max-w-3xl">
           <p className="eyebrow flex items-center gap-2">
@@ -38,8 +38,8 @@ export function Registry({ onNavigate }: RegistryProps) {
         </Reveal>
 
         {!activeHousehold ? (
-          <Reveal delay={80} className="mt-8 grid overflow-hidden rounded-[2rem] border-2 border-[#eed5dc] bg-gradient-to-br from-[#fffdfd] to-[#faf3f7] shadow-[0_24px_70px_rgba(201,122,139,0.1)] sm:mt-10 md:grid-cols-[auto_1fr_auto] md:items-center">
-            <div className="grid h-full min-h-36 place-items-center bg-gradient-to-br from-[#df8298] to-[#c96d83] px-9 text-[#fdf2f4]">
+          <Reveal delay={80} className="mt-8 grid overflow-hidden rounded-[2rem] border-2 border-[#e8ded6] bg-gradient-to-br from-[#ffffff] to-[#faf6f2] shadow-[0_24px_70px_rgba(60,50,45,0.06)] sm:mt-10 md:grid-cols-[auto_1fr_auto] md:items-center">
+            <div className="grid h-full min-h-36 place-items-center bg-gradient-to-br from-[#c97a8b] to-[#b85b73] px-9 text-[#fdf2f4]">
               <LockKeyhole className="h-8 w-8" />
             </div>
             <div className="p-7 sm:p-9">
@@ -51,11 +51,11 @@ export function Registry({ onNavigate }: RegistryProps) {
             </div>
           </Reveal>
         ) : activeHousehold.presenceIsOurGift ? (
-          <Reveal delay={80} className="mx-auto mt-12 max-w-4xl rounded-[2rem] border border-[#b8cfb6] bg-[#edf6ec] p-8 text-center shadow-[0_24px_70px_rgba(92,122,89,0.08)] sm:p-14">
-            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#5c7a59] text-white">
+          <Reveal delay={80} className="mx-auto mt-12 max-w-4xl rounded-[2rem] border border-[#9bbeab]/60 bg-[#edf5f0] p-8 text-center shadow-[0_24px_70px_rgba(105,143,117,0.08)] sm:p-14">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#698f75] text-white">
               <Heart className="h-7 w-7 fill-current" />
             </span>
-            <p className="eyebrow mt-7 flex items-center justify-center gap-2 text-[#4c6b4b]"><TulipDuo size={18} /> A note just for you</p>
+            <p className="eyebrow mt-7 flex items-center justify-center gap-2 text-[#2d4f39]"><TulipDuo size={18} /> A note just for you</p>
             <h3 className="mx-auto mt-3 max-w-2xl font-display text-4xl leading-tight text-stone-800 sm:text-5xl">Your presence is the only present we want.</h3>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-stone-600">
               You have been kindly blocked from giving gifts, as having you there to celebrate with us is the greatest gift in and of itself! Please bring only yourselves and your smiles.

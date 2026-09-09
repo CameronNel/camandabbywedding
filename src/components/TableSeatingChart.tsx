@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Wine, Check, Users, Info, RotateCcw, Sparkles, Heart, Dices, Maximize2, Minimize2 } from 'lucide-react';
+import { Check, Users, Info, RotateCcw, Sparkles, Dices, Maximize2, Minimize2 } from 'lucide-react';
 import type { HouseholdInvitation } from '../types/wedding';
 import {
   TABLES,
@@ -260,9 +260,9 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
       )}
 
       <svg
-        viewBox="0 0 1000 730"
-        className="w-full h-auto drop-shadow-xs"
-        style={{ maxHeight: isModal ? '78vh' : '780px' }}
+        viewBox="0 0 1100 960"
+        className="w-full h-auto drop-shadow-sm"
+        style={{ maxHeight: isModal ? '85vh' : '900px' }}
       >
         <defs>
           <filter id={`glow-rose${isModal ? '-m' : ''}`} x="-30%" y="-30%" width="160%" height="160%">
@@ -270,153 +270,289 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
           <filter id={`table-soft-shadow${isModal ? '-m' : ''}`} x="-40%" y="-40%" width="180%" height="180%">
-            <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#8a6f66" floodOpacity="0.28" />
+            <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#8a6f66" floodOpacity="0.18" />
           </filter>
+          <linearGradient id={`eucalyptus-leaf${isModal ? '-m' : ''}`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#7a9d82" />
+            <stop offset="100%" stopColor="#55755d" />
+          </linearGradient>
           <linearGradient id={`bar-wood${isModal ? '-m' : ''}`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8d6255" />
-            <stop offset="100%" stopColor="#6e473b" />
+            <stop offset="0%" stopColor="#e8ded6" />
+            <stop offset="100%" stopColor="#d9cdc3" />
           </linearGradient>
           <linearGradient id={`buffet-wood${isModal ? '-m' : ''}`} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#7a554a" />
-            <stop offset="100%" stopColor="#5d3b32" />
+            <stop offset="0%" stopColor="#e8ded6" />
+            <stop offset="100%" stopColor="#d9cdc3" />
           </linearGradient>
         </defs>
 
-        {/* ROOM BOUNDARY OUTLINE */}
+        {/* ELEGANT POSTER CARD BACKGROUND */}
         <rect
-          x="18"
-          y="18"
-          width="964"
-          height="662"
+          x="8"
+          y="8"
+          width="1084"
+          height="944"
           rx="24"
-          fill="none"
-          stroke="#e2cbd1"
+          fill="#ffffff"
+          stroke="#ece7e1"
           strokeWidth="2"
-          strokeDasharray="6 4"
         />
 
-        {/* 1. TOP-LEFT BAR (Matching sketch - clean with generous clearance, no stool circles) */}
-        <g className="cursor-default">
-          <rect
-            x="28"
-            y="24"
-            width="148"
-            height="56"
-            rx="10"
-            fill={`url(#bar-wood${isModal ? '-m' : ''})`}
-            stroke="#57362c"
+        {/* BOTANICAL EUCALYPTUS FOLIAGE: TOP-RIGHT CORNER */}
+        <g className="pointer-events-none" opacity="0.88">
+          <path
+            d="M 1100 0 Q 1030 50 970 110 T 920 180"
+            fill="none"
+            stroke="#5c7a64"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 1100 40 Q 1040 80 1000 140"
+            fill="none"
+            stroke="#6e8a75"
             strokeWidth="2"
-            className="drop-shadow-sm"
+            strokeLinecap="round"
           />
-          <rect
-            x="33"
-            y="29"
-            width="138"
-            height="46"
-            rx="7"
-            fill="#faf2ee"
-            stroke="#c7a79a"
-            strokeWidth="1.2"
-          />
-          <foreignObject x="34" y="30" width="136" height="44">
-            <div className="flex h-full flex-col items-center justify-center text-center text-[#57362c]">
-              <div className="flex items-center gap-1.5 font-display text-sm font-bold tracking-wide text-[#3b231c]">
-                <Wine className="h-3.5 w-3.5 text-[#8d6255]" />
-                <span>Bar</span>
-              </div>
-              <span className="text-[9.5px] uppercase font-bold text-[#5c382d] tracking-wider">
-                Drinks &amp; Refreshments
-              </span>
-            </div>
-          </foreignObject>
+          <ellipse cx="1055" cy="42" rx="22" ry="12" transform="rotate(-30, 1055, 42)" fill={`url(#eucalyptus-leaf${isModal ? '-m' : ''})`} opacity="0.85" />
+          <ellipse cx="1015" cy="72" rx="24" ry="13" transform="rotate(-40, 1015, 72)" fill="#688a70" opacity="0.8" />
+          <ellipse cx="980" cy="115" rx="26" ry="14" transform="rotate(-50, 980, 115)" fill="#5d8065" opacity="0.85" />
+          <ellipse cx="945" cy="155" rx="24" ry="13" transform="rotate(-58, 945, 155)" fill="#73947a" opacity="0.8" />
+          <ellipse cx="915" cy="190" rx="20" ry="11" transform="rotate(-65, 915, 190)" fill="#81a188" opacity="0.75" />
+          <ellipse cx="1070" cy="85" rx="20" ry="11" transform="rotate(-15, 1070, 85)" fill="#608268" opacity="0.85" />
+          <ellipse cx="1030" cy="130" rx="22" ry="12" transform="rotate(-25, 1030, 130)" fill="#6f9177" opacity="0.8" />
+          <ellipse cx="990" cy="175" rx="20" ry="11" transform="rotate(-35, 990, 175)" fill="#7da085" opacity="0.75" />
         </g>
 
-        {/* 2. RIGHT WALL: FOOD BUFFET (Matching sketch - well-spaced platters with clear space for label) */}
+        {/* BOTANICAL EUCALYPTUS FOLIAGE: BOTTOM-LEFT CORNER */}
+        <g className="pointer-events-none" opacity="0.88">
+          <path
+            d="M 0 960 Q 70 910 130 850 T 180 780"
+            fill="none"
+            stroke="#5c7a64"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 0 920 Q 60 880 100 820"
+            fill="none"
+            stroke="#6e8a75"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <ellipse cx="45" cy="918" rx="22" ry="12" transform="rotate(150, 45, 918)" fill={`url(#eucalyptus-leaf${isModal ? '-m' : ''})`} opacity="0.85" />
+          <ellipse cx="85" cy="888" rx="24" ry="13" transform="rotate(140, 85, 888)" fill="#688a70" opacity="0.8" />
+          <ellipse cx="120" cy="845" rx="26" ry="14" transform="rotate(130, 120, 845)" fill="#5d8065" opacity="0.85" />
+          <ellipse cx="155" cy="805" rx="24" ry="13" transform="rotate(122, 155, 805)" fill="#73947a" opacity="0.8" />
+          <ellipse cx="185" cy="770" rx="20" ry="11" transform="rotate(115, 185, 770)" fill="#81a188" opacity="0.75" />
+          <ellipse cx="30" cy="875" rx="20" ry="11" transform="rotate(165, 30, 875)" fill="#608268" opacity="0.85" />
+          <ellipse cx="70" cy="830" rx="22" ry="12" transform="rotate(155, 70, 830)" fill="#6f9177" opacity="0.8" />
+          <ellipse cx="110" cy="785" rx="20" ry="11" transform="rotate(145, 110, 785)" fill="#7da085" opacity="0.75" />
+        </g>
+
+        {/* SEATING PLAN POSTER HEADER */}
+        <g className="cursor-default select-none">
+          <text
+            x="550"
+            y="54"
+            textAnchor="middle"
+            fill="#261e20"
+            fontSize="30"
+            fontWeight="800"
+            letterSpacing="7"
+            className="font-serif uppercase"
+          >
+            WEDDING
+          </text>
+          <text
+            x="550"
+            y="94"
+            textAnchor="middle"
+            fill="#c59b48"
+            fontSize="38"
+            fontStyle="italic"
+            className="font-serif"
+            style={{ fontFamily: "'Playfair Display', Georgia, cursive" }}
+          >
+            Seating Plan
+          </text>
+          <text
+            x="550"
+            y="120"
+            textAnchor="middle"
+            fill="#6e6266"
+            fontSize="12"
+            fontWeight="700"
+            letterSpacing="2.5"
+            className="font-sans uppercase"
+          >
+            8 Seats per table • 6FT round • 64 pax
+          </text>
+        </g>
+
+        {/* TOP-LEFT: BAR */}
         <g className="cursor-default">
           <rect
-            x="925"
-            y="26"
-            width="48"
-            height="605"
+            x="24"
+            y="80"
+            width="56"
+            height="200"
             rx="12"
-            fill={`url(#buffet-wood${isModal ? '-m' : ''})`}
-            stroke="#4e3128"
-            strokeWidth="2"
+            fill={`url(#bar-wood${isModal ? '-m' : ''})`}
+            stroke="#b39c8e"
+            strokeWidth="1.8"
             className="drop-shadow-sm"
           />
           <rect
-            x="930"
-            y="31"
-            width="38"
-            height="595"
+            x="29"
+            y="85"
+            width="46"
+            height="190"
             rx="8"
-            fill="#faf2ee"
-            stroke="#cfb0a3"
+            fill="#fffdfa"
+            stroke="#d9cdc3"
+            strokeWidth="1.2"
+          />
+          {/* Bar top motif */}
+          <circle cx="52" cy="112" r="9" fill="#fdf7ea" stroke="#c59b48" strokeWidth="1.2" />
+          <path d="M 47 112 L 57 112 M 52 112 L 52 119 M 48 119 L 56 119" stroke="#7a5a1e" strokeWidth="1.4" strokeLinecap="round" />
+
+          {/* Decorative separator line above BAR label */}
+          <line x1="37" y1="136" x2="67" y2="136" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
+
+          {/* Vertical Bar Label */}
+          <text
+            x="52"
+            y="180"
+            fill="#4a3b37"
+            fontSize="15"
+            fontWeight="bold"
+            letterSpacing="5"
+            textAnchor="middle"
+            transform="rotate(-90, 52, 180)"
+            className="font-display select-none uppercase"
+          >
+            BAR
+          </text>
+
+          {/* Decorative separator line below BAR label */}
+          <line x1="37" y1="224" x2="67" y2="224" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
+
+          {/* Bar bottom motif */}
+          <circle cx="52" cy="248" r="9" fill="#fdf7ea" stroke="#c59b48" strokeWidth="1.2" />
+          <path d="M 47 248 L 57 248 M 52 248 L 52 255 M 48 255 L 56 255" stroke="#7a5a1e" strokeWidth="1.4" strokeLinecap="round" />
+        </g>
+
+        {/* RIGHT SIDE: FOOD BUFFET */}
+        <g className="cursor-default">
+          <rect
+            x="1020"
+            y="260"
+            width="56"
+            height="380"
+            rx="12"
+            fill={`url(#buffet-wood${isModal ? '-m' : ''})`}
+            stroke="#b39c8e"
+            strokeWidth="1.8"
+            className="drop-shadow-sm"
+          />
+          <rect
+            x="1025"
+            y="265"
+            width="46"
+            height="370"
+            rx="8"
+            fill="#fffdfa"
+            stroke="#d9cdc3"
             strokeWidth="1.2"
           />
           {/* Buffet platter motifs top */}
-          <ellipse cx="949" cy="90" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
-          <ellipse cx="949" cy="165" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+          <ellipse cx="1048" cy="300" rx="12" ry="18" fill="#fdf7ea" stroke="#c59b48" strokeWidth="1.2" />
 
           {/* Decorative separator line above FOOD label */}
-          <line x1="937" y1="230" x2="961" y2="230" stroke="#cfb0a3" strokeWidth="1.2" strokeDasharray="3 2" />
+          <line x1="1033" y1="345" x2="1063" y2="345" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
 
           {/* Vertical Food Label */}
           <text
-            x="949"
-            y="328"
-            fill="#3b231c"
-            fontSize="17"
+            x="1048"
+            y="450"
+            fill="#4a3b37"
+            fontSize="16"
             fontWeight="bold"
             letterSpacing="6"
             textAnchor="middle"
-            transform="rotate(90, 949, 328)"
+            transform="rotate(90, 1048, 450)"
             className="font-display select-none uppercase"
           >
             FOOD
           </text>
 
           {/* Decorative separator line below FOOD label */}
-          <line x1="937" y1="426" x2="961" y2="426" stroke="#cfb0a3" strokeWidth="1.2" strokeDasharray="3 2" />
+          <line x1="1033" y1="555" x2="1063" y2="555" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
 
           {/* Buffet platter motifs bottom */}
-          <ellipse cx="949" cy="490" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
-          <ellipse cx="949" cy="565" rx="11" ry="20" fill="#eed9ce" stroke="#9e7263" strokeWidth="1.2" />
+          <ellipse cx="1048" cy="600" rx="12" ry="18" fill="#fdf7ea" stroke="#c59b48" strokeWidth="1.2" />
         </g>
 
-        {/* 3. DANCE FLOOR (In the middle of the horseshoe) */}
-        <g opacity="0.9" pointerEvents="none">
-          <ellipse
-            cx="480"
-            cy="350"
-            rx="105"
-            ry="68"
-            fill="#fdf2f5"
-            fillOpacity="0.55"
+        {/* MIDDLE: DANCE FLOOR */}
+        <g opacity="0.95" pointerEvents="none">
+          <rect
+            x="405"
+            y="375"
+            width="290"
+            height="190"
+            rx="24"
+            fill="#fdf5f7"
+            fillOpacity="0.75"
             stroke="#dfaeb9"
-            strokeWidth="1.8"
-            strokeDasharray="5 5"
+            strokeWidth="2"
+            strokeDasharray="6 4"
+          />
+          <rect
+            x="419"
+            y="389"
+            width="262"
+            height="162"
+            rx="18"
+            fill="#fff9fa"
+            stroke="#eed5dc"
+            strokeWidth="1.2"
           />
           <text
-            x="480"
-            y="345"
+            x="550"
+            y="458"
             textAnchor="middle"
             fill="#9e475a"
-            fontSize="13"
+            fontSize="15"
             fontWeight="bold"
             letterSpacing="4"
             className="font-display select-none uppercase"
           >
             DANCE FLOOR
           </text>
-          <Heart className="h-4 w-4 text-[#df8b9d]" x="472" y="357" />
+          <path
+            d="M 550 484 C 550 484 543 477 539 473 C 535 469 535 464 538 461 C 541 458 546 458 549 461 L 550 463 L 551 461 C 554 458 559 458 562 461 C 565 464 565 469 561 473 Z"
+            fill="#df8b9d"
+          />
+          <text
+            x="550"
+            y="508"
+            textAnchor="middle"
+            fill="#b86b7c"
+            fontSize="10"
+            fontWeight="600"
+            letterSpacing="2"
+            className="select-none uppercase font-sans"
+          >
+            CELEBRATION &amp; DANCING
+          </text>
         </g>
 
-        {/* 4. EIGHT ROUND BANQUET TABLES (horseshoe around the dance floor, no head table) */}
+        {/* 8 ROUND BANQUET TABLES (Gathered around the central dance floor) */}
         {TABLES.map(table => {
-          const radiusOrbit = 78;
-          const tableRadius = 50;
-          const seatRadius = 16;
+          const radiusOrbit = 74;
+          const tableRadius = 52;
+          const seatRadius = 13.5;
 
           const occupiedAtTable = Array.from({ length: table.capacity }).filter((_, i) =>
             occupiedSeatsMap.has(`T${table.id}-S${i + 1}`),
@@ -427,91 +563,111 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
 
           return (
             <g key={table.id}>
-              {/* Cottage tablecloth with a soft lifelike shadow */}
+              {/* Table Top with Golden/Champagne Rim Ring */}
               <circle
                 cx={table.cx}
                 cy={table.cy}
                 r={tableRadius}
-                fill="#fffdf9"
-                stroke={table.borderTint}
-                strokeWidth="1.5"
-                strokeOpacity="0.85"
+                fill="#ffffff"
+                stroke="#c59b48"
+                strokeWidth="2.8"
                 filter={`url(#table-soft-shadow${isModal ? '-m' : ''})`}
               />
-              {/* Table runner ring in the table's brand tint */}
-              <circle
-                cx={table.cx}
-                cy={table.cy}
-                r={tableRadius - 11}
-                fill="none"
-                stroke={table.color}
-                strokeWidth="6"
-                opacity="0.4"
-              />
-              {/* Cottage tablecloth with a soft lifelike shadow */}
-              <circle
-                cx={table.cx}
-                cy={table.cy}
-                r={tableRadius}
-                fill={table.bgTint}
-                stroke={table.borderTint}
-                strokeWidth="1.5"
-                strokeOpacity="0.85"
-                filter={`url(#table-soft-shadow${isModal ? '-m' : ''})`}
-              />
-              {/* Table runner ring in the table's brand tint */}
-              <circle
-                cx={table.cx}
-                cy={table.cy}
-                r={tableRadius - 12}
-                fill="none"
-                stroke={table.color}
-                strokeWidth="7"
-                opacity="0.45"
-              />
-              {/* Table Label */}
-              <text
-                x={table.cx}
-                y={table.cy - 12}
-                textAnchor="middle"
-                fill="#1c1917"
-                fontSize="15"
-                fontWeight="bold"
-                className="font-display select-none"
-              >
-                {table.name}
-              </text>
-              <text
-                x={table.cx}
-                y={table.cy + 5}
-                textAnchor="middle"
-                fill={table.textTint}
-                fontSize="10.5"
-                fontWeight="bold"
-                letterSpacing="0.5"
-                className="select-none"
-                textLength={table.theme.length > 9 ? 86 : undefined}
-                lengthAdjust="spacingAndGlyphs"
-              >
-                {table.theme}
-              </text>
-              <text
-                x={table.cx}
-                y={table.cy + 21}
-                textAnchor="middle"
-                fill="#57534e"
-                fontSize="10"
-                fontWeight="600"
-                className="select-none"
-              >
-                {occupiedAtTable + selectedAtTable}/{table.capacity}
-              </text>
 
-              {/* 8 SEATS AROUND EACH TABLE (at 45 degree intervals) */}
+              {table.id === 1 ? (
+                /* Table 1: Cam & Abby (4 cleanly spaced lines) */
+                <g className="select-none pointer-events-none">
+                  <text
+                    x={table.cx}
+                    y={table.cy - 15}
+                    textAnchor="middle"
+                    fill="#261e20"
+                    fontSize="16"
+                    fontWeight="700"
+                    className="font-serif"
+                  >
+                    {table.name}
+                  </text>
+                  <text
+                    x={table.cx}
+                    y={table.cy - 1}
+                    textAnchor="middle"
+                    fill={table.textTint}
+                    fontSize="10.5"
+                    fontWeight="600"
+                    letterSpacing="0.3"
+                    className="font-sans"
+                  >
+                    {table.theme}
+                  </text>
+                  <text
+                    x={table.cx}
+                    y={table.cy + 13}
+                    textAnchor="middle"
+                    fill="#6e6266"
+                    fontSize="9"
+                    fontWeight="500"
+                    className="font-sans"
+                  >
+                    {occupiedAtTable + selectedAtTable}/{table.capacity} seated
+                  </text>
+                  <text
+                    x={table.cx}
+                    y={table.cy + 27}
+                    textAnchor="middle"
+                    fill="#b85b73"
+                    fontSize="9.5"
+                    fontWeight="700"
+                    className="font-sans"
+                  >
+                    Cam &amp; Abby 💕
+                  </text>
+                </g>
+              ) : (
+                /* Tables 2–8: 3 cleanly spaced lines */
+                <g className="select-none pointer-events-none">
+                  <text
+                    x={table.cx}
+                    y={table.cy - 10}
+                    textAnchor="middle"
+                    fill="#261e20"
+                    fontSize="17"
+                    fontWeight="700"
+                    className="font-serif"
+                  >
+                    {table.name}
+                  </text>
+                  <text
+                    x={table.cx}
+                    y={table.cy + 6}
+                    textAnchor="middle"
+                    fill={table.textTint}
+                    fontSize="10.5"
+                    fontWeight="600"
+                    letterSpacing="0.3"
+                    className="font-sans"
+                  >
+                    {table.theme}
+                  </text>
+                  <text
+                    x={table.cx}
+                    y={table.cy + 22}
+                    textAnchor="middle"
+                    fill="#6e6266"
+                    fontSize="9.5"
+                    fontWeight="500"
+                    className="font-sans"
+                  >
+                    {occupiedAtTable + selectedAtTable}/{table.capacity} seated
+                  </text>
+                </g>
+              )}
+
+              {/* 8 SEATS AROUND EACH TABLE (Radially at 45 degree intervals, starting at top 12 o'clock) */}
               {Array.from({ length: table.capacity }).map((_, seatIdx) => {
                 const seatNum = seatIdx + 1;
                 const seatId = `T${table.id}-S${seatNum}`;
-                const angle = (seatIdx * 45 - 90) * (Math.PI / 180);
+                const angle = ((seatIdx * 360) / table.capacity - 90) * (Math.PI / 180);
                 const sx = table.cx + radiusOrbit * Math.cos(angle);
                 const sy = table.cy + radiusOrbit * Math.sin(angle);
 
@@ -524,10 +680,12 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                   ? attendingMembers[selectedIndex] || `Guest ${selectedIndex + 1}`
                   : undefined;
 
+                const isCamOrAbby = table.id === 1 && (seatNum === 1 || seatNum === 2);
+
                 return (
                   <g
                     key={seatId}
-                    className="group cursor-pointer"
+                    data-seat-id={seatId}
                     onClick={() => handleSeatClick(table.id, seatNum)}
                     onMouseEnter={() =>
                       setHoveredSeat({
@@ -546,45 +704,75 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                       })
                     }
                     onMouseLeave={() => setHoveredSeat(null)}
+                    className={
+                      isOccupied && !isSelected
+                        ? 'cursor-not-allowed opacity-90'
+                        : 'cursor-pointer group'
+                    }
                   >
+                    {/* Hover hotspot circle */}
                     <circle cx={sx} cy={sy} r={seatRadius + 7} fill="transparent" />
 
+                    {/* SEAT CIRCLE RENDERING */}
                     {isSelected ? (
-                      <g filter={`url(#glow-rose${isModal ? '-m' : ''})`}>
+                      <g className="transition-transform duration-200 group-hover:scale-110 origin-center">
                         <circle
                           cx={sx}
                           cy={sy}
                           r={seatRadius}
-                          fill="#df8b9d"
-                          stroke="#c47b8b"
-                          strokeWidth="2.5"
+                          fill="#df7a90"
+                          stroke="#b85268"
+                          strokeWidth="2.2"
+                          filter={`url(#glow-rose${isModal ? '-m' : ''})`}
                         />
                         <Check
-                          className="h-3.5 w-3.5 text-white pointer-events-none"
+                          className="h-3.5 w-3.5 text-white stroke-[3] pointer-events-none select-none"
                           x={sx - 7}
                           y={sy - 7}
                         />
                       </g>
-                    ) : isOccupied ? (
-                      <g>
+                    ) : isCamOrAbby ? (
+                      <g className="cursor-not-allowed">
                         <circle
                           cx={sx}
                           cy={sy}
                           r={seatRadius}
-                          fill="#e9e2d8"
-                          stroke="#c0af9e"
-                          strokeWidth="1.5"
+                          fill="#fde8ee"
+                          stroke="#d47a8d"
+                          strokeWidth="2"
                         />
                         <text
                           x={sx}
-                          y={sy + 4}
+                          y={sy + 3.5}
                           textAnchor="middle"
-                          fill="#9c8b7a"
-                          fontSize="12"
+                          fontSize="7.5"
                           fontWeight="bold"
+                          fill="#8e3146"
+                          className="select-none pointer-events-none font-sans"
+                        >
+                          {seatNum === 1 ? 'CAM' : 'ABBY'}
+                        </text>
+                      </g>
+                    ) : isOccupied ? (
+                      <g className="cursor-not-allowed">
+                        <circle
+                          cx={sx}
+                          cy={sy}
+                          r={seatRadius}
+                          fill="#f3ede8"
+                          stroke="#d8cec5"
+                          strokeWidth="1.4"
+                        />
+                        <text
+                          x={sx}
+                          y={sy + 3.5}
+                          textAnchor="middle"
+                          fontSize="8"
+                          fontWeight="bold"
+                          fill="#998b80"
                           className="select-none pointer-events-none font-mono"
                         >
-                          ×
+                          ✕
                         </text>
                       </g>
                     ) : (
@@ -592,20 +780,20 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                         <circle
                           cx={sx}
                           cy={sy}
-                          r={seatRadius}
-                          fill="#fff8fa"
-                          stroke="#dfaeb9"
-                          strokeWidth="1.6"
-                          className="group-hover:fill-[#fdeef3] group-hover:stroke-[#df8b9d] transition-colors"
+                          r={seatRadius - 1}
+                          fill="#ffffff"
+                          stroke="#d4c2b8"
+                          strokeWidth="1.5"
+                          className="group-hover:stroke-[#df8b9d] group-hover:fill-[#fff7f9] transition-colors"
                         />
                         <text
                           x={sx}
-                          y={sy + 4}
+                          y={sy + 3.5}
                           textAnchor="middle"
-                          fill="#7a6a70"
-                          fontSize="11"
-                          fontWeight="bold"
-                          className="select-none pointer-events-none font-mono group-hover:fill-[#a84b61]"
+                          fontSize="8"
+                          fontWeight="600"
+                          fill="#5c4f4a"
+                          className="select-none pointer-events-none font-mono group-hover:fill-[#b85b73]"
                         >
                           {seatNum}
                         </text>
@@ -618,24 +806,24 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
           );
         })}
 
-        {/* ENTRANCE INDICATION & GARDEN PATIO (Clear architectural doorway pill box) */}
+        {/* MAIN ENTRANCE & GARDEN PATIO */}
         <g>
           <rect
-            x="300"
-            y="665"
-            width="360"
-            height="34"
-            rx="12"
-            fill="#ffffff"
-            stroke="#cfb0a3"
+            x="380"
+            y="880"
+            width="340"
+            height="38"
+            rx="14"
+            fill="#faf7f5"
+            stroke="#d4c5b9"
             strokeWidth="1.8"
             className="drop-shadow-xs"
           />
           <text
-            x="480"
-            y="687"
+            x="550"
+            y="904"
             textAnchor="middle"
-            fill="#523933"
+            fill="#4a3c37"
             fontSize="11"
             fontWeight="bold"
             letterSpacing="3"
@@ -651,8 +839,8 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
         <div
           className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-full pb-3 animate-in fade-in zoom-in-95 duration-150"
           style={{
-            left: `${(hoveredSeat.x / 1000) * 100}%`,
-            top: `${(hoveredSeat.y / 730) * 100}%`,
+            left: `${(hoveredSeat.x / 1100) * 100}%`,
+            top: `${(hoveredSeat.y / 960) * 100}%`,
           }}
         >
           <div className="rounded-xl border border-[#f0d5de] bg-white/95 backdrop-blur-md px-3.5 py-2.5 text-center text-stone-800 shadow-xl min-w-[160px]">
@@ -689,10 +877,10 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
   return (
     <div className="space-y-6">
       {/* Header & Instructions */}
-      <div className="rounded-2xl border border-pink-100 bg-white/95 p-5 sm:p-6 shadow-sm">
+      <div className="rounded-2xl border border-[#e8e2dc] bg-white/95 p-5 sm:p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#b8697a]">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#b85b73]">
               <Sparkles className="h-4 w-4" />
               <span>Arendsrus Dining Room Seating</span>
             </div>
@@ -700,13 +888,13 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
               Choose Your Table &amp; Seats
             </h4>
             <p className="mt-1 text-xs text-stone-600 max-w-xl leading-relaxed">
-              There are <strong>8 round tables</strong> (8 seats each, 64 seats for our 60 guests) gathered around the dance floor — no head table, Cam &amp; Abby are seated at <strong>Table 1</strong>. Click on any free seat to reserve it!
+              There are <strong>8 round tables</strong> (8 seats per table, 64 seats total) — no head table, Cam &amp; Abby are seated at <strong>Table 1</strong>. Click on any free seat to reserve it!
             </p>
           </div>
 
           {/* Party Selection Status Pill */}
           <div className="flex flex-col sm:items-end justify-center shrink-0">
-            <div className="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-[#fdf7f9] px-4 py-2 text-xs font-medium text-stone-800 shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#eedad3] bg-[#faf4f0] px-4 py-2 text-xs font-medium text-stone-800 shadow-sm">
               <Users className="h-4 w-4 text-[#c97a8b]" />
               <span>
                 Party: <strong className="text-stone-900">{attendingCount} {attendingCount === 1 ? 'Guest' : 'Guests'}</strong>
@@ -717,7 +905,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                   <Check className="h-3.5 w-3.5" /> All {attendingCount} chosen
                 </span>
               ) : (
-                <span className="font-semibold text-[#b8697a]">
+                <span className="font-semibold text-[#b85b73]">
                   {selectedSeatIds.length} of {attendingCount} selected ({seatsRemaining} left)
                 </span>
               )}
@@ -726,24 +914,30 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
         </div>
 
         {/* Legend */}
-        <div className="mt-5 flex flex-wrap items-center gap-4 sm:gap-6 border-t border-pink-50 pt-4 text-xs text-stone-600">
+        <div className="mt-5 flex flex-wrap items-center gap-4 sm:gap-6 border-t border-[#f0eae2] pt-4 text-xs text-stone-600">
           <div className="flex items-center gap-2">
-            <span className="grid h-5 w-5 place-items-center rounded-full border border-[#dfaeb9] bg-[#fff8fa] font-mono text-[10px] font-bold text-[#7a6a70] shadow-xs">
+            <span className="grid h-5 w-5 place-items-center rounded-full border border-[#d4c2b8] bg-white font-mono text-[10px] font-bold text-[#5c4f4a] shadow-xs">
               1
             </span>
             <span>Available Seat</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="grid h-5 w-5 place-items-center rounded-full border border-[#c47b8b] bg-[#df8b9d] text-white shadow-xs">
-              <Check className="h-3 w-3" />
+            <span className="grid h-5 w-5 place-items-center rounded-full border border-[#b85268] bg-[#df7a90] text-white shadow-xs">
+              <Check className="h-3 w-3 stroke-[2.5]" />
             </span>
             <span className="font-semibold text-[#a84b61]">Your Selection</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="grid h-5 w-5 place-items-center rounded-full border border-[#c0af9e] bg-[#e9e2d8] text-[10px] font-bold text-[#9c8b7a] shadow-xs">
-              ×
+            <span className="grid h-5 w-5 place-items-center rounded-full border border-[#d47a8d] bg-[#fde8ee] font-sans text-[7.5px] font-bold text-[#8e3146] shadow-xs">
+              C&amp;A
             </span>
-            <span>Reserved (Other Guests, incl. Cam &amp; Abby at Table 1)</span>
+            <span>Cam &amp; Abby (Table 1)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="grid h-5 w-5 place-items-center rounded-full border border-[#d8cec5] bg-[#f3ede8] text-[10px] font-bold text-[#998b80] shadow-xs">
+              ✕
+            </span>
+            <span>Reserved (Other Guests)</span>
           </div>
 
           <div className="ml-auto flex items-center gap-3">
@@ -751,7 +945,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
               <button
                 type="button"
                 onClick={() => setIsFullscreen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-pink-200 bg-white px-3 py-1 text-[11px] font-semibold text-[#b8697a] hover:bg-pink-50 shadow-2xs cursor-pointer transition"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#e2dad2] bg-white px-3 py-1 text-[11px] font-semibold text-[#5c524b] hover:border-[#df8b9d] hover:text-[#b85b73] shadow-2xs cursor-pointer transition"
               >
                 <Maximize2 className="h-3 w-3" />
                 <span>Full Screen</span>
@@ -804,9 +998,9 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
               return (
                 <div
                   key={table.id}
-                  className="rounded-2xl border border-pink-100 bg-white p-5 shadow-xs"
+                  className="rounded-2xl border border-[#e8e2dc] bg-white p-5 shadow-xs"
                 >
-                  <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                  <div className="flex items-center justify-between border-b border-[#f0eae2] pb-3">
                     <div>
                       <h5 className="font-display text-base font-bold text-stone-800">
                         {table.name}: {table.theme}
@@ -844,7 +1038,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                               ? 'border-[#c47b8b] bg-[#df8b9d] text-white shadow-xs'
                               : isOccupied
                                 ? 'border-[#d8cfc6] bg-[#ece7e0] text-[#8a7f74] cursor-not-allowed'
-                                : 'border-stone-200 bg-stone-50 hover:bg-pink-50 hover:border-pink-300 text-stone-700'
+                                : 'border-[#ded7cf] bg-[#faf8f5] hover:bg-white hover:border-[#df8b9d] text-stone-700'
                           }`}
                         >
                           <span className="text-xs font-bold">Seat {seatNum}</span>
@@ -863,11 +1057,11 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
       )}
 
       {/* SELECTED SEATS LIVE SUMMARY & CONTROLS */}
-      <div className="rounded-2xl border border-pink-200/90 bg-gradient-to-br from-[#ffffff] via-[#fffcfd] to-[#faf3f5] p-5 sm:p-6 shadow-sm">
+      <div className="rounded-2xl border border-[#e8ded6] bg-gradient-to-br from-[#ffffff] via-[#fdfcfb] to-[#faf6f2] p-5 sm:p-6 shadow-sm">
         {/* Header with Title & Status Badge */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-pink-100/80 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#f0eae2] pb-4">
           <div>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#b8697a]">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#b85b73]">
               <Sparkles className="h-3.5 w-3.5" />
               <span>Your Table &amp; Seat Assignment</span>
             </div>
@@ -887,7 +1081,7 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
               className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-semibold shadow-2xs ${
                 selectedSeatIds.length === attendingCount
                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-pink-50 text-[#b8697a] border border-pink-200'
+                  : 'bg-[#faf2f4] text-[#b85b73] border border-[#f0d5dc]'
               }`}
             >
               {selectedSeatIds.length === attendingCount ? (
@@ -919,10 +1113,10 @@ export const TableSeatingChart: React.FC<TableSeatingChartProps> = ({
                 return (
                   <div
                     key={seatId}
-                    className="flex items-center justify-between gap-2.5 rounded-xl border border-pink-100 bg-white/95 px-3.5 py-2.5 shadow-2xs hover:border-pink-200 transition"
+                    className="flex items-center justify-between gap-2.5 rounded-xl border border-[#e8e2dc] bg-white px-3.5 py-2.5 shadow-2xs hover:border-[#df8b9d] transition"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#fdf2f4] border border-pink-200 text-xs font-bold text-[#b8697a]">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#faf2f4] border border-[#f0d5dc] text-xs font-bold text-[#b85b73]">
                         {s}
                       </span>
                       <div className="min-w-0">

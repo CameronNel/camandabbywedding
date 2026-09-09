@@ -301,25 +301,25 @@ export function AppContent() {
   }, [isPartyView, adminOpen]);
 
   return (
-    <div className="relative min-h-screen overflow-x-clip bg-[#faf3f5] text-stone-800">
+    <div className="relative min-h-screen w-full max-w-full overflow-x-hidden bg-[#faf8f5] text-[#2b2624]">
       <a className="skip-link" href="#main-content">Skip to content</a>
-      {/* Luminous Ambient Light Auras in Official Brand Colors */}
+      {/* Luminous Ambient Light Auras: Warm Sunlight, Soft Champagne & Eucalyptus Sage */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
-        {/* Dusty Rose (#E4AEB5) & Soft Peach (#F5D0C6) Top Glow */}
-        <div className="absolute -top-24 -left-20 h-[620px] w-[620px] rounded-full bg-[#E4AEB5]/45 blur-[120px]" />
-        <div className="absolute top-[14%] -right-32 h-[660px] w-[660px] rounded-full bg-[#F5D0C6]/42 blur-[130px]" />
-        {/* Eucalyptus Sage (#9BBEAB) & Seafoam Mint (#C0DCCC) Middle Glow */}
-        <div className="absolute top-[36%] -left-28 h-[650px] w-[650px] rounded-full bg-[#9BBEAB]/42 blur-[125px]" />
-        <div className="absolute top-[50%] -right-24 h-[670px] w-[670px] rounded-full bg-[#C0DCCC]/40 blur-[125px]" />
-        {/* Warm Linen (#ECE3DF) & Dusty Terracotta (#E7AF9E) Lower Glow */}
-        <div className="absolute top-[68%] -left-24 h-[670px] w-[670px] rounded-full bg-[#ECE3DF]/50 blur-[130px]" />
-        <div className="absolute top-[80%] -right-20 h-[700px] w-[700px] rounded-full bg-[#E7AF9E]/38 blur-[135px]" />
-        <div className="absolute -bottom-20 left-1/3 h-[620px] w-[620px] rounded-full bg-[#9BBEAB]/45 blur-[130px]" />
+        {/* Warm Champagne Sunlight & Alabaster Top Auras */}
+        <div className="absolute -top-24 -left-20 h-[620px] w-[620px] rounded-full bg-[#f5ebd7]/24 blur-[140px]" />
+        <div className="absolute top-[14%] -right-32 h-[660px] w-[660px] rounded-full bg-[#f0eae1]/22 blur-[140px]" />
+        {/* Eucalyptus Sage (#9bbeab) & Soft Champagne Linen Middle Auras */}
+        <div className="absolute top-[36%] -left-28 h-[650px] w-[650px] rounded-full bg-[#9bbeab]/16 blur-[140px]" />
+        <div className="absolute top-[50%] -right-24 h-[670px] w-[670px] rounded-full bg-[#ede4d8]/20 blur-[140px]" />
+        {/* Warm Linen & Fynbos Sage Lower Auras */}
+        <div className="absolute top-[68%] -left-24 h-[670px] w-[670px] rounded-full bg-[#ece5dc]/25 blur-[140px]" />
+        <div className="absolute top-[80%] -right-20 h-[700px] w-[700px] rounded-full bg-[#9bbeab]/15 blur-[140px]" />
+        <div className="absolute -bottom-20 left-1/3 h-[620px] w-[620px] rounded-full bg-[#ede4d8]/22 blur-[140px]" />
       </div>
 
       <SakuraPetals />
       <Navbar activeSection={activeSection} onNavigate={navigate} />
-      <main id="main-content" className="relative z-10">
+      <main id="main-content" className="relative z-10 w-full max-w-full overflow-x-hidden">
         {activeSection === 'bachelor' ? (
           <BachelorParty onNavigate={navigate} />
         ) : activeSection === 'bachelorette' ? (

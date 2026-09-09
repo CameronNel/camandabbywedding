@@ -32,18 +32,18 @@ export interface TableConfig {
   shape?: 'round' | 'head';
 }
 
-// Exactly 8 round tables (8 seats each = 64 seats for 60 guests) arranged in a
-// horseshoe curve, assigned to the official wedding brand colors. No head table:
-// Cam & Abby sit at Table 1, Seats 1 & 2.
+// Exactly 8 round tables (8 seats per table = 6FT round = 64 pax)
+// Arranged around the central dance floor with the bar on the top-left and food buffet on the right.
+// No head table: Cam & Abby sit at Table 1, Seats 1 & 2.
 export const TABLES: TableConfig[] = [
-  { id: 1, name: 'Table 1', theme: 'Protea', cx: 170, cy: 200, capacity: 8, color: '#E4AEB5', bgTint: '#fdf5f6', borderTint: '#e4aeb5', textTint: '#8a424e', shape: 'round' },
-  { id: 2, name: 'Table 2', theme: 'Eucalyptus', cx: 145, cy: 400, capacity: 8, color: '#9BBEAB', bgTint: '#f4f8f5', borderTint: '#9bbeab', textTint: '#385e49', shape: 'round' },
-  { id: 3, name: 'Table 3', theme: 'Seafoam', cx: 270, cy: 548, capacity: 8, color: '#C0DCCC', bgTint: '#f6faf8', borderTint: '#c0dccc', textTint: '#3b6b55', shape: 'round' },
-  { id: 4, name: 'Table 4', theme: 'Peach Blossom', cx: 480, cy: 552, capacity: 8, color: '#F5D0C6', bgTint: '#fef7f5', borderTint: '#f5d0c6', textTint: '#8e4c3d', shape: 'round' },
-  { id: 5, name: 'Table 5', theme: 'Warm Linen', cx: 690, cy: 548, capacity: 8, color: '#ECE3DF', bgTint: '#faf7f5', borderTint: '#ece3df', textTint: '#6b5850', shape: 'round' },
-  { id: 6, name: 'Table 6', theme: 'Terracotta Clay', cx: 815, cy: 400, capacity: 8, color: '#E7AF9E', bgTint: '#fdf5f2', borderTint: '#e7af9e', textTint: '#854231', shape: 'round' },
-  { id: 7, name: 'Table 7', theme: 'Garden Sage', cx: 790, cy: 200, capacity: 8, color: '#9BBEAB', bgTint: '#f4f8f5', borderTint: '#9bbeab', textTint: '#385e49', shape: 'round' },
-  { id: 8, name: 'Table 8', theme: 'Blushing Bride', cx: 480, cy: 170, capacity: 8, color: '#E4AEB5', bgTint: '#fdf5f6', borderTint: '#e4aeb5', textTint: '#8a424e', shape: 'round' },
+  { id: 1, name: 'Table 1', theme: 'Protea', cx: 415, cy: 230, capacity: 8, color: '#c59b48', bgTint: '#fffdfb', borderTint: '#c59b48', textTint: '#a04255', shape: 'round' },
+  { id: 2, name: 'Table 2', theme: 'Eucalyptus', cx: 210, cy: 365, capacity: 8, color: '#c59b48', bgTint: '#fffdfb', borderTint: '#c59b48', textTint: '#3d664f', shape: 'round' },
+  { id: 3, name: 'Table 3', theme: 'Seafoam', cx: 210, cy: 605, capacity: 8, color: '#c59b48', bgTint: '#fffdfb', borderTint: '#c59b48', textTint: '#2f6e56', shape: 'round' },
+  { id: 4, name: 'Table 4', theme: 'Peach Blossom', cx: 415, cy: 715, capacity: 8, color: '#c59b48', bgTint: '#fffdfb', borderTint: '#c59b48', textTint: '#a35242', shape: 'round' },
+  { id: 5, name: 'Table 5', theme: 'Warm Linen', cx: 685, cy: 715, capacity: 8, color: '#c59b48', bgTint: '#fffdfb', borderTint: '#c59b48', textTint: '#755e52', shape: 'round' },
+  { id: 6, name: 'Table 6', theme: 'Terracotta Clay', cx: 890, cy: 605, capacity: 8, color: '#c59b48', bgTint: '#fffdfb', borderTint: '#c59b48', textTint: '#a04d3b', shape: 'round' },
+  { id: 7, name: 'Table 7', theme: 'Garden Sage', cx: 890, cy: 365, capacity: 8, color: '#c59b48', bgTint: '#fffdfb', borderTint: '#c59b48', textTint: '#3d664f', shape: 'round' },
+  { id: 8, name: 'Table 8', theme: 'Blushing Bride', cx: 685, cy: 230, capacity: 8, color: '#c59b48', bgTint: '#fffdfb', borderTint: '#c59b48', textTint: '#a04255', shape: 'round' },
 ];
 
 export interface SeatOccupant {

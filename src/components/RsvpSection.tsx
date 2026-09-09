@@ -204,6 +204,9 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
 
   useEffect(() => {
     if (!code || household || autoLookupAttempted.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const hasUrlCode = Boolean(params.get('token') || params.get('code') || params.get('invite'));
+    if (!hasUrlCode) return; // Only auto-submit on page load if explicitly passed via URL
     autoLookupAttempted.current = true;
     void findInvitation(code);
   }, [code, findInvitation, household]);
@@ -476,19 +479,19 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
             </div>
           </Reveal>
         ) : (
-          <Reveal className="relative z-10 grid gap-8 rounded-[2rem] border border-stone-200 bg-white p-6 shadow-[0_24px_80px_rgba(64,48,39,0.09)] sm:p-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-12">
-            <aside className="rounded-[1.5rem] bg-[#fdf3f5] p-6 sm:p-8">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#c97a8b]">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Invitation verified
+          <Reveal className="relative z-10 grid gap-6 sm:gap-8 rounded-[2rem] border border-stone-200 bg-white p-4 sm:p-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-12 w-full min-w-0 max-w-full overflow-hidden">
+            <aside className="rounded-[1.5rem] border border-[#ece4dc] bg-[#faf6f2] p-5 sm:p-8 w-full min-w-0">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#d6e3db] bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#3d664f]">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#527d65]" /> Invitation verified
               </span>
-              <h3 className="mt-5 font-display text-3xl leading-tight text-stone-800">{household.name}</h3>
+              <h3 className="mt-5 font-display text-3xl leading-tight text-stone-800 break-words">{household.name}</h3>
               <p className="mt-3 text-sm leading-6 text-stone-600">
                 {household.isPlusOneAllowed
                   ? `${household.members.length} ${household.members.length === 1 ? 'guest' : 'guests'} + 1 companion included in this invitation.`
                   : `${household.members.length} ${household.members.length === 1 ? 'guest' : 'guests'} included in this invitation.`}
               </p>
               {household.status !== 'pending' && (
-                <p className="mt-5 rounded-2xl border border-pink-200/80 bg-white/70 px-4 py-3 text-xs leading-5 text-stone-600">
+                <p className="mt-5 rounded-2xl border border-[#e2dad2] bg-white px-4 py-3 text-xs leading-5 text-stone-600">
                   A response is already saved. Submitting this form will update it.
                 </p>
               )}
@@ -496,9 +499,9 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                 <button
                   type="button"
                   onClick={() => setIsCardModalOpen(true)}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#f1aab7] bg-white px-4 py-2.5 text-xs font-bold text-[#9c3353] shadow-xs hover:bg-[#fff5f7] transition"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#ded4cc] bg-white px-4 py-2.5 text-xs font-bold text-[#b85b73] shadow-xs hover:bg-[#fdfaf8] transition"
                 >
-                  <CalendarHeart className="h-4 w-4 text-[#db6b88]" />
+                  <CalendarHeart className="h-4 w-4 text-[#c97a8b]" />
                   View custom invitation card
                 </button>
                 <button type="button" onClick={useAnotherInvitation} className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-stone-600 underline decoration-stone-300 underline-offset-4 hover:text-stone-900">
@@ -507,10 +510,18 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
               </div>
             </aside>
 
-            <form onSubmit={saveResponse} className="flex flex-col justify-between">
+            <form onSubmit={saveResponse} className="flex flex-col justify-between w-full min-w-0">
               {/* Step Progress Bar */}
-              <nav aria-label="RSVP Steps" className="mb-8">
-                <ol className="flex items-center justify-between gap-2 border-b border-pink-100/80 pb-5">
+              <nav aria-label="RSVP Steps" className="mb-6 sm:mb-8 w-full min-w-0">
+                {/* Mobile Active Step Indicator */}
+                <div className="flex items-center justify-between text-xs font-bold text-stone-700 mb-2.5 sm:hidden">
+                  <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">Step {currentStep} of 4</span>
+                  <span className="text-[#b85b73]">
+                    {currentStep === 1 ? 'Attendance' : currentStep === 2 ? 'Preferences' : currentStep === 3 ? 'Table Seating' : 'Summary'}
+                  </span>
+                </div>
+
+                <ol className="flex items-center justify-between gap-1.5 sm:gap-2 border-b border-stone-200/70 pb-3.5 sm:pb-5 w-full min-w-0">
                   {[
                     { step: 1 as const, label: 'Attendance', hint: 'Who’s coming' },
                     { step: 2 as const, label: 'Preferences', hint: 'Dietary & favours' },
@@ -520,7 +531,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                     const isActive = currentStep === item.step;
                     const isCompleted = currentStep > item.step;
                     return (
-                      <li key={item.step} className="flex-1">
+                      <li key={item.step} className="flex-1 min-w-0">
                         <button
                           type="button"
                           onClick={() => {
@@ -537,25 +548,25 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                             isActive ? 'opacity-100' : 'opacity-65 hover:opacity-100'
                           }`}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                             <span
-                              className={`grid h-6 w-6 place-items-center rounded-full text-xs font-bold transition-colors ${
+                              className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold transition-colors ${
                                 isActive
-                                  ? 'bg-gradient-to-r from-[#e597a8] to-[#f7ada0] text-white shadow-sm'
+                                  ? 'bg-[#b85b73] text-white shadow-xs'
                                   : isCompleted
-                                  ? 'bg-[#f7faf2] text-[#4a6328] border border-[#cde1a4]'
+                                  ? 'bg-[#edf5f0] text-[#2d4f39] border border-[#9bbeab]'
                                   : 'bg-stone-100 text-stone-500'
                               }`}
                             >
                               {isCompleted ? <Check className="h-3.5 w-3.5 stroke-[2.5]" /> : item.step}
                             </span>
-                            <span className={`text-xs font-semibold tracking-wide ${isActive ? 'text-[#a84b61]' : 'text-stone-700'}`}>
+                            <span className={`hidden sm:inline truncate text-xs font-semibold tracking-wide ${isActive ? 'text-[#b85b73]' : 'text-stone-700'}`}>
                               {item.label}
                             </span>
                           </div>
                           <div
-                            className={`mt-2 h-1 w-full rounded-full transition-colors ${
-                              isActive ? 'bg-gradient-to-r from-[#e597a8] to-[#f7ada0]' : isCompleted ? 'bg-[#cde1a4]' : 'bg-stone-200/70'
+                            className={`mt-1.5 sm:mt-2 h-1 w-full rounded-full transition-colors ${
+                              isActive ? 'bg-[#b85b73]' : isCompleted ? 'bg-[#9bbeab]' : 'bg-stone-200/70'
                             }`}
                           />
                         </button>
@@ -593,22 +604,24 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   {response === 'attending' ? (
                     <fieldset>
                       <legend className="flex items-center gap-2 text-sm font-semibold text-stone-800">
-                        <Users className="h-4 w-4 text-[#5c7a59]" /> Who will join us?
+                        <Users className="h-4 w-4 text-[#3d664f]" /> Who will join us?
                       </legend>
                       <p className="mt-1 text-xs text-stone-500">Select each person in your household who will attend.</p>
-                      <div className="mt-3 divide-y divide-stone-100 overflow-hidden rounded-2xl border border-stone-200">
+                      <div className="mt-3 divide-y divide-stone-100 overflow-hidden rounded-2xl border border-stone-200 w-full min-w-0">
                         {household.members.map(member => {
                           const checked = selectedMemberSet.has(member.id);
                           return (
-                            <label key={member.id} className="flex min-h-14 cursor-pointer items-center gap-3 bg-white px-4 transition-colors hover:bg-stone-50">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => toggleMember(member.id)}
-                                className="h-4 w-4 rounded border-pink-200 text-[#5c7a59] focus:ring-[#9cb59b]"
-                              />
-                              <span className="flex-1 text-sm font-medium text-stone-700">{member.name}</span>
-                              <span className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${checked ? 'text-[#4c6b4b]' : 'text-stone-400'}`}>
+                            <label key={member.id} className="flex min-h-14 cursor-pointer items-center justify-between gap-3 bg-white px-3.5 sm:px-4 transition-colors hover:bg-stone-50 w-full min-w-0">
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleMember(member.id)}
+                                  className="h-4 w-4 shrink-0 rounded border-pink-200 text-[#3d664f] focus:ring-[#9bbeab]"
+                                />
+                                <span className="text-sm font-medium text-stone-700 truncate">{member.name}</span>
+                              </div>
+                              <span className={`shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] ${checked ? 'text-[#3d664f]' : 'text-stone-400'}`}>
                                 {checked ? 'Attending' : 'Not attending'}
                               </span>
                             </label>
@@ -617,28 +630,28 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                       </div>
 
                       {household.isPlusOneAllowed && (
-                        <div className="mt-4 rounded-2xl border border-pink-100 bg-[#fdfafb] p-4 transition-all">
-                          <label className="flex cursor-pointer items-center gap-3">
+                        <div className="mt-4 rounded-2xl border border-[#e5ded7] bg-[#faf6f2] p-4 transition-all w-full min-w-0">
+                          <label className="flex cursor-pointer items-start sm:items-center gap-3">
                             <input
                               type="checkbox"
                               checked={plusOneAttending}
                               onChange={e => setPlusOneAttending(e.target.checked)}
-                              className="h-4 w-4 rounded border-pink-200 text-[#5c7a59] focus:ring-[#9cb59b]"
+                              className="mt-0.5 sm:mt-0 h-4 w-4 shrink-0 rounded border-[#d6cdc5] text-[#3d664f] focus:ring-[#9bbeab]"
                             />
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <span className="text-sm font-semibold text-stone-800">Bring a Guest (+1 Companion)</span>
-                                <span className="rounded bg-[#fdebf0] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#b8697a]">+1 Included</span>
+                                <span className="rounded bg-white border border-[#e8d5dc] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#b85b73] shrink-0">+1 Included</span>
                               </div>
                               <p className="text-[11px] text-stone-500">Your invitation allows an accompanying guest.</p>
                             </div>
-                            <span className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${plusOneAttending ? 'text-[#4c6b4b]' : 'text-stone-400'}`}>
+                            <span className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${plusOneAttending ? 'text-[#3d664f]' : 'text-stone-400'}`}>
                               {plusOneAttending ? 'Attending' : 'Not attending'}
                             </span>
                           </label>
 
                           {plusOneAttending && (
-                            <div className="mt-3 border-t border-pink-100 pt-3">
+                            <div className="mt-3 border-t border-[#eae3dc] pt-3">
                               <label className="block text-xs font-semibold text-stone-700">
                                 Companion Full Name <span className="font-normal text-stone-400">(optional)</span>
                                 <input
@@ -936,8 +949,8 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                       onChange={setTableNumber}
                     />
                   ) : (
-                    <div className="rounded-[1.75rem] border border-pink-100 bg-gradient-to-br from-[#fdfafb] to-[#fcf5f7] p-6 sm:p-8 text-center shadow-sm">
-                      <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#fdebf0] text-[#c97a8b] shadow-sm">
+                    <div className="rounded-[1.75rem] border border-[#e8ded6] bg-[#faf6f2] p-6 sm:p-8 text-center shadow-sm">
+                      <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#faf2f4] text-[#b85b73] shadow-sm">
                         <Utensils className="h-6 w-6" />
                       </div>
                       <h4 className="mt-4 font-display text-2xl font-semibold text-stone-800 sm:text-3xl">
@@ -947,7 +960,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                         Since you let us know that you are unable to attend, no table seating selection is needed.
                         We will miss you dearly on our special day!
                       </p>
-                      <div className="mt-5 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#b8697a]">
+                      <div className="mt-5 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#b85b73]">
                         <TulipDuo size={18} />
                         <span>Sending warm love</span>
                       </div>
@@ -994,10 +1007,10 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                   </div>
 
                   {/* Comprehensive Summary Cards */}
-                  <div className="rounded-3xl border border-pink-200/90 bg-gradient-to-br from-white via-[#fffdfd] to-[#faf4f6] p-5 sm:p-7 shadow-sm space-y-5">
+                  <div className="rounded-3xl border border-[#e8ded6] bg-gradient-to-br from-white via-[#fdfcfb] to-[#faf6f2] p-5 sm:p-7 shadow-sm space-y-5">
                     {/* 1. Attendance Card */}
-                    <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
-                      <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                    <div className="rounded-2xl border border-[#e8e2dc] bg-white p-4 sm:p-5 shadow-2xs">
+                      <div className="flex items-center justify-between border-b border-[#f0eae2] pb-3">
                         <div className="flex items-center gap-2.5">
                           <div className={`grid h-8 w-8 place-items-center rounded-full text-xs font-bold ${
                             response === 'attending' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-600'
@@ -1014,7 +1027,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                         <button
                           type="button"
                           onClick={() => setCurrentStep(1)}
-                          className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                          className="text-xs font-semibold text-[#b85b73] hover:underline cursor-pointer"
                         >
                           Edit
                         </button>
@@ -1043,10 +1056,10 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
 
                     {/* 2. Table & Seating Card (if attending) */}
                     {response === 'attending' && (
-                      <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
-                        <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                      <div className="rounded-2xl border border-[#e8e2dc] bg-white p-4 sm:p-5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-[#f0eae2] pb-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="grid h-8 w-8 place-items-center rounded-full bg-pink-100 text-[#b8697a]">
+                            <div className="grid h-8 w-8 place-items-center rounded-full bg-[#faf2f4] text-[#b85b73]">
                               <Utensils className="h-4 w-4" />
                             </div>
                             <div>
@@ -1057,15 +1070,15 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                           <button
                             type="button"
                             onClick={() => setCurrentStep(3)}
-                            className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                            className="text-xs font-semibold text-[#b85b73] hover:underline cursor-pointer"
                           >
                             Change Seats
                           </button>
                         </div>
                         <div className="mt-3.5">
                           {tableNumber ? (
-                            <div className="rounded-xl border border-pink-200/80 bg-[#fdf8f9] p-3">
-                              <p className="text-sm font-bold text-[#b8697a]">
+                            <div className="rounded-xl border border-[#eedad3] bg-[#faf4f0] p-3">
+                              <p className="text-sm font-bold text-[#b85b73]">
                                 {tableNumber}
                               </p>
                               <p className="mt-0.5 text-[11px] text-stone-500">
@@ -1088,10 +1101,10 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
 
                     {/* 3. Wedding Favour (if attending) */}
                     {response === 'attending' && (
-                      <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
-                        <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                      <div className="rounded-2xl border border-[#e8e2dc] bg-white p-4 sm:p-5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-[#f0eae2] pb-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="grid h-8 w-8 place-items-center rounded-full bg-pink-100 text-[#b8697a]">
+                            <div className="grid h-8 w-8 place-items-center rounded-full bg-[#faf5ec] text-[#a67c38]">
                               <Gift className="h-4 w-4" />
                             </div>
                             <div>
@@ -1102,7 +1115,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                           <button
                             type="button"
                             onClick={() => setCurrentStep(2)}
-                            className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                            className="text-xs font-semibold text-[#b85b73] hover:underline cursor-pointer"
                           >
                             Edit
                           </button>
@@ -1125,10 +1138,10 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
 
                     {/* 4. Dietary & Food Wishes (if attending) */}
                     {response === 'attending' && (
-                      <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
-                        <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                      <div className="rounded-2xl border border-[#e8e2dc] bg-white p-4 sm:p-5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-[#f0eae2] pb-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="grid h-8 w-8 place-items-center rounded-full bg-pink-100 text-[#b8697a]">
+                            <div className="grid h-8 w-8 place-items-center rounded-full bg-[#edf5f0] text-[#3d664f]">
                               <Utensils className="h-4 w-4" />
                             </div>
                             <div>
@@ -1139,7 +1152,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                           <button
                             type="button"
                             onClick={() => setCurrentStep(2)}
-                            className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                            className="text-xs font-semibold text-[#b85b73] hover:underline cursor-pointer"
                           >
                             Edit
                           </button>
@@ -1152,7 +1165,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                               <div key={guest.key} className="flex flex-col sm:flex-row sm:items-baseline gap-1.5">
                                 <span className="font-semibold text-stone-700 min-w-[120px]">{guest.name}:</span>
                                 <div className="flex flex-wrap items-center gap-1.5">
-                                  {norm.tags.length > 0 ? (
+                                   {norm.tags.length > 0 ? (
                                     norm.tags.map(tag => (
                                       <span
                                         key={tag.id}
@@ -1187,10 +1200,10 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                     )}
 
                     {/* 5. Contact Information */}
-                    <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
-                      <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                    <div className="rounded-2xl border border-[#e8e2dc] bg-white p-4 sm:p-5 shadow-2xs">
+                      <div className="flex items-center justify-between border-b border-[#f0eae2] pb-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="grid h-8 w-8 place-items-center rounded-full bg-pink-100 text-[#b8697a]">
+                          <div className="grid h-8 w-8 place-items-center rounded-full bg-[#f4f1ed] text-[#5c524b]">
                             <Mail className="h-4 w-4" />
                           </div>
                           <div>
@@ -1201,7 +1214,7 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                         <button
                           type="button"
                           onClick={() => setCurrentStep(2)}
-                          className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                          className="text-xs font-semibold text-[#b85b73] hover:underline cursor-pointer"
                         >
                           Edit
                         </button>
@@ -1220,10 +1233,10 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
 
                     {/* 6. Message for Abby & Cam */}
                     {message && (
-                      <div className="rounded-2xl border border-pink-100 bg-white p-4 sm:p-5 shadow-2xs">
-                        <div className="flex items-center justify-between border-b border-pink-50 pb-3">
+                      <div className="rounded-2xl border border-[#e8e2dc] bg-white p-4 sm:p-5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-[#f0eae2] pb-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="grid h-8 w-8 place-items-center rounded-full bg-pink-100 text-[#b8697a]">
+                            <div className="grid h-8 w-8 place-items-center rounded-full bg-[#faf2f4] text-[#b85b73]">
                               <MessageSquare className="h-4 w-4" />
                             </div>
                             <div>
@@ -1234,12 +1247,12 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                           <button
                             type="button"
                             onClick={() => setCurrentStep(2)}
-                            className="text-xs font-semibold text-[#b8697a] hover:underline cursor-pointer"
+                            className="text-xs font-semibold text-[#b85b73] hover:underline cursor-pointer"
                           >
                             Edit
                           </button>
                         </div>
-                        <div className="mt-3.5 rounded-xl border border-pink-100/80 bg-[#fefbfc] p-3.5 text-xs text-stone-700 italic leading-relaxed">
+                        <div className="mt-3.5 rounded-xl border border-[#eedad3] bg-[#faf4f0] p-3.5 text-xs text-stone-700 italic leading-relaxed">
                           “{message}”
                         </div>
                       </div>

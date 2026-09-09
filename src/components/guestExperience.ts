@@ -212,9 +212,12 @@ export function useGuestExperience() {
   const submitHouseholdRsvp = async (_householdId: string, payload: HouseholdRsvpInput): Promise<boolean> =>
     context.submitHouseholdRsvp(payload);
 
+  const isUnlocked = Boolean(activeHousehold);
+
   return {
     site,
     activeHousehold,
+    isUnlocked,
     accommodations,
     services,
     galleryItems: publishedGallery,
@@ -224,7 +227,12 @@ export function useGuestExperience() {
     lookupInvitation,
     submitHouseholdRsvp,
     households: context.households,
-    clearInvitation: () => context.setActiveHousehold(null),
+    clearInvitation: () => {
+      context.setActiveHousehold(null);
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem('wedding_invitation_code');
+      }
+    },
     openAdmin: () => context.setIsAdminOpen(true),
     bachelorParty: context.bachelorParty,
     updateBachelorParty: context.updateBachelorParty,

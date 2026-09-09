@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   CalendarHeart,
   Check,
@@ -15,6 +15,7 @@ import {
   Sparkles,
   Tag,
   Trash2,
+  Upload,
   Users,
   X,
 } from 'lucide-react';
@@ -36,6 +37,7 @@ import {
 } from '../../utils/guestTags';
 import { Button, EmptyState, Field, Modal, Toggle, inputClass } from './AdminPrimitives';
 import type { ToastState } from './contracts';
+import { parseGuestListText, RAW_CAM_ABBY_GUEST_LIST } from '../../data/guestImportParser';
 
 interface HouseholdManagerProps {
   config?: WeddingConfig;
@@ -43,6 +45,7 @@ interface HouseholdManagerProps {
   selectedIds: Set<string>;
   onSelectionChange: (selected: Set<string>) => void;
   onCreate: (draft: HouseholdDraft) => Promise<void>;
+  onBulkCreate?: (drafts: HouseholdDraft[]) => Promise<number>;
   onUpdate: (id: string, updates: Partial<HouseholdInvitation>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onPreview: (household: HouseholdInvitation, variant: InvitationVariant) => void;
@@ -322,12 +325,284 @@ const statusStyles: Record<RsvpStatus, string> = {
   pending: 'border-amber-200 bg-amber-50 text-amber-700',
 };
 
+const ImportGuestsModal: React.FC<{
+  open: boolean;
+  onClose: () => void;
+  existingHouseholds: HouseholdInvitation[];
+  onImport: (drafts: HouseholdDraft[]) => Promise<number>;
+  notify: (toast: ToastState) => void;
+}> = ({ open, onClose, existingHouseholds, onImport, notify }) => {
+  const [inputText, setInputText] = useState(RAW_CAM_ABBY_GUEST_LIST);
+  const [showRawInput, setShowRawInput] = useState(false);
+  const [importing, setImporting] = useState(false);
+
+  const parsedDrafts = useMemo(() => parseGuestListText(inputText), [inputText]);
+
+  const existingNameSet = useMemo(() => {
+    return new Set(existingHouseholds.map(h => h.name.toLowerCase().trim()));
+  }, [existingHouseholds]);
+
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(() => {
+    const set = new Set<number>();
+    parsedDrafts.forEach((d, i) => {
+      if (!existingNameSet.has(d.name.toLowerCase().trim())) {
+        set.add(i);
+      }
+    });
+    return set;
+  });
+
+  // Re-sync selection whenever parsedDrafts or existingHouseholds changes
+  useEffect(() => {
+    const set = new Set<number>();
+    parsedDrafts.forEach((d, i) => {
+      if (!existingNameSet.has(d.name.toLowerCase().trim())) {
+        set.add(i);
+      }
+    });
+    setSelectedIndices(set);
+  }, [parsedDrafts, existingNameSet]);
+
+  const toggleIndex = (i: number) => {
+    setSelectedIndices(prev => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    const next = new Set<number>();
+    parsedDrafts.forEach((d, i) => {
+      if (!existingNameSet.has(d.name.toLowerCase().trim())) {
+        next.add(i);
+      }
+    });
+    setSelectedIndices(next);
+  };
+
+  const deselectAll = () => {
+    setSelectedIndices(new Set());
+  };
+
+  const handleImport = async () => {
+    const toImport = parsedDrafts.filter((_, i) => selectedIndices.has(i));
+    if (toImport.length === 0) return;
+    setImporting(true);
+    try {
+      const count = await onImport(toImport);
+      notify({
+        tone: 'success',
+        message: `Successfully added ${count} new household${count === 1 ? '' : 's'} to the guest list!`,
+      });
+      onClose();
+    } catch {
+      notify({
+        tone: 'error',
+        message: 'Could not import some households. Please check your data and try again.',
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const selectedCount = selectedIndices.size;
+  const existingCount = parsedDrafts.filter(d => existingNameSet.has(d.name.toLowerCase().trim())).length;
+  const totalSeats = parsedDrafts
+    .filter((_, i) => selectedIndices.has(i))
+    .reduce((sum, d) => sum + (d.partySize || 1), 0);
+
+  return (
+    <Modal open={open} onClose={onClose} title="Import Guests & Households" eyebrow="Batch Guest Administration" maxWidth="max-w-4xl">
+      <div className="space-y-5 p-1 sm:p-2">
+        {/* Quick Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-stone-200 bg-stone-50/80 p-3 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setInputText(RAW_CAM_ABBY_GUEST_LIST)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-pink-200 bg-white px-3 py-1.5 font-bold text-[#8a2947] shadow-2xs hover:bg-[#fff7f9] transition"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-pink-600" />
+              Reset to Cameron &amp; Abby&apos;s 38 Guests
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowRawInput(!showRawInput)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-1.5 font-semibold text-stone-700 hover:bg-stone-100 transition"
+            >
+              <Pencil className="h-3.5 w-3.5 text-stone-500" />
+              {showRawInput ? 'Hide Paste Box' : 'Paste / Edit Raw Text'}
+            </button>
+          </div>
+          <div className="flex items-center gap-2 font-mono text-[11px] text-stone-500">
+            <span>{parsedDrafts.length} total parsed</span>
+          </div>
+        </div>
+
+        {/* Collapsible raw textarea */}
+        {showRawInput && (
+          <div className="rounded-2xl border border-stone-200 bg-white p-4">
+            <label className="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">
+              Paste names, couples, or TSV from Excel
+            </label>
+            <p className="text-[11px] text-stone-500 mb-2">
+              Tab-separated rows like <code className="bg-stone-100 px-1 py-0.5 rounded text-[10px]">Name	+1</code> or <code className="bg-stone-100 px-1 py-0.5 rounded text-[10px]">Name 1	Name 2</code>.
+            </p>
+            <textarea
+              rows={8}
+              value={inputText}
+              onChange={e => setInputText(e.target.value)}
+              className="w-full rounded-xl border border-stone-300 p-3 font-mono text-xs text-stone-800 focus:border-[#8a2947] focus:outline-none focus:ring-1 focus:ring-[#8a2947]"
+              placeholder="Paste guest list rows here..."
+            />
+          </div>
+        )}
+
+        {/* Status badges */}
+        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-800">
+            <Check className="h-3.5 w-3.5 text-emerald-600" />
+            {selectedCount} ready to add ({totalSeats} reserved seats)
+          </span>
+          {existingCount > 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-800">
+              {existingCount} already in system (skipped)
+            </span>
+          )}
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={selectAll}
+              className="text-[11px] font-bold text-stone-600 hover:text-stone-900 underline underline-offset-2"
+            >
+              Select all new
+            </button>
+            <span className="text-stone-300">·</span>
+            <button
+              type="button"
+              onClick={deselectAll}
+              className="text-[11px] font-bold text-stone-600 hover:text-stone-900 underline underline-offset-2"
+            >
+              Deselect all
+            </button>
+          </div>
+        </div>
+
+        {/* Preview Table */}
+        <div className="max-h-96 overflow-y-auto rounded-2xl border border-stone-200 bg-white">
+          <table className="w-full text-left text-xs">
+            <thead className="sticky top-0 z-10 border-b border-stone-200 bg-stone-50 font-bold uppercase tracking-wider text-[10px] text-stone-500">
+              <tr>
+                <th className="py-2.5 pl-4 pr-2 w-10">Add</th>
+                <th className="py-2.5 px-3">Household / Invitee</th>
+                <th className="py-2.5 px-3">Party Size</th>
+                <th className="py-2.5 px-3">Group Tag</th>
+                <th className="py-2.5 px-3 text-right pr-4">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-100">
+              {parsedDrafts.map((draft, i) => {
+                const isExisting = existingNameSet.has(draft.name.toLowerCase().trim());
+                const isChecked = selectedIndices.has(i);
+                return (
+                  <tr
+                    key={`${draft.name}-${i}`}
+                    className={`transition-colors ${
+                      isExisting ? 'bg-stone-50/60 opacity-60' : isChecked ? 'bg-pink-50/20' : 'hover:bg-stone-50'
+                    }`}
+                  >
+                    <td className="py-2 pl-4 pr-2">
+                      <input
+                        type="checkbox"
+                        disabled={isExisting}
+                        checked={isChecked}
+                        onChange={() => toggleIndex(i)}
+                        className="h-4 w-4 rounded border-stone-300 text-[#8a2947] focus:ring-[#8a2947]"
+                      />
+                    </td>
+                    <td className="py-2 px-3">
+                      <span className="font-semibold text-stone-900 block">{draft.name}</span>
+                      {draft.members && draft.members.length > 1 && (
+                        <span className="text-[11px] text-stone-500">
+                          {draft.members.map(m => m.name).join(' & ')}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2 px-3">
+                      <span className="font-mono text-stone-700">
+                        {draft.partySize} {draft.partySize === 1 ? 'seat' : 'seats'}
+                        {draft.isPlusOneAllowed ? ' (+1)' : ''}
+                      </span>
+                    </td>
+                    <td className="py-2 px-3">
+                      {draft.tags && draft.tags.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {draft.tags.map(t => {
+                            const meta = getTagMeta(t as GuestTag);
+                            return (
+                              <span
+                                key={t}
+                                className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold ${meta.bg} ${meta.text} ${meta.border}`}
+                              >
+                                {meta.icon} {meta.label}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-stone-400">—</span>
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-right pr-4">
+                      {isExisting ? (
+                        <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[10px] font-bold text-stone-700">
+                          Already in list
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                          Ready
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center justify-between border-t border-stone-200 pt-4">
+          <Button onClick={onClose} disabled={importing}>Cancel</Button>
+          <Button
+            tone="primary"
+            disabled={selectedCount === 0 || importing}
+            onClick={handleImport}
+            className="gap-2"
+          >
+            {importing ? (
+              <>Importing {selectedCount} households…</>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" /> Import {selectedCount} Household{selectedCount === 1 ? '' : 's'}
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
 export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
   config,
   households,
   selectedIds,
   onSelectionChange,
   onCreate,
+  onBulkCreate,
   onUpdate,
   onDelete,
   onPreview,
@@ -338,7 +613,20 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
   const [status, setStatus] = useState<'all' | RsvpStatus>('all');
   const [tag, setTag] = useState<string>('all');
   const [editorOpen, setEditorOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<HouseholdInvitation | null>(null);
+
+  const handleBulkImport = async (drafts: HouseholdDraft[]): Promise<number> => {
+    if (onBulkCreate) {
+      return await onBulkCreate(drafts);
+    }
+    let count = 0;
+    for (const draft of drafts) {
+      await onCreate(draft);
+      count++;
+    }
+    return count;
+  };
 
   const copySupabaseSql = () => {
     void navigator.clipboard.writeText(SUPABASE_SETUP_SQL);
@@ -617,6 +905,9 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
               <Sparkles className="h-4 w-4 text-pink-600" /> Reformat Legacy Codes
             </Button>
           )}
+          <Button onClick={() => setImportOpen(true)} title="Import guests from Excel, CSV, or Cameron & Abby's spreadsheet">
+            <Upload className="h-4 w-4 text-[#8a2947]" /> Import Guests
+          </Button>
           <Button onClick={() => exportGuestsToCsv(households)} disabled={!households.length} title="Download CSV of all guests and RSVP details">
             <Download className="h-4 w-4" /> Export CSV
           </Button>
@@ -1100,6 +1391,14 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
           </div>
         </form>
       </Modal>
+
+      <ImportGuestsModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        existingHouseholds={households}
+        onImport={handleBulkImport}
+        notify={notify}
+      />
     </div>
   );
 };

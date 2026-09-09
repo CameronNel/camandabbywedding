@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, ChevronDown, ChevronUp, Expand, Images, Maximize2, Minimize2, Pause, Play, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronDown, ChevronUp, Expand, Images, LayoutGrid, Maximize2, Minimize2, Pause, Play, X } from 'lucide-react';
 import { Reveal } from './Reveal';
 import { useGuestExperience } from './guestExperience';
 import { TulipDuo, PastelTulip } from './decorations/TulipAccents';
@@ -8,18 +8,19 @@ const SLIDE_DURATION_MS = 5000;
 
 export function PhotoGallery() {
   const { galleryItems } = useGuestExperience();
+  const total = galleryItems.length;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [imageFit, setImageFit] = useState<'contain' | 'cover'>('contain');
   const [isDetailsMinimized, setIsDetailsMinimized] = useState(false);
+  const [isThumbnailsOpen, setIsThumbnailsOpen] = useState(false);
 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const touchStartXRef = useRef<number | null>(null);
-
-  const total = galleryItems.length;
+  const scrubberRef = useRef<HTMLDivElement>(null);
 
   const nextSlide = useCallback(() => {
     if (total === 0) return;
@@ -33,6 +34,25 @@ export function PhotoGallery() {
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
+  };
+
+  const handleScrubberClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!scrubberRef.current || total <= 1) return;
+    const rect = scrubberRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const pct = Math.max(0, Math.min(1, clickX / rect.width));
+    const targetIndex = Math.min(total - 1, Math.floor(pct * total));
+    setCurrentIndex(targetIndex);
+  };
+
+  const handleScrubberKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevSlide();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextSlide();
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -243,7 +263,20 @@ export function PhotoGallery() {
                       <ChevronUp className="h-3.5 w-3.5 text-stone-500 ml-0.5" />
                     </button>
                   ) : (
-                    <div className="w-full sm:max-w-md lg:max-w-lg rounded-3xl border border-white/80 bg-white/90 p-5 sm:p-6 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.22)] transition-all duration-300">
+                    <div className="relative overflow-hidden w-full sm:max-w-md lg:max-w-lg rounded-3xl border border-white/80 bg-white/90 p-5 sm:p-6 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.22)] transition-all duration-300">
+                      {/* Subtle auto-play timer hairline along the top edge */}
+                      {total > 1 && isPlaying && !isHovered && (
+                        <div className="absolute top-0 inset-x-0 h-1 overflow-hidden bg-stone-100/60">
+                          <div
+                            key={`${currentIndex}-${isPlaying}`}
+                            className="h-full bg-gradient-to-r from-[#c97a8b] to-[#b85b73]"
+                            style={{
+                              animation: `progressBar ${SLIDE_DURATION_MS}ms linear forwards`,
+                            }}
+                          />
+                        </div>
+                      )}
+
                       {/* Top Header Row */}
                       <div className="flex items-center justify-between gap-3">
                         <span className="inline-flex items-center gap-1.5 rounded-full border border-pink-200 bg-[#fdf5f7] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#8a384b]">
@@ -277,51 +310,106 @@ export function PhotoGallery() {
                             : 'A cherished moment from our journey together as we count down to our wedding day.')}
                       </p>
 
-                      {/* Progress bar */}
-                      {total > 1 && isPlaying && !isHovered && (
-                        <div className="mt-3.5 mb-2.5 h-1 w-full overflow-hidden rounded-full bg-stone-200/70">
-                          <div
-                            key={`${currentIndex}-${isPlaying}`}
-                            className="h-full rounded-full bg-[#c97a8b]"
-                            style={{
-                              animation: `progressBar ${SLIDE_DURATION_MS}ms linear forwards`,
-                            }}
-                          />
-                        </div>
-                      )}
-
-                      {/* Controls Row */}
-                      {total > 1 && (
-                        <div className="mt-3.5 flex items-center justify-between gap-3 border-t border-stone-200/60 pt-3">
-                          <button
-                            type="button"
-                            onClick={() => setIsPlaying(prev => !prev)}
-                            className="flex items-center gap-1.5 rounded-full border border-stone-200 bg-white/80 px-3 py-1 text-xs font-semibold text-stone-700 transition hover:border-[#c97a8b] hover:bg-white hover:text-[#c97a8b]"
-                            aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
-                          >
-                            {isPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                            <span>{isPlaying ? 'Pause' : 'Play'}</span>
-                          </button>
-
-                          {/* Dots */}
-                          <div className="flex flex-wrap items-center gap-1.5 max-w-[180px] sm:max-w-[220px] overflow-hidden py-1">
+                      {/* Optional Expanded Thumbnail Filmstrip */}
+                      {isThumbnailsOpen && total > 1 && (
+                        <div className="mt-3.5 pt-3 border-t border-stone-200/60">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+                              All Photos ({total})
+                            </span>
+                            <span className="text-[10px] text-stone-400">Tap to jump</span>
+                          </div>
+                          <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                             {galleryItems.map((item, idx) => (
                               <button
                                 key={item.id}
                                 type="button"
                                 onClick={() => goToSlide(idx)}
-                                className={`h-1.5 rounded-full transition-all duration-300 focus-visible:outline-none ${
+                                className={`group/thumb relative shrink-0 h-12 w-12 sm:h-14 sm:w-14 rounded-xl overflow-hidden border-2 transition-all ${
                                   idx === currentIndex
-                                    ? 'w-6 bg-[#c97a8b]'
-                                    : 'w-1.5 bg-stone-300 hover:bg-stone-400'
+                                    ? 'border-[#c97a8b] ring-2 ring-[#c97a8b]/30 scale-105 shadow-sm'
+                                    : 'border-white/80 opacity-60 hover:opacity-100 hover:border-stone-300'
                                 }`}
-                                aria-label={`Go to slide ${idx + 1}: ${item.title}`}
-                              />
+                                title={`Slide ${idx + 1}: ${item.title}`}
+                              >
+                                <img src={item.src} alt={item.alt} className="h-full w-full object-cover" />
+                                <span className="absolute bottom-0.5 right-1 text-[9px] font-mono font-bold text-white drop-shadow-md">
+                                  {idx + 1}
+                                </span>
+                              </button>
                             ))}
                           </div>
+                        </div>
+                      )}
 
-                          {/* Prev/Next buttons */}
-                          <div className="flex items-center gap-1.5">
+                      {/* Controls Row */}
+                      {total > 1 && (
+                        <div className="mt-3.5 flex items-center gap-2 border-t border-stone-200/60 pt-3">
+                          {/* Play / Pause Toggle */}
+                          <button
+                            type="button"
+                            onClick={() => setIsPlaying(prev => !prev)}
+                            className="flex shrink-0 items-center gap-1.5 rounded-full border border-stone-200 bg-white/80 px-2.5 py-1 text-xs font-semibold text-stone-700 transition hover:border-[#c97a8b] hover:bg-white hover:text-[#c97a8b] shadow-2xs"
+                            aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
+                            title={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
+                          >
+                            {isPlaying ? <Pause className="h-3 w-3 text-[#c97a8b]" /> : <Play className="h-3 w-3 text-[#c97a8b]" />}
+                            <span className="hidden sm:inline">{isPlaying ? 'Pause' : 'Play'}</span>
+                          </button>
+
+                          {/* Interactive Scrubber & Progress */}
+                          <div className="flex flex-1 items-center gap-2 min-w-0 px-1">
+                            <span className="font-mono text-[11px] font-semibold text-stone-700 tabular-nums shrink-0">
+                              {String(currentIndex + 1).padStart(2, '0')}
+                            </span>
+
+                            <div
+                              ref={scrubberRef}
+                              role="slider"
+                              aria-label="Photo gallery scrubber"
+                              aria-valuenow={currentIndex + 1}
+                              aria-valuemin={1}
+                              aria-valuemax={total}
+                              tabIndex={0}
+                              onClick={handleScrubberClick}
+                              onKeyDown={handleScrubberKeyDown}
+                              className="group/scrub relative flex-1 h-2 cursor-pointer rounded-full bg-stone-200/70 p-0.5 transition-all hover:h-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c97a8b]"
+                              title="Click or scrub to jump to photo"
+                            >
+                              <div className="relative h-full w-full overflow-hidden rounded-full">
+                                <div
+                                  className="h-full rounded-full bg-gradient-to-r from-[#c97a8b] to-[#b85b73] transition-all duration-300"
+                                  style={{ width: `${((currentIndex + 1) / total) * 100}%` }}
+                                />
+                              </div>
+                              {/* Hover thumb */}
+                              <div
+                                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-3.5 w-3.5 rounded-full bg-white border-2 border-[#c97a8b] shadow-md opacity-0 group-hover/scrub:opacity-100 transition-opacity pointer-events-none"
+                                style={{ left: `${((currentIndex + 1) / total) * 100}%` }}
+                              />
+                            </div>
+
+                            <span className="font-mono text-[11px] text-stone-400 tabular-nums shrink-0">
+                              {String(total).padStart(2, '0')}
+                            </span>
+                          </div>
+
+                          {/* Actions: Thumbnails Drawer Toggle & Prev/Next */}
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setIsThumbnailsOpen(prev => !prev)}
+                              className={`grid h-8 w-8 place-items-center rounded-full border transition shadow-2xs ${
+                                isThumbnailsOpen
+                                  ? 'border-[#c97a8b] bg-[#fdf5f7] text-[#c97a8b]'
+                                  : 'border-stone-200 bg-white/80 text-stone-600 hover:border-[#c97a8b] hover:bg-white hover:text-[#c97a8b]'
+                              }`}
+                              aria-label={isThumbnailsOpen ? 'Hide photo thumbnails' : 'Show photo thumbnails'}
+                              title={isThumbnailsOpen ? 'Hide thumbnails' : 'View all 18 photos'}
+                            >
+                              <LayoutGrid className="h-3.5 w-3.5" />
+                            </button>
+
                             <button
                               type="button"
                               onClick={prevSlide}
