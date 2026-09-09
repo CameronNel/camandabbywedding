@@ -56,7 +56,7 @@ export const DIETARY_OPTIONS: DietaryOption[] = [
     icon: '🥜',
     keywords: ['nut', 'peanut', 'almond', 'tree nut', 'nuts', 'cashew', 'walnut'],
     badgeBg: 'bg-[#fdf2f4]',
-    badgeText: 'text-[#9c2743]',
+    badgeText: 'text-[#b85b73]',
     badgeBorder: 'border-[#e4aeb5]',
     activeBg: 'bg-[#d88794] text-white border-[#c7727f]',
   },

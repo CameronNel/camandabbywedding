@@ -13,6 +13,8 @@ import {
   X,
 } from 'lucide-react';
 import type { SectionId } from './Navbar';
+import { useGuestExperience } from './guestExperience';
+import { formatWeddingDate } from '../utils/dates';
 
 interface SageHelperCatProps {
   onNavigate: (section: SectionId) => void;
@@ -72,7 +74,7 @@ const FAQ_LIST: FAQItem[] = [
     shortLabel: 'Venue & Date ⛪',
     category: 'Logistics',
     answer:
-      "The wedding will be celebrated at Arendsrus Country Lodge on Koesterbos Road, Geelhoutboom in George, Western Cape. The celebration takes place on Sunday, 1 August 2027 at 15:00!",
+      'The wedding will be celebrated at Arendsrus Country Lodge in George, Western Cape. The date and timings unlock with your invitation code in the RSVP section.',
     actionText: 'View Venue & Map 📍',
     actionSection: 'details',
   },
@@ -148,17 +150,34 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
+  const { isUnlocked, site } = useGuestExperience();
+  const formattedDate = site.dateIsTbc ? 'Date to be confirmed' : formatWeddingDate(site.weddingDate);
+
+  const faqs = useMemo(() => {
+    return FAQ_LIST.map(item => {
+      if (item.id === 'venue_date') {
+        return {
+          ...item,
+          answer: isUnlocked
+            ? `The wedding will be celebrated at ${site.venueName} on Koesterbos Road, Geelhoutboom in George, Western Cape. The celebration takes place on ${formattedDate} at ${site.ceremonyTime || '15:00'}!`
+            : `The celebration takes place at ${site.venueName} in George, Western Cape. The confirmed celebration date, ceremony time, and schedule unlock as soon as you enter your invitation code in the RSVP section below! 💌`,
+        };
+      }
+      return item;
+    });
+  }, [isUnlocked, site.venueName, site.ceremonyTime, formattedDate]);
+
   const filteredFaqs = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return FAQ_LIST;
-    return FAQ_LIST.filter(
+    if (!q) return faqs;
+    return faqs.filter(
       item =>
         item.question.toLowerCase().includes(q) ||
         item.answer.toLowerCase().includes(q) ||
         item.shortLabel.toLowerCase().includes(q) ||
         item.category.toLowerCase().includes(q),
     );
-  }, [searchQuery]);
+  }, [searchQuery, faqs]);
 
   const handleActionClick = (faq: FAQItem) => {
     if (faq.actionSection) {
@@ -188,7 +207,7 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
   return (
     <aside
       aria-label="Helper Cat and Wedding FAQs"
-      className="fixed bottom-4 left-4 z-40 flex flex-col items-start select-none"
+      className="fixed bottom-3 left-3 sm:bottom-4 sm:left-4 z-40 flex flex-col items-start select-none"
     >
       {/* 1. CHAT WINDOW / FAQ DRAWER */}
       {isOpen && (
@@ -213,7 +232,7 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
               <div>
                 <h3 className="font-display text-sm font-bold text-stone-900 flex items-center gap-1.5">
                   Sage 🐾
-                  <span className="rounded-full bg-[#9c2743]/10 px-2 py-0.5 text-[10px] font-bold text-[#9c2743]">
+                  <span className="rounded-full bg-[#b85b73]/10 px-2 py-0.5 text-[10px] font-bold text-[#b85b73]">
                     Wedding Guide
                   </span>
                 </h3>
@@ -252,48 +271,51 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
             </div>
 
             {/* Selected Question & Sage Answer */}
-            {selectedFaq && (
-              <>
-                {/* User message */}
-                <div className="flex justify-end">
-                  <div className="rounded-2xl rounded-tr-none bg-[#9c2743] text-white p-3 max-w-[85%] shadow-2xs">
-                    <p className="font-medium">{selectedFaq.question}</p>
+            {selectedFaq && (() => {
+              const activeFaq = faqs.find(f => f.id === selectedFaq.id) || selectedFaq;
+              return (
+                <>
+                  {/* User message */}
+                  <div className="flex justify-end">
+                    <div className="rounded-2xl rounded-tr-none bg-[#b85b73] text-white p-3 max-w-[85%] shadow-2xs">
+                      <p className="font-medium">{activeFaq.question}</p>
+                    </div>
                   </div>
-                </div>
 
-                {/* Sage response */}
-                <div className="flex items-start gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-150">
-                  <div className="h-7 w-7 shrink-0 rounded-full bg-[#fdf2f4] border border-[#e4aeb5]/40 flex items-center justify-center text-sm shadow-2xs">
-                    🐾
+                  {/* Sage response */}
+                  <div className="flex items-start gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                    <div className="h-7 w-7 shrink-0 rounded-full bg-[#fdf2f4] border border-[#e4aeb5]/40 flex items-center justify-center text-sm shadow-2xs">
+                      🐾
+                    </div>
+                    <div data-testid="sage-answer" className="rounded-2xl rounded-tl-none bg-[#fdf5f7] border border-[#f3e3e7] p-3 text-stone-700 leading-relaxed space-y-2.5 shadow-2xs">
+                      <p>{activeFaq.answer}</p>
+                      {activeFaq.actionText && (
+                        <button
+                          type="button"
+                          data-testid="sage-action-btn"
+                          onClick={() => handleActionClick(activeFaq)}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-[#b85b73] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#a04255] transition transform active:scale-95"
+                        >
+                          <span>{activeFaq.actionText}</span>
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div data-testid="sage-answer" className="rounded-2xl rounded-tl-none bg-[#fdf5f7] border border-[#f3e3e7] p-3 text-stone-700 leading-relaxed space-y-2.5 shadow-2xs">
-                    <p>{selectedFaq.answer}</p>
-                    {selectedFaq.actionText && (
-                      <button
-                        type="button"
-                        data-testid="sage-action-btn"
-                        onClick={() => handleActionClick(selectedFaq)}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-[#9c2743] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#831e36] transition transform active:scale-95"
-                      >
-                        <span>{selectedFaq.actionText}</span>
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
 
-                {/* Reset button to choose another */}
-                <div className="flex justify-center pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFaq(null)}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#9c2743] hover:underline"
-                  >
-                    ← Ask another question
-                  </button>
-                </div>
-              </>
-            )}
+                  {/* Reset button to choose another */}
+                  <div className="flex justify-center pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFaq(null)}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#b85b73] hover:underline"
+                    >
+                      ← Ask another question
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
 
             {/* Question Suggestion Chips */}
             {!selectedFaq && (
@@ -310,11 +332,11 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
                       onClick={() => setSelectedFaq(item)}
                       className="w-full text-left flex items-center justify-between gap-2 rounded-xl border border-stone-200/80 bg-stone-50/70 p-2.5 hover:border-[#e4aeb5] hover:bg-[#fff9fa] transition group"
                     >
-                      <span className="flex items-center gap-2 text-stone-700 group-hover:text-[#9c2743] font-medium text-xs">
+                      <span className="flex items-center gap-2 text-stone-700 group-hover:text-[#b85b73] font-medium text-xs">
                         <span>{item.icon}</span>
                         <span>{item.question}</span>
                       </span>
-                      <ChevronRight className="h-3.5 w-3.5 text-stone-400 group-hover:text-[#9c2743] shrink-0 transition-transform group-hover:translate-x-0.5" />
+                      <ChevronRight className="h-3.5 w-3.5 text-stone-400 group-hover:text-[#b85b73] shrink-0 transition-transform group-hover:translate-x-0.5" />
                     </button>
                   ))}
 
@@ -372,7 +394,7 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
           <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#e4aeb5]/40 to-[#f5d0c6]/50 blur-sm opacity-70 group-hover:opacity-100 transition-opacity" />
 
           {/* Sage Cartoon Sticker */}
-          <div className="relative h-20 w-20 sm:h-24 sm:w-24 drop-shadow-[0_8px_16px_rgba(0,0,0,0.18)] transition-transform group-hover:-translate-y-1">
+          <div className="relative h-14 w-14 sm:h-22 sm:w-22 drop-shadow-[0_8px_16px_rgba(0,0,0,0.18)] transition-transform group-hover:-translate-y-1">
             <img
               src={`${import.meta.env.BASE_URL}images/sage-helper.png`}
               alt="Sage the helper cat"
@@ -380,7 +402,7 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
             />
 
             {/* Notification Badge / Online Dot */}
-            <span className="absolute bottom-2 right-2 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white shadow-xs">
+            <span className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 flex h-3 w-3 sm:h-3.5 sm:w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white shadow-xs">
               <span className="h-1.5 w-1.5 rounded-full bg-white" />
             </span>
           </div>
@@ -390,7 +412,7 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
         {!isOpen && showBubble && !speechBubbleDismissed && (
           <div
             role="status"
-            className="mb-4 relative rounded-2xl border-2 border-[#e4aeb5] bg-white px-3.5 py-1.5 text-xs font-bold text-stone-800 shadow-xl flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-200"
+            className="mb-2 sm:mb-4 relative rounded-2xl border-2 border-[#e4aeb5] bg-white px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-stone-800 shadow-xl flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-200"
           >
             {/* Speech bubble pointer arrow */}
             <div className="absolute -left-2 bottom-3 h-3 w-3 -rotate-45 border-l-2 border-b-2 border-[#e4aeb5] bg-white" />
@@ -398,7 +420,7 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
             <button
               type="button"
               onClick={handleCatClick}
-              className="flex items-center gap-1.5 text-stone-800 hover:text-[#9c2743] transition"
+              className="flex items-center gap-1.5 text-stone-800 hover:text-[#b85b73] transition"
             >
               <span>Need help?</span>
               <span className="text-sm">🐾</span>

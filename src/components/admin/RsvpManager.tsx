@@ -6,14 +6,12 @@ import {
   Download,
   FileSpreadsheet,
   Gift,
-  Heart,
   Maximize2,
   Minimize2,
   Search,
   Sparkles,
   Users,
   Utensils,
-  Wine,
 } from 'lucide-react';
 import type { GuestTag, HouseholdInvitation, WeddingConfig } from '../../types/wedding';
 import {
@@ -705,77 +703,293 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
               {/* Map Legend */}
               <div className="flex flex-wrap items-center gap-4 py-2 text-xs text-stone-600 border-b border-stone-200/60 mb-4">
                 <div className="flex items-center gap-1.5">
-                  <span className="h-3.5 w-3.5 rounded-full bg-[#8fae97] border border-[#5d7f66]" />
-                  <span>Reserved by Guest (incl. Cam &amp; Abby at Table 1)</span>
+                  <span className="h-3.5 w-3.5 rounded-full bg-[#fde8ee] border border-[#d47a8d]" />
+                  <span>Cam &amp; Abby (Table 1)</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="h-3.5 w-3.5 rounded-full bg-white border-2 border-stone-300" />
-                  <span>Available Seat</span>
+                  <span className="h-3.5 w-3.5 rounded-full bg-[#e3ede5] border border-[#7ea78a]" />
+                  <span>Reserved Seat</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-amber-600 font-bold">⚠️</span>
+                  <span className="h-3.5 w-3.5 rounded-full bg-[#fdf2da] border border-[#cfa347]" />
                   <span>Special Diet Requested</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-3.5 w-3.5 rounded-full bg-white border border-[#d4c2b8]" />
+                  <span>Available Seat</span>
                 </div>
               </div>
 
               {/* SVG Floor Plan Container */}
               <div className="relative mx-auto w-full max-w-5xl select-none">
-                <svg viewBox="0 0 1000 730" className="w-full h-auto drop-shadow-xs" style={{ maxHeight: '760px' }}>
+                <svg viewBox="0 0 1100 960" className="w-full h-auto drop-shadow-md rounded-2xl overflow-hidden bg-white" style={{ maxHeight: '88vh' }}>
                   <defs>
                     <filter id="org-table-soft-shadow" x="-40%" y="-40%" width="180%" height="180%">
-                      <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#8a6f66" floodOpacity="0.28" />
+                      <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#8a6f66" floodOpacity="0.16" />
                     </filter>
+                    <linearGradient id="org-eucalyptus-leaf" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#7a9d82" />
+                      <stop offset="100%" stopColor="#55755d" />
+                    </linearGradient>
                     <linearGradient id="org-bar-wood" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#8d6255" />
-                      <stop offset="100%" stopColor="#6e473b" />
+                      <stop offset="0%" stopColor="#e8ded6" />
+                      <stop offset="100%" stopColor="#d9cdc3" />
                     </linearGradient>
                     <linearGradient id="org-buffet-wood" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#7a554a" />
-                      <stop offset="100%" stopColor="#5d3b32" />
+                      <stop offset="0%" stopColor="#e8ded6" />
+                      <stop offset="100%" stopColor="#d9cdc3" />
                     </linearGradient>
                   </defs>
 
-                  {/* Room Boundary */}
-                  <rect x="18" y="18" width="964" height="662" rx="24" fill="none" stroke="#e2cbd1" strokeWidth="2" strokeDasharray="6 4" />
+                  {/* Poster card background */}
+                  <rect
+                    x="8"
+                    y="8"
+                    width="1084"
+                    height="944"
+                    rx="24"
+                    fill="#ffffff"
+                    stroke="#ece7e1"
+                    strokeWidth="2"
+                  />
 
-                  {/* Top-Left Bar */}
-                  <g className="cursor-default">
-                    <rect x="28" y="24" width="148" height="56" rx="10" fill="url(#org-bar-wood)" stroke="#57362c" strokeWidth="2" />
-                    <rect x="33" y="29" width="138" height="46" rx="7" fill="#faf2ee" stroke="#c7a79a" strokeWidth="1.2" />
-                    <foreignObject x="34" y="30" width="136" height="44">
-                      <div className="flex h-full flex-col items-center justify-center text-center text-[#57362c]">
-                        <div className="flex items-center gap-1.5 font-display text-sm font-bold tracking-wide text-[#3b231c]">
-                          <Wine className="h-3.5 w-3.5 text-[#8d6255]" />
-                          <span>Bar</span>
-                        </div>
-                        <span className="text-[9.5px] uppercase font-bold text-[#5c382d] tracking-wider">Drinks &amp; Refreshments</span>
-                      </div>
-                    </foreignObject>
+                  {/* Botanical Eucalyptus Foliage: Top-Right Corner */}
+                  <g className="pointer-events-none" opacity="0.88">
+                    <path
+                      d="M 1100 0 Q 1030 50 970 110 T 920 180"
+                      fill="none"
+                      stroke="#5c7a64"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M 1100 40 Q 1040 80 1000 140"
+                      fill="none"
+                      stroke="#6e8a75"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <ellipse cx="1055" cy="42" rx="22" ry="12" transform="rotate(-30, 1055, 42)" fill="url(#org-eucalyptus-leaf)" opacity="0.85" />
+                    <ellipse cx="1015" cy="72" rx="24" ry="13" transform="rotate(-40, 1015, 72)" fill="#688a70" opacity="0.8" />
+                    <ellipse cx="980" cy="115" rx="26" ry="14" transform="rotate(-50, 980, 115)" fill="#5d8065" opacity="0.85" />
+                    <ellipse cx="945" cy="155" rx="24" ry="13" transform="rotate(-58, 945, 155)" fill="#73947a" opacity="0.8" />
+                    <ellipse cx="915" cy="190" rx="20" ry="11" transform="rotate(-65, 915, 190)" fill="#81a188" opacity="0.75" />
+                    <ellipse cx="1070" cy="85" rx="20" ry="11" transform="rotate(-15, 1070, 85)" fill="#608268" opacity="0.85" />
+                    <ellipse cx="1030" cy="130" rx="22" ry="12" transform="rotate(-25, 1030, 130)" fill="#6f9177" opacity="0.8" />
+                    <ellipse cx="990" cy="175" rx="20" ry="11" transform="rotate(-35, 990, 175)" fill="#7da085" opacity="0.75" />
                   </g>
 
-                  {/* Food Buffet (Right Wall) */}
+                  {/* Botanical Eucalyptus Foliage: Bottom-Left Corner */}
+                  <g className="pointer-events-none" opacity="0.88">
+                    <path
+                      d="M 0 960 Q 70 910 130 850 T 180 780"
+                      fill="none"
+                      stroke="#5c7a64"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M 0 920 Q 60 880 100 820"
+                      fill="none"
+                      stroke="#6e8a75"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <ellipse cx="45" cy="918" rx="22" ry="12" transform="rotate(150, 45, 918)" fill="url(#org-eucalyptus-leaf)" opacity="0.85" />
+                    <ellipse cx="85" cy="888" rx="24" ry="13" transform="rotate(140, 85, 888)" fill="#688a70" opacity="0.8" />
+                    <ellipse cx="120" cy="845" rx="26" ry="14" transform="rotate(130, 120, 845)" fill="#5d8065" opacity="0.85" />
+                    <ellipse cx="155" cy="805" rx="24" ry="13" transform="rotate(122, 155, 805)" fill="#73947a" opacity="0.8" />
+                    <ellipse cx="185" cy="770" rx="20" ry="11" transform="rotate(115, 185, 770)" fill="#81a188" opacity="0.75" />
+                    <ellipse cx="30" cy="875" rx="20" ry="11" transform="rotate(165, 30, 875)" fill="#608268" opacity="0.85" />
+                    <ellipse cx="70" cy="830" rx="22" ry="12" transform="rotate(155, 70, 830)" fill="#6f9177" opacity="0.8" />
+                    <ellipse cx="110" cy="785" rx="20" ry="11" transform="rotate(145, 110, 785)" fill="#7da085" opacity="0.75" />
+                  </g>
+
+                  {/* Seating Plan Poster Header */}
+                  <g className="cursor-default select-none">
+                    <text
+                      x="550"
+                      y="54"
+                      textAnchor="middle"
+                      fill="#1c1917"
+                      fontSize="30"
+                      fontWeight="800"
+                      letterSpacing="7"
+                      className="font-serif uppercase"
+                    >
+                      WEDDING
+                    </text>
+                    <text
+                      x="550"
+                      y="94"
+                      textAnchor="middle"
+                      fill="#c59b48"
+                      fontSize="38"
+                      fontStyle="italic"
+                      className="font-serif"
+                      style={{ fontFamily: "'Playfair Display', Georgia, cursive" }}
+                    >
+                      Seating Plan
+                    </text>
+                    <text
+                      x="550"
+                      y="120"
+                      textAnchor="middle"
+                      fill="#c59b48"
+                      fontSize="12"
+                      fontWeight="700"
+                      letterSpacing="2.5"
+                      className="font-sans uppercase"
+                    >
+                      8 Seats per table • 6FT round • 64 pax
+                    </text>
+                  </g>
+
+                  {/* TOP-LEFT: BAR */}
                   <g className="cursor-default">
-                    <rect x="925" y="26" width="48" height="605" rx="12" fill="url(#org-buffet-wood)" stroke="#4e3128" strokeWidth="2" />
-                    <rect x="930" y="31" width="38" height="595" rx="8" fill="#faf2ee" stroke="#cfb0a3" strokeWidth="1.2" />
-                    <text x="949" y="328" fill="#3b231c" fontSize="17" fontWeight="bold" letterSpacing="6" textAnchor="middle" transform="rotate(90, 949, 328)" className="font-display select-none uppercase">
+                    <rect
+                      x="24"
+                      y="80"
+                      width="56"
+                      height="200"
+                      rx="12"
+                      fill="url(#org-bar-wood)"
+                      stroke="#b39c8e"
+                      strokeWidth="2"
+                      className="drop-shadow-sm"
+                    />
+                    <rect
+                      x="29"
+                      y="85"
+                      width="46"
+                      height="190"
+                      rx="8"
+                      fill="#fffdfa"
+                      stroke="#d9cdc3"
+                      strokeWidth="1.2"
+                    />
+                    <circle cx="52" cy="112" r="9" fill="#f5ede6" stroke="#c5b0a3" strokeWidth="1.2" />
+                    <path d="M 47 112 L 57 112 M 52 112 L 52 119 M 48 119 L 56 119" stroke="#7a6256" strokeWidth="1.4" strokeLinecap="round" />
+                    <line x1="37" y1="136" x2="67" y2="136" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
+                    <text
+                      x="52"
+                      y="180"
+                      fill="#5c4a40"
+                      fontSize="15"
+                      fontWeight="bold"
+                      letterSpacing="5"
+                      textAnchor="middle"
+                      transform="rotate(-90, 52, 180)"
+                      className="font-display select-none uppercase"
+                    >
+                      BAR
+                    </text>
+                    <line x1="37" y1="224" x2="67" y2="224" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
+                    <circle cx="52" cy="248" r="9" fill="#f5ede6" stroke="#c5b0a3" strokeWidth="1.2" />
+                    <path d="M 47 248 L 57 248 M 52 248 L 52 255 M 48 255 L 56 255" stroke="#7a6256" strokeWidth="1.4" strokeLinecap="round" />
+                  </g>
+
+                  {/* RIGHT SIDE: FOOD BUFFET */}
+                  <g className="cursor-default">
+                    <rect
+                      x="1020"
+                      y="260"
+                      width="56"
+                      height="380"
+                      rx="12"
+                      fill="url(#org-buffet-wood)"
+                      stroke="#b39c8e"
+                      strokeWidth="2"
+                      className="drop-shadow-sm"
+                    />
+                    <rect
+                      x="1025"
+                      y="265"
+                      width="46"
+                      height="370"
+                      rx="8"
+                      fill="#fffdfa"
+                      stroke="#d9cdc3"
+                      strokeWidth="1.2"
+                    />
+                    <ellipse cx="1048" cy="300" rx="12" ry="18" fill="#f5ede6" stroke="#c5b0a3" strokeWidth="1.2" />
+                    <line x1="1033" y1="345" x2="1063" y2="345" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
+                    <text
+                      x="1048"
+                      y="450"
+                      fill="#5c4a40"
+                      fontSize="16"
+                      fontWeight="bold"
+                      letterSpacing="6"
+                      textAnchor="middle"
+                      transform="rotate(90, 1048, 450)"
+                      className="font-display select-none uppercase"
+                    >
                       FOOD
                     </text>
+                    <line x1="1033" y1="555" x2="1063" y2="555" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
+                    <ellipse cx="1048" cy="600" rx="12" ry="18" fill="#f5ede6" stroke="#c5b0a3" strokeWidth="1.2" />
                   </g>
 
-                  {/* Dance Floor */}
-                  <g opacity="0.9" pointerEvents="none">
-                    <ellipse cx="480" cy="350" rx="105" ry="68" fill="#fdf2f5" fillOpacity="0.55" stroke="#dfaeb9" strokeWidth="1.8" strokeDasharray="5 5" />
-                    <text x="480" y="345" textAnchor="middle" fill="#9e475a" fontSize="13" fontWeight="bold" letterSpacing="4" className="font-display select-none uppercase">
+                  {/* MIDDLE: DANCE FLOOR */}
+                  <g opacity="0.95" pointerEvents="none">
+                    <rect
+                      x="405"
+                      y="375"
+                      width="290"
+                      height="190"
+                      rx="24"
+                      fill="#fdf5f7"
+                      fillOpacity="0.75"
+                      stroke="#dfaeb9"
+                      strokeWidth="2"
+                      strokeDasharray="6 4"
+                    />
+                    <rect
+                      x="419"
+                      y="389"
+                      width="262"
+                      height="162"
+                      rx="18"
+                      fill="#fff9fa"
+                      stroke="#eed5dc"
+                      strokeWidth="1.2"
+                    />
+                    <text
+                      x="550"
+                      y="458"
+                      textAnchor="middle"
+                      fill="#9e475a"
+                      fontSize="15"
+                      fontWeight="bold"
+                      letterSpacing="4"
+                      className="font-display select-none uppercase"
+                    >
                       DANCE FLOOR
                     </text>
-                    <Heart className="h-4 w-4 text-[#df8b9d]" x="472" y="357" />
+                    <path
+                      d="M 550 484 C 550 484 543 477 539 473 C 535 469 535 464 538 461 C 541 458 546 458 549 461 L 550 463 L 551 461 C 554 458 559 458 562 461 C 565 464 565 469 561 473 Z"
+                      fill="#df8b9d"
+                    />
+                    <text
+                      x="550"
+                      y="508"
+                      textAnchor="middle"
+                      fill="#b86b7c"
+                      fontSize="10"
+                      fontWeight="600"
+                      letterSpacing="2"
+                      className="select-none uppercase font-sans"
+                    >
+                      CELEBRATION &amp; DANCING
+                    </text>
                   </g>
 
                   {/* 8 Guest Tables */}
                   {TABLES.map(table => {
-                    const radiusOrbit = 78;
-                    const tableRadius = 50;
-                    const seatRadius = 16;
+                    const radiusOrbit = 74;
+                    const tableRadius = 52;
+                    const seatRadius = 13.5;
 
                     const occupiedCount = Array.from({ length: table.capacity }).filter((_, i) =>
                       occupiedSeatsMap.has(`T${table.id}-S${i + 1}`),
@@ -785,26 +999,15 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
 
                     return (
                       <g key={table.id} opacity={isHighlighted ? 1 : 0.35} className="transition-opacity">
-                        {/* Cottage tablecloth with a soft lifelike shadow */}
+                        {/* Table top circle with warm gold rim ring */}
                         <circle
                           cx={table.cx}
                           cy={table.cy}
                           r={tableRadius}
-                          fill={table.bgTint}
-                          stroke={isHighlighted ? '#c47b8b' : table.borderTint}
-                          strokeWidth={isHighlighted ? '2' : '1.5'}
-                          strokeOpacity="0.85"
+                          fill="#ffffff"
+                          stroke={isHighlighted ? '#c47b8b' : '#c59b48'}
+                          strokeWidth={isHighlighted ? '4.5' : '3.2'}
                           filter="url(#org-table-soft-shadow)"
-                        />
-                        {/* Table runner ring in the table's brand tint */}
-                        <circle
-                          cx={table.cx}
-                          cy={table.cy}
-                          r={tableRadius - 12}
-                          fill="none"
-                          stroke={table.color}
-                          strokeWidth="7"
-                          opacity="0.45"
                         />
                         {/* Invisible click layer for table focus filter */}
                         <circle
@@ -817,27 +1020,106 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                         />
 
                         {/* Table Info */}
-                        <text x={table.cx} y={table.cy - 12} textAnchor="middle" fill="#1c1917" fontSize="15" fontWeight="bold" className="font-display select-none pointer-events-none">
-                          {table.name}
-                        </text>
-                        <text x={table.cx} y={table.cy + 5} textAnchor="middle" fill={table.textTint} fontSize="10.5" fontWeight="bold" letterSpacing="0.5" className="select-none pointer-events-none" textLength={table.theme.length > 9 ? 86 : undefined} lengthAdjust="spacingAndGlyphs">
-                          {table.theme}
-                        </text>
-                        <text x={table.cx} y={table.cy + 21} textAnchor="middle" fill="#57534e" fontSize="10" fontWeight="600" className="select-none pointer-events-none">
-                          {occupiedCount}/{table.capacity} seated
-                        </text>
+                        {table.id === 1 ? (
+                          <g className="select-none pointer-events-none">
+                            <text
+                              x={table.cx}
+                              y={table.cy - 15}
+                              textAnchor="middle"
+                              fill="#1c1917"
+                              fontSize="16"
+                              fontWeight="bold"
+                              className="font-serif"
+                            >
+                              {table.name}
+                            </text>
+                            <text
+                              x={table.cx}
+                              y={table.cy - 1}
+                              textAnchor="middle"
+                              fill={table.textTint}
+                              fontSize="10.5"
+                              fontWeight="bold"
+                              letterSpacing="0.3"
+                              className="font-sans"
+                            >
+                              {table.theme}
+                            </text>
+                            <text
+                              x={table.cx}
+                              y={table.cy + 13}
+                              textAnchor="middle"
+                              fill="#57534e"
+                              fontSize="9"
+                              fontWeight="600"
+                              className="font-sans"
+                            >
+                              {occupiedCount}/{table.capacity} seated
+                            </text>
+                            <text
+                              x={table.cx}
+                              y={table.cy + 27}
+                              textAnchor="middle"
+                              fill="#b85b73"
+                              fontSize="9.5"
+                              fontWeight="bold"
+                              className="font-sans"
+                            >
+                              Cam &amp; Abby 💕
+                            </text>
+                          </g>
+                        ) : (
+                          <g className="select-none pointer-events-none">
+                            <text
+                              x={table.cx}
+                              y={table.cy - 10}
+                              textAnchor="middle"
+                              fill="#1c1917"
+                              fontSize="17"
+                              fontWeight="bold"
+                              className="font-serif"
+                            >
+                              {table.name}
+                            </text>
+                            <text
+                              x={table.cx}
+                              y={table.cy + 6}
+                              textAnchor="middle"
+                              fill={table.textTint}
+                              fontSize="10.5"
+                              fontWeight="bold"
+                              letterSpacing="0.3"
+                              className="font-sans"
+                            >
+                              {table.theme}
+                            </text>
+                            <text
+                              x={table.cx}
+                              y={table.cy + 22}
+                              textAnchor="middle"
+                              fill="#57534e"
+                              fontSize="9.5"
+                              fontWeight="600"
+                              className="font-sans"
+                            >
+                              {occupiedCount}/{table.capacity} seated
+                            </text>
+                          </g>
+                        )}
 
                         {/* 8 Seats around Table */}
                         {Array.from({ length: table.capacity }).map((_, seatIdx) => {
                           const seatNum = seatIdx + 1;
                           const seatId = `T${table.id}-S${seatNum}`;
-                          const angle = (seatIdx * 45 - 90) * (Math.PI / 180);
+                          const angle = ((seatIdx * 360) / table.capacity - 90) * (Math.PI / 180);
                           const sx = table.cx + radiusOrbit * Math.cos(angle);
                           const sy = table.cy + radiusOrbit * Math.sin(angle);
 
                           const occupant = occupiedSeatsMap.get(seatId);
                           const isOccupied = Boolean(occupant);
                           const hasDietary = Boolean(occupant?.dietary);
+
+                          const isCamOrAbby = table.id === 1 && (seatNum === 1 || seatNum === 2);
 
                           return (
                             <g
@@ -871,20 +1153,20 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                                     cx={sx}
                                     cy={sy}
                                     r={seatRadius}
-                                    fill={hasDietary ? '#f7ecd2' : '#dfe9dc'}
-                                    stroke={hasDietary ? '#c9a95c' : '#8fae97'}
+                                    fill={isCamOrAbby ? '#fde8ee' : hasDietary ? '#fdf2da' : '#e3ede5'}
+                                    stroke={isCamOrAbby ? '#d47a8d' : hasDietary ? '#cfa347' : '#7ea78a'}
                                     strokeWidth="1.8"
                                   />
                                   <text
                                     x={sx}
                                     y={sy + 3}
                                     textAnchor="middle"
-                                    fontSize="8"
+                                    fontSize={isCamOrAbby ? '7' : '8'}
                                     fontWeight="bold"
-                                    fill={hasDietary ? '#7a5f2a' : '#41604a'}
+                                    fill={isCamOrAbby ? '#8f2d48' : hasDietary ? '#7a5a1e' : '#284837'}
                                     className="select-none pointer-events-none font-mono"
                                   >
-                                    {seatNum}
+                                    {isCamOrAbby ? (seatNum === 1 ? 'CAM' : 'ABBY') : seatNum}
                                   </text>
                                 </g>
                               ) : (
@@ -893,17 +1175,17 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                                     cx={sx}
                                     cy={sy}
                                     r={seatRadius - 1}
-                                    fill="#fff8fa"
-                                    stroke="#d5c3c9"
-                                    strokeWidth="1.2"
-                                    strokeDasharray="2 2"
+                                    fill="#ffffff"
+                                    stroke="#d4c2b8"
+                                    strokeWidth="1.4"
                                   />
                                   <text
                                     x={sx}
                                     y={sy + 3}
                                     textAnchor="middle"
-                                    fontSize="7.5"
-                                    fill="#9a8f85"
+                                    fontSize="8"
+                                    fill="#5c4f4a"
+                                    fontWeight="600"
                                     className="select-none pointer-events-none font-mono"
                                   >
                                     {seatNum}
@@ -917,10 +1199,29 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                     );
                   })}
 
-                  {/* Main Entrance Pill */}
+                  {/* MAIN ENTRANCE & GARDEN PATIO */}
                   <g>
-                    <rect x="300" y="665" width="360" height="34" rx="12" fill="#ffffff" stroke="#cfb0a3" strokeWidth="1.8" className="drop-shadow-xs" />
-                    <text x="480" y="687" textAnchor="middle" fill="#523933" fontSize="11" fontWeight="bold" letterSpacing="3" className="uppercase select-none font-display">
+                    <rect
+                      x="380"
+                      y="880"
+                      width="340"
+                      height="38"
+                      rx="14"
+                      fill="#faf7f5"
+                      stroke="#d4c5b9"
+                      strokeWidth="1.8"
+                      className="drop-shadow-xs"
+                    />
+                    <text
+                      x="550"
+                      y="904"
+                      textAnchor="middle"
+                      fill="#4a3c37"
+                      fontSize="11"
+                      fontWeight="bold"
+                      letterSpacing="3"
+                      className="uppercase select-none font-display"
+                    >
                       ▼ MAIN ENTRANCE &amp; GARDEN PATIO ▼
                     </text>
                   </g>
@@ -931,8 +1232,8 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                   <div
                     className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-full pb-3 animate-in fade-in zoom-in-95 duration-150"
                     style={{
-                      left: `${(hoveredSeat.x / 1000) * 100}%`,
-                      top: `${(hoveredSeat.y / 730) * 100}%`,
+                      left: `${(hoveredSeat.x / 1100) * 100}%`,
+                      top: `${(hoveredSeat.y / 960) * 100}%`,
                     }}
                   >
                     <div className="rounded-xl border border-[#f0d5de] bg-white/95 backdrop-blur-md px-3.5 py-2.5 text-center text-stone-800 shadow-xl min-w-[180px] max-w-xs">
@@ -1159,85 +1460,498 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
               </div>
 
               <div className="relative mx-auto my-auto w-full max-w-6xl overflow-hidden rounded-3xl border border-[#e8d5d9] bg-gradient-to-br from-[#faf6f7] via-[#fffdfd] to-[#f8f2f4] p-4 sm:p-6 shadow-2xl">
+                {/* Map Legend */}
+                <div className="flex flex-wrap items-center gap-4 py-2 text-xs text-stone-600 border-b border-stone-200/60 mb-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-3.5 w-3.5 rounded-full bg-[#fde8ee] border border-[#d47a8d]" />
+                    <span>Cam &amp; Abby (Table 1)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-3.5 w-3.5 rounded-full bg-[#e3ede5] border border-[#7ea78a]" />
+                    <span>Reserved Seat</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-3.5 w-3.5 rounded-full bg-[#fdf2da] border border-[#cfa347]" />
+                    <span>Special Diet Requested</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-3.5 w-3.5 rounded-full bg-white border border-[#d4c2b8]" />
+                    <span>Available Seat</span>
+                  </div>
+                </div>
+
                 <div className="relative mx-auto w-full max-w-5xl select-none">
                   {/* Reuse identical SVG in fullscreen modal */}
-                  <svg viewBox="0 0 1000 730" className="w-full h-auto drop-shadow-xs" style={{ maxHeight: '82vh' }}>
+                  <svg viewBox="0 0 1100 960" className="w-full h-auto drop-shadow-md rounded-2xl overflow-hidden bg-white" style={{ maxHeight: '88vh' }}>
                     <defs>
                       <filter id="fs-org-table-soft-shadow" x="-40%" y="-40%" width="180%" height="180%">
-                        <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#8a6f66" floodOpacity="0.28" />
+                        <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#8a6f66" floodOpacity="0.16" />
                       </filter>
+                      <linearGradient id="fs-org-eucalyptus-leaf" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#7a9d82" />
+                        <stop offset="100%" stopColor="#55755d" />
+                      </linearGradient>
                       <linearGradient id="fs-org-bar-wood" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#8d6255" />
-                        <stop offset="100%" stopColor="#6e473b" />
+                        <stop offset="0%" stopColor="#e8ded6" />
+                        <stop offset="100%" stopColor="#d9cdc3" />
                       </linearGradient>
                       <linearGradient id="fs-org-buffet-wood" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#7a554a" />
-                        <stop offset="100%" stopColor="#5d3b32" />
+                        <stop offset="0%" stopColor="#e8ded6" />
+                        <stop offset="100%" stopColor="#d9cdc3" />
                       </linearGradient>
                     </defs>
 
-                    <rect x="18" y="18" width="964" height="662" rx="24" fill="none" stroke="#e2cbd1" strokeWidth="2" strokeDasharray="6 4" />
+                    {/* Poster card background */}
+                    <rect
+                      x="8"
+                      y="8"
+                      width="1084"
+                      height="944"
+                      rx="24"
+                      fill="#ffffff"
+                      stroke="#ece7e1"
+                      strokeWidth="2"
+                    />
 
-                    {/* Bar */}
-                    <g className="cursor-default">
-                      <rect x="28" y="24" width="148" height="56" rx="10" fill="url(#fs-org-bar-wood)" stroke="#57362c" strokeWidth="2" />
-                      <rect x="33" y="29" width="138" height="46" rx="7" fill="#faf2ee" stroke="#c7a79a" strokeWidth="1.2" />
-                      <foreignObject x="34" y="30" width="136" height="44">
-                        <div className="flex h-full flex-col items-center justify-center text-center text-[#57362c]">
-                          <span className="font-display text-sm font-bold text-[#3b231c]">Bar</span>
-                          <span className="text-[9.5px] uppercase font-bold text-[#5c382d]">Drinks &amp; Refreshments</span>
-                        </div>
-                      </foreignObject>
+                    {/* Botanical Eucalyptus Foliage: Top-Right Corner */}
+                    <g className="pointer-events-none" opacity="0.88">
+                      <path
+                        d="M 1100 0 Q 1030 50 970 110 T 920 180"
+                        fill="none"
+                        stroke="#5c7a64"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M 1100 40 Q 1040 80 1000 140"
+                        fill="none"
+                        stroke="#6e8a75"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <ellipse cx="1055" cy="42" rx="22" ry="12" transform="rotate(-30, 1055, 42)" fill="url(#fs-org-eucalyptus-leaf)" opacity="0.85" />
+                      <ellipse cx="1015" cy="72" rx="24" ry="13" transform="rotate(-40, 1015, 72)" fill="#688a70" opacity="0.8" />
+                      <ellipse cx="980" cy="115" rx="26" ry="14" transform="rotate(-50, 980, 115)" fill="#5d8065" opacity="0.85" />
+                      <ellipse cx="945" cy="155" rx="24" ry="13" transform="rotate(-58, 945, 155)" fill="#73947a" opacity="0.8" />
+                      <ellipse cx="915" cy="190" rx="20" ry="11" transform="rotate(-65, 915, 190)" fill="#81a188" opacity="0.75" />
+                      <ellipse cx="1070" cy="85" rx="20" ry="11" transform="rotate(-15, 1070, 85)" fill="#608268" opacity="0.85" />
+                      <ellipse cx="1030" cy="130" rx="22" ry="12" transform="rotate(-25, 1030, 130)" fill="#6f9177" opacity="0.8" />
+                      <ellipse cx="990" cy="175" rx="20" ry="11" transform="rotate(-35, 990, 175)" fill="#7da085" opacity="0.75" />
                     </g>
 
-                    {/* Food Buffet */}
-                    <g className="cursor-default">
-                      <rect x="925" y="26" width="48" height="605" rx="12" fill="url(#fs-org-buffet-wood)" stroke="#4e3128" strokeWidth="2" />
-                      <rect x="930" y="31" width="38" height="595" rx="8" fill="#faf2ee" stroke="#cfb0a3" strokeWidth="1.2" />
-                      <text x="949" y="328" fill="#3b231c" fontSize="17" fontWeight="bold" letterSpacing="6" textAnchor="middle" transform="rotate(90, 949, 328)">FOOD</text>
+                    {/* Botanical Eucalyptus Foliage: Bottom-Left Corner */}
+                    <g className="pointer-events-none" opacity="0.88">
+                      <path
+                        d="M 0 960 Q 70 910 130 850 T 180 780"
+                        fill="none"
+                        stroke="#5c7a64"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M 0 920 Q 60 880 100 820"
+                        fill="none"
+                        stroke="#6e8a75"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <ellipse cx="45" cy="918" rx="22" ry="12" transform="rotate(150, 45, 918)" fill="url(#fs-org-eucalyptus-leaf)" opacity="0.85" />
+                      <ellipse cx="85" cy="888" rx="24" ry="13" transform="rotate(140, 85, 888)" fill="#688a70" opacity="0.8" />
+                      <ellipse cx="120" cy="845" rx="26" ry="14" transform="rotate(130, 120, 845)" fill="#5d8065" opacity="0.85" />
+                      <ellipse cx="155" cy="805" rx="24" ry="13" transform="rotate(122, 155, 805)" fill="#73947a" opacity="0.8" />
+                      <ellipse cx="185" cy="770" rx="20" ry="11" transform="rotate(115, 185, 770)" fill="#81a188" opacity="0.75" />
+                      <ellipse cx="30" cy="875" rx="20" ry="11" transform="rotate(165, 30, 875)" fill="#608268" opacity="0.85" />
+                      <ellipse cx="70" cy="830" rx="22" ry="12" transform="rotate(155, 70, 830)" fill="#6f9177" opacity="0.8" />
+                      <ellipse cx="110" cy="785" rx="20" ry="11" transform="rotate(145, 110, 785)" fill="#7da085" opacity="0.75" />
                     </g>
 
-                    {/* Dance Floor */}
-                    <g opacity="0.9" pointerEvents="none">
-                      <ellipse cx="480" cy="350" rx="105" ry="68" fill="#fdf2f5" fillOpacity="0.55" stroke="#dfaeb9" strokeWidth="1.8" strokeDasharray="5 5" />
-                      <text x="480" y="345" textAnchor="middle" fill="#9e475a" fontSize="13" fontWeight="bold" letterSpacing="4">DANCE FLOOR</text>
+                    {/* Seating Plan Poster Header */}
+                    <g className="cursor-default select-none">
+                      <text
+                        x="550"
+                        y="54"
+                        textAnchor="middle"
+                        fill="#1c1917"
+                        fontSize="30"
+                        fontWeight="800"
+                        letterSpacing="7"
+                        className="font-serif uppercase"
+                      >
+                        WEDDING
+                      </text>
+                      <text
+                        x="550"
+                        y="94"
+                        textAnchor="middle"
+                        fill="#c59b48"
+                        fontSize="38"
+                        fontStyle="italic"
+                        className="font-serif"
+                        style={{ fontFamily: "'Playfair Display', Georgia, cursive" }}
+                      >
+                        Seating Plan
+                      </text>
+                      <text
+                        x="550"
+                        y="120"
+                        textAnchor="middle"
+                        fill="#c59b48"
+                        fontSize="12"
+                        fontWeight="700"
+                        letterSpacing="2.5"
+                        className="font-sans uppercase"
+                      >
+                        8 Seats per table • 6FT round • 64 pax
+                      </text>
+                    </g>
+
+                    {/* TOP-LEFT: BAR */}
+                    <g className="cursor-default">
+                      <rect
+                        x="24"
+                        y="80"
+                        width="56"
+                        height="200"
+                        rx="12"
+                        fill="url(#fs-org-bar-wood)"
+                        stroke="#b39c8e"
+                        strokeWidth="2"
+                        className="drop-shadow-sm"
+                      />
+                      <rect
+                        x="29"
+                        y="85"
+                        width="46"
+                        height="190"
+                        rx="8"
+                        fill="#fffdfa"
+                        stroke="#d9cdc3"
+                        strokeWidth="1.2"
+                      />
+                      <circle cx="52" cy="112" r="9" fill="#f5ede6" stroke="#c5b0a3" strokeWidth="1.2" />
+                      <path d="M 47 112 L 57 112 M 52 112 L 52 119 M 48 119 L 56 119" stroke="#7a6256" strokeWidth="1.4" strokeLinecap="round" />
+                      <line x1="37" y1="136" x2="67" y2="136" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
+                      <text
+                        x="52"
+                        y="180"
+                        fill="#5c4a40"
+                        fontSize="15"
+                        fontWeight="bold"
+                        letterSpacing="5"
+                        textAnchor="middle"
+                        transform="rotate(-90, 52, 180)"
+                        className="font-display select-none uppercase"
+                      >
+                        BAR
+                      </text>
+                      <line x1="37" y1="224" x2="67" y2="224" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
+                      <circle cx="52" cy="248" r="9" fill="#f5ede6" stroke="#c5b0a3" strokeWidth="1.2" />
+                      <path d="M 47 248 L 57 248 M 52 248 L 52 255 M 48 255 L 56 255" stroke="#7a6256" strokeWidth="1.4" strokeLinecap="round" />
+                    </g>
+
+                    {/* RIGHT SIDE: FOOD BUFFET */}
+                    <g className="cursor-default">
+                      <rect
+                        x="1020"
+                        y="260"
+                        width="56"
+                        height="380"
+                        rx="12"
+                        fill="url(#fs-org-buffet-wood)"
+                        stroke="#b39c8e"
+                        strokeWidth="2"
+                        className="drop-shadow-sm"
+                      />
+                      <rect
+                        x="1025"
+                        y="265"
+                        width="46"
+                        height="370"
+                        rx="8"
+                        fill="#fffdfa"
+                        stroke="#d9cdc3"
+                        strokeWidth="1.2"
+                      />
+                      <ellipse cx="1048" cy="300" rx="12" ry="18" fill="#f5ede6" stroke="#c5b0a3" strokeWidth="1.2" />
+                      <line x1="1033" y1="345" x2="1063" y2="345" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
+                      <text
+                        x="1048"
+                        y="450"
+                        fill="#5c4a40"
+                        fontSize="16"
+                        fontWeight="bold"
+                        letterSpacing="6"
+                        textAnchor="middle"
+                        transform="rotate(90, 1048, 450)"
+                        className="font-display select-none uppercase"
+                      >
+                        FOOD
+                      </text>
+                      <line x1="1033" y1="555" x2="1063" y2="555" stroke="#d9cdc3" strokeWidth="1.2" strokeDasharray="3 2" />
+                      <ellipse cx="1048" cy="600" rx="12" ry="18" fill="#f5ede6" stroke="#c5b0a3" strokeWidth="1.2" />
+                    </g>
+
+                    {/* MIDDLE: DANCE FLOOR */}
+                    <g opacity="0.95" pointerEvents="none">
+                      <rect
+                        x="405"
+                        y="375"
+                        width="290"
+                        height="190"
+                        rx="24"
+                        fill="#fdf5f7"
+                        fillOpacity="0.75"
+                        stroke="#dfaeb9"
+                        strokeWidth="2"
+                        strokeDasharray="6 4"
+                      />
+                      <rect
+                        x="419"
+                        y="389"
+                        width="262"
+                        height="162"
+                        rx="18"
+                        fill="#fff9fa"
+                        stroke="#eed5dc"
+                        strokeWidth="1.2"
+                      />
+                      <text
+                        x="550"
+                        y="458"
+                        textAnchor="middle"
+                        fill="#9e475a"
+                        fontSize="15"
+                        fontWeight="bold"
+                        letterSpacing="4"
+                        className="font-display select-none uppercase"
+                      >
+                        DANCE FLOOR
+                      </text>
+                      <path
+                        d="M 550 484 C 550 484 543 477 539 473 C 535 469 535 464 538 461 C 541 458 546 458 549 461 L 550 463 L 551 461 C 554 458 559 458 562 461 C 565 464 565 469 561 473 Z"
+                        fill="#df8b9d"
+                      />
+                      <text
+                        x="550"
+                        y="508"
+                        textAnchor="middle"
+                        fill="#b86b7c"
+                        fontSize="10"
+                        fontWeight="600"
+                        letterSpacing="2"
+                        className="select-none uppercase font-sans"
+                      >
+                        CELEBRATION &amp; DANCING
+                      </text>
                     </g>
 
                     {/* 8 Guest Tables */}
                     {TABLES.map(table => {
-                      const radiusOrbit = 78;
-                      const tableRadius = 50;
-                      const seatRadius = 16;
+                      const radiusOrbit = 74;
+                      const tableRadius = 52;
+                      const seatRadius = 13.5;
+
                       const occupiedCount = Array.from({ length: table.capacity }).filter((_, i) =>
                         occupiedSeatsMap.has(`T${table.id}-S${i + 1}`),
                       ).length;
 
-                      return (
-                        <g key={table.id}>
-                          <circle cx={table.cx} cy={table.cy} r={tableRadius} fill={table.bgTint} stroke={table.borderTint} strokeWidth="1.5" strokeOpacity="0.85" filter="url(#fs-org-table-soft-shadow)" />
-                          <circle cx={table.cx} cy={table.cy} r={tableRadius - 12} fill="none" stroke={table.color} strokeWidth="7" opacity="0.45" />
-                          <text x={table.cx} y={table.cy - 12} textAnchor="middle" fill="#1c1917" fontSize="15" fontWeight="bold">{table.name}</text>
-                          <text x={table.cx} y={table.cy + 5} textAnchor="middle" fill={table.textTint} fontSize="10.5" fontWeight="bold" textLength={table.theme.length > 9 ? 86 : undefined} lengthAdjust="spacingAndGlyphs">{table.theme}</text>
-                          <text x={table.cx} y={table.cy + 21} textAnchor="middle" fill="#57534e" fontSize="10" fontWeight="600">{occupiedCount}/{table.capacity}</text>
+                      const isHighlighted = selectedTableFilter === 'all' || selectedTableFilter === table.id;
 
+                      return (
+                        <g key={table.id} opacity={isHighlighted ? 1 : 0.35} className="transition-opacity">
+                          {/* Table top circle with warm gold rim ring */}
+                          <circle
+                            cx={table.cx}
+                            cy={table.cy}
+                            r={tableRadius}
+                            fill="#ffffff"
+                            stroke={isHighlighted ? '#c47b8b' : '#c59b48'}
+                            strokeWidth={isHighlighted ? '4.5' : '3.2'}
+                            filter="url(#fs-org-table-soft-shadow)"
+                          />
+                          {/* Invisible click layer for table focus filter */}
+                          <circle
+                            cx={table.cx}
+                            cy={table.cy}
+                            r={tableRadius}
+                            fill="transparent"
+                            className="cursor-pointer"
+                            onClick={() => setSelectedTableFilter(selectedTableFilter === table.id ? 'all' : table.id)}
+                          />
+
+                          {/* Table Info */}
+                          {table.id === 1 ? (
+                            <g className="select-none pointer-events-none">
+                              <text
+                                x={table.cx}
+                                y={table.cy - 15}
+                                textAnchor="middle"
+                                fill="#1c1917"
+                                fontSize="16"
+                                fontWeight="bold"
+                                className="font-serif"
+                              >
+                                {table.name}
+                              </text>
+                              <text
+                                x={table.cx}
+                                y={table.cy - 1}
+                                textAnchor="middle"
+                                fill={table.textTint}
+                                fontSize="10.5"
+                                fontWeight="bold"
+                                letterSpacing="0.3"
+                                className="font-sans"
+                              >
+                                {table.theme}
+                              </text>
+                              <text
+                                x={table.cx}
+                                y={table.cy + 13}
+                                textAnchor="middle"
+                                fill="#57534e"
+                                fontSize="9"
+                                fontWeight="600"
+                                className="font-sans"
+                              >
+                                {occupiedCount}/{table.capacity} seated
+                              </text>
+                              <text
+                                x={table.cx}
+                                y={table.cy + 27}
+                                textAnchor="middle"
+                                fill="#b85b73"
+                                fontSize="9.5"
+                                fontWeight="bold"
+                                className="font-sans"
+                              >
+                                Cam &amp; Abby 💕
+                              </text>
+                            </g>
+                          ) : (
+                            <g className="select-none pointer-events-none">
+                              <text
+                                x={table.cx}
+                                y={table.cy - 10}
+                                textAnchor="middle"
+                                fill="#1c1917"
+                                fontSize="17"
+                                fontWeight="bold"
+                                className="font-serif"
+                              >
+                                {table.name}
+                              </text>
+                              <text
+                                x={table.cx}
+                                y={table.cy + 6}
+                                textAnchor="middle"
+                                fill={table.textTint}
+                                fontSize="10.5"
+                                fontWeight="bold"
+                                letterSpacing="0.3"
+                                className="font-sans"
+                              >
+                                {table.theme}
+                              </text>
+                              <text
+                                x={table.cx}
+                                y={table.cy + 22}
+                                textAnchor="middle"
+                                fill="#57534e"
+                                fontSize="9.5"
+                                fontWeight="600"
+                                className="font-sans"
+                              >
+                                {occupiedCount}/{table.capacity} seated
+                              </text>
+                            </g>
+                          )}
+
+                          {/* 8 Seats around Table */}
                           {Array.from({ length: table.capacity }).map((_, seatIdx) => {
                             const seatNum = seatIdx + 1;
                             const seatId = `T${table.id}-S${seatNum}`;
-                            const angle = (seatIdx * 45 - 90) * (Math.PI / 180);
+                            const angle = ((seatIdx * 360) / table.capacity - 90) * (Math.PI / 180);
                             const sx = table.cx + radiusOrbit * Math.cos(angle);
                             const sy = table.cy + radiusOrbit * Math.sin(angle);
+
                             const occupant = occupiedSeatsMap.get(seatId);
+                            const isOccupied = Boolean(occupant);
+                            const hasDietary = Boolean(occupant?.dietary);
+
+                            const isCamOrAbby = table.id === 1 && (seatNum === 1 || seatNum === 2);
 
                             return (
-                              <g key={seatId}>
-                                {occupant ? (
-                                  <circle cx={sx} cy={sy} r={seatRadius} fill="#8fae97" stroke="#5d7f66" strokeWidth="2" />
+                              <g
+                                key={seatId}
+                                className="group cursor-pointer"
+                                onMouseEnter={() => {
+                                  if (occupant) {
+                                    setHoveredSeat({
+                                      seatId,
+                                      tableId: table.id,
+                                      tableName: table.name,
+                                      seatNumber: seatNum,
+                                      occupantName: occupant.occupantName || occupant.householdName || 'Reserved Guest',
+                                      householdName: occupant.householdName || 'Guest Household',
+                                      dietary: occupant.dietary,
+                                      dietaryNormalized: occupant.dietaryNormalized,
+                                      favour: occupant.favour,
+                                      tags: occupant.tags,
+                                      x: sx,
+                                      y: sy,
+                                    });
+                                  }
+                                }}
+                                onMouseLeave={() => setHoveredSeat(null)}
+                              >
+                                <circle cx={sx} cy={sy} r={seatRadius + 6} fill="transparent" />
+
+                                {isOccupied ? (
+                                  <g>
+                                    <circle
+                                      cx={sx}
+                                      cy={sy}
+                                      r={seatRadius}
+                                      fill={isCamOrAbby ? '#fde8ee' : hasDietary ? '#fdf2da' : '#e3ede5'}
+                                      stroke={isCamOrAbby ? '#d47a8d' : hasDietary ? '#cfa347' : '#7ea78a'}
+                                      strokeWidth="1.8"
+                                    />
+                                    <text
+                                      x={sx}
+                                      y={sy + 3}
+                                      textAnchor="middle"
+                                      fontSize={isCamOrAbby ? '7' : '8'}
+                                      fontWeight="bold"
+                                      fill={isCamOrAbby ? '#8f2d48' : hasDietary ? '#7a5a1e' : '#284837'}
+                                      className="select-none pointer-events-none font-mono"
+                                    >
+                                      {isCamOrAbby ? (seatNum === 1 ? 'CAM' : 'ABBY') : seatNum}
+                                    </text>
+                                  </g>
                                 ) : (
-                                  <circle cx={sx} cy={sy} r={seatRadius} fill="#fff8fa" stroke="#d5c3c9" strokeWidth="1.6" strokeDasharray="3 2" />
+                                  <g>
+                                    <circle
+                                      cx={sx}
+                                      cy={sy}
+                                      r={seatRadius - 1}
+                                      fill="#ffffff"
+                                      stroke="#d4c2b8"
+                                      strokeWidth="1.4"
+                                    />
+                                    <text
+                                      x={sx}
+                                      y={sy + 3}
+                                      textAnchor="middle"
+                                      fontSize="8"
+                                      fill="#5c4f4a"
+                                      fontWeight="600"
+                                      className="select-none pointer-events-none font-mono"
+                                    >
+                                      {seatNum}
+                                    </text>
+                                  </g>
                                 )}
-                                <text x={sx} y={sy + 4} textAnchor="middle" fill={occupant ? '#ffffff' : '#9a8f85'} fontSize="11" fontWeight="bold">
-                                  {seatNum}
-                                </text>
                               </g>
                             );
                           })}
@@ -1245,12 +1959,97 @@ export const RsvpManager: React.FC<RsvpManagerProps> = ({
                       );
                     })}
 
-                    {/* Entrance */}
+                    {/* MAIN ENTRANCE & GARDEN PATIO */}
                     <g>
-                      <rect x="300" y="665" width="360" height="34" rx="12" fill="#ffffff" stroke="#cfb0a3" strokeWidth="1.8" />
-                      <text x="480" y="687" textAnchor="middle" fill="#523933" fontSize="11" fontWeight="bold" letterSpacing="3">▼ MAIN ENTRANCE &amp; GARDEN PATIO ▼</text>
+                      <rect
+                        x="380"
+                        y="880"
+                        width="340"
+                        height="38"
+                        rx="14"
+                        fill="#faf7f5"
+                        stroke="#d4c5b9"
+                        strokeWidth="1.8"
+                        className="drop-shadow-xs"
+                      />
+                      <text
+                        x="550"
+                        y="904"
+                        textAnchor="middle"
+                        fill="#4a3c37"
+                        fontSize="11"
+                        fontWeight="bold"
+                        letterSpacing="3"
+                        className="uppercase select-none font-display"
+                      >
+                        ▼ MAIN ENTRANCE &amp; GARDEN PATIO ▼
+                      </text>
                     </g>
                   </svg>
+
+                  {/* Seat Hover Tooltip Overlay in Fullscreen */}
+                  {hoveredSeat && (
+                    <div
+                      className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-full pb-3 animate-in fade-in zoom-in-95 duration-150"
+                      style={{
+                        left: `${(hoveredSeat.x / 1100) * 100}%`,
+                        top: `${(hoveredSeat.y / 960) * 100}%`,
+                      }}
+                    >
+                      <div className="rounded-xl border border-[#f0d5de] bg-white/95 backdrop-blur-md px-3.5 py-2.5 text-center text-stone-800 shadow-xl min-w-[180px] max-w-xs">
+                        <p className="text-[11px] font-bold text-[#8a384b]">
+                          {hoveredSeat.tableName} • Seat {hoveredSeat.seatNumber}
+                        </p>
+                        <p className="text-xs font-bold text-stone-900 mt-0.5">
+                          {hoveredSeat.occupantName}
+                        </p>
+                        {hoveredSeat.tags && hoveredSeat.tags.some(isWeddingRoleTag) && (
+                          <div className="mt-1 flex flex-wrap justify-center gap-1">
+                            {hoveredSeat.tags.filter(isWeddingRoleTag).map(tag => {
+                              const meta = getTagMeta(tag);
+                              return (
+                                <span
+                                  key={tag}
+                                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold ${meta.bg} ${meta.text} ${meta.border}`}
+                                >
+                                  <span>{meta.icon}</span>
+                                  <span>{meta.label}</span>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
+                        <p className="text-[10px] text-stone-500">
+                          Party of: {hoveredSeat.householdName}
+                        </p>
+                        {hoveredSeat.dietaryNormalized && (hoveredSeat.dietaryNormalized.tags.length > 0 || hoveredSeat.dietaryNormalized.notes) && (
+                          <div className="mt-1.5 space-y-1 text-left">
+                            <div className="flex flex-wrap gap-1 justify-center">
+                              {hoveredSeat.dietaryNormalized.tags.map(tag => (
+                                <span
+                                  key={tag.id}
+                                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${tag.badgeBg} ${tag.badgeText} ${tag.badgeBorder}`}
+                                >
+                                  <span>{tag.icon}</span>
+                                  <span>{tag.label}</span>
+                                </span>
+                              ))}
+                            </div>
+                            {hoveredSeat.dietaryNormalized.notes && (
+                              <p className="text-[10px] text-stone-700 bg-stone-50 rounded-md px-2 py-0.5 border border-stone-200 text-center">
+                                <span className="font-semibold text-stone-500">Note:</span> {hoveredSeat.dietaryNormalized.notes}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {hoveredSeat.favour && (
+                          <p className="mt-1 text-[10px] font-medium text-purple-700">
+                            🎁 Favour: {hoveredSeat.favour}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

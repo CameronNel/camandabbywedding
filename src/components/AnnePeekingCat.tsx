@@ -165,7 +165,7 @@ export const AnnePeekingCat: React.FC = () => {
             </button>
 
             <div className="space-y-1.5 pr-3">
-              <p className="font-bold text-[#9c2743] flex items-center gap-1.5 text-[13px]">
+              <p className="font-bold text-[#b85b73] flex items-center gap-1.5 text-[13px]">
                 <span>{currentPhrase}</span>
               </p>
               <p className="text-[11px] text-stone-600 leading-snug">
@@ -173,7 +173,7 @@ export const AnnePeekingCat: React.FC = () => {
               </p>
               <div className="mt-1 flex items-center justify-between pt-1 border-t border-pink-100 text-[11px]">
                 <span className="font-bold text-stone-800">
-                  Pets given: <span className="text-[#9c2743] font-mono">{petsCount}</span> 🐾
+                  Pets given: <span className="text-[#b85b73] font-mono">{petsCount}</span> 🐾
                 </span>
                 <span className="text-[10px] text-stone-400">Pet again!</span>
               </div>

@@ -92,6 +92,7 @@ export interface WeddingContextType {
   lookupInvitation: (query: string) => Promise<HouseholdInvitation | null>;
   submitHouseholdRsvp: (input: HouseholdRsvpInput) => Promise<boolean>;
   createHousehold: (draft: HouseholdDraft) => Promise<HouseholdInvitation>;
+  bulkCreateHouseholds: (drafts: HouseholdDraft[]) => Promise<number>;
   updateHousehold: (id: string, updates: Partial<HouseholdInvitation>) => Promise<void>;
   deleteHousehold: (id: string) => Promise<void>;
 
@@ -506,6 +507,56 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
       }
 
       return household;
+    } catch (error) {
+      setDataError(errorMessage(error));
+      throw error;
+    }
+  }, [config, dataMode, households]);
+
+  const bulkCreateHouseholds = useCallback(async (drafts: HouseholdDraft[]): Promise<number> => {
+    setDataError(null);
+    try {
+      const createdList: HouseholdInvitation[] = [];
+      const currentCodes = households.map((h) => h.inviteCode);
+      const newTags: Record<string, string[]> = { ...(config.householdTags || {}) };
+
+      for (const draft of drafts) {
+        // Skip if exact name already exists
+        if (households.some((h) => h.name.toLowerCase() === draft.name.trim().toLowerCase())) {
+          continue;
+        }
+        const code = draft.inviteCode?.trim() || generateHouseholdInviteCode(draft.name, currentCodes);
+        currentCodes.push(code);
+        const draftWithCode: HouseholdDraft = { ...draft, inviteCode: code };
+        const household = dataMode === 'supabase'
+          ? await repository.createHousehold(draftWithCode, config)
+          : createLocalHousehold(draftWithCode, config, currentCodes);
+        createdList.push(household);
+        if (draft.tags && draft.tags.length > 0) {
+          newTags[household.id] = draft.tags;
+          newTags[code] = draft.tags;
+        }
+      }
+
+      if (createdList.length === 0) return 0;
+
+      setHouseholds((current) => [...createdList, ...current]);
+      const invitationsMap = buildPublicInvitationsMap(createdList);
+      const updatedConfig: WeddingConfig = {
+        ...config,
+        householdTags: newTags,
+        publicInvitations: {
+          ...(config.publicInvitations || {}),
+          ...invitationsMap,
+        },
+      };
+      setConfig(updatedConfig);
+      if (dataMode === 'local') {
+        saveConfig(updatedConfig);
+      } else {
+        void repository.updateSiteConfig(updatedConfig);
+      }
+      return createdList.length;
     } catch (error) {
       setDataError(errorMessage(error));
       throw error;
@@ -1073,6 +1124,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     lookupInvitation,
     submitHouseholdRsvp,
     createHousehold,
+    bulkCreateHouseholds,
     updateHousehold,
     deleteHousehold,
     submitRsvp,
@@ -1126,7 +1178,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     isBridalPartyEligible,
   }), [
     accommodations, activeHousehold, addAccommodation, addGalleryItem, addGuest, addRegistryItem,
-    addService, addWish, adminSession, authenticateAdmin, bachelorParty, bacheloretteParty, bulkAddGuests, config, createHousehold,
+    addService, addWish, adminSession, authenticateAdmin, bachelorParty, bacheloretteParty, bulkAddGuests, bulkCreateHouseholds, config, createHousehold,
     dataError, dataMode, deleteAccommodation, deleteGalleryItem, deleteGuest, deleteHousehold,
     deleteRegistryItem, deleteService, galleryItems, households, invitationDeliveries,
     invitationTemplates, isBridalPartyEligible, isGroomsmenEligible, isAdminOpen, isLoading, likeWish, logoutAdmin, lookupInvitation,
