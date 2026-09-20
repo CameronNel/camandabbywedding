@@ -34,6 +34,84 @@ export const AnnePeekingCat: React.FC = () => {
   const [floatingHearts, setFloatingHearts] = useState<FloatingHeart[]>([]);
   const [currentPhrase, setCurrentPhrase] = useState(PURR_PHRASES[0]);
 
+  const [isBlinking, setIsBlinking] = useState(false);
+  const [earTwitchSide, setEarTwitchSide] = useState<'left' | 'right' | null>(null);
+  const [isPurring, setIsPurring] = useState(false);
+
+  // Natural Feline Blinking Timer for Anne (when peeking)
+  useEffect(() => {
+    if (!isPeeking) return;
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let cancelCurrentBlink: (() => void) | null = null;
+
+    const scheduleNextBlink = () => {
+      // Blink every 3.2s to 5.5s
+      const delay = Math.floor(Math.random() * 2300) + 3200;
+      timeoutId = setTimeout(() => {
+        const isDoubleBlink = Math.random() < 0.25;
+        if (isDoubleBlink) {
+          setIsBlinking(true);
+          const t1 = setTimeout(() => {
+            setIsBlinking(false);
+            const t2 = setTimeout(() => {
+              setIsBlinking(true);
+              const t3 = setTimeout(() => {
+                setIsBlinking(false);
+                scheduleNextBlink();
+              }, 130);
+              cancelCurrentBlink = () => clearTimeout(t3);
+            }, 80);
+            cancelCurrentBlink = () => clearTimeout(t2);
+          }, 130);
+          cancelCurrentBlink = () => clearTimeout(t1);
+        } else {
+          setIsBlinking(true);
+          const t = setTimeout(() => {
+            setIsBlinking(false);
+            scheduleNextBlink();
+          }, 150);
+          cancelCurrentBlink = () => clearTimeout(t);
+        }
+      }, delay);
+    };
+
+    scheduleNextBlink();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (cancelCurrentBlink) cancelCurrentBlink();
+    };
+  }, [isPeeking]);
+
+  // Natural Ear Twitching Timer for Anne (when peeking)
+  useEffect(() => {
+    if (!isPeeking) return;
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let resetId: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleNextTwitch = () => {
+      // Twitch every 4s to 7.5s
+      const delay = Math.floor(Math.random() * 3500) + 4000;
+      timeoutId = setTimeout(() => {
+        const side = Math.random() < 0.5 ? 'left' : 'right';
+        setEarTwitchSide(side);
+        resetId = setTimeout(() => {
+          setEarTwitchSide(null);
+          scheduleNextTwitch();
+        }, 450);
+      }, delay);
+    };
+
+    scheduleNextTwitch();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (resetId) clearTimeout(resetId);
+    };
+  }, [isPeeking]);
+
   // Periodic Pop-up Easter Egg Timers
   useEffect(() => {
     let hideTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -101,6 +179,14 @@ export const AnnePeekingCat: React.FC = () => {
 
     // Keep Anne visible longer while being actively petted
     setIsPeeking(true);
+
+    // Happy purr wiggle and slow loving blink
+    setIsPurring(true);
+    setIsBlinking(true);
+    setEarTwitchSide(Math.random() < 0.5 ? 'left' : 'right');
+    setTimeout(() => setIsPurring(false), 550);
+    setTimeout(() => setIsBlinking(false), 500);
+    setTimeout(() => setEarTwitchSide(null), 450);
 
     // Pick a cute purr phrase
     const randomPhrase = PURR_PHRASES[Math.floor(Math.random() * PURR_PHRASES.length)];
@@ -206,6 +292,10 @@ export const AnnePeekingCat: React.FC = () => {
               if (!isBubbleOpen && petsCount === 0) {
                 setIsBubbleOpen(true);
               }
+              if (!earTwitchSide && !isPurring) {
+                setEarTwitchSide(Math.random() < 0.5 ? 'left' : 'right');
+                setTimeout(() => setEarTwitchSide(null), 450);
+              }
             }}
             aria-label="Pet Anne the cat"
             className="relative block transform transition-all duration-300 ease-out hover:-translate-y-2 active:scale-95 focus:outline-none cursor-pointer"
@@ -213,13 +303,40 @@ export const AnnePeekingCat: React.FC = () => {
             {/* Gentle warm aura on hover */}
             <div className="absolute -inset-1 rounded-full bg-[#e4aeb5]/30 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
 
-            {/* Anne Peeking Cartoon Sticker */}
+            {/* Anne Peeking Cartoon Sticker with Breathing & Ear-twitches */}
             <div className="relative h-20 w-24 sm:h-24 sm:w-28 drop-shadow-[0_4px_12px_rgba(0,0,0,0.18)]">
-              <img
-                src={`${import.meta.env.BASE_URL}images/anne-peeking.png`}
-                alt="Anne peeking tabby cat"
-                className="h-full w-full object-contain pointer-events-none"
-              />
+              {/* Gentle feline breathing rhythm */}
+              <div className="h-full w-full animate-cat-breathe">
+                {/* Natural ear twitches & purr wiggle */}
+                <div
+                  className={`relative h-full w-full ${
+                    isPurring
+                      ? 'animate-cat-purr'
+                      : earTwitchSide === 'left'
+                        ? 'animate-cat-twitch-left'
+                        : earTwitchSide === 'right'
+                          ? 'animate-cat-twitch-right'
+                          : ''
+                  }`}
+                >
+                  {/* Base open-eyed Anne */}
+                  <img
+                    src={`${import.meta.env.BASE_URL}images/anne-peeking.png`}
+                    alt="Anne peeking tabby cat"
+                    className="h-full w-full object-contain pointer-events-none"
+                  />
+
+                  {/* Closed-eye blink overlay */}
+                  <img
+                    src={`${import.meta.env.BASE_URL}images/anne-peeking-blink.png`}
+                    alt=""
+                    aria-hidden="true"
+                    className={`absolute inset-0 h-full w-full object-contain pointer-events-none transition-opacity duration-75 ${
+                      isBlinking ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
+                </div>
+              </div>
             </div>
           </button>
 

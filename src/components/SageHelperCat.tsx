@@ -154,6 +154,80 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
+  const [isBlinking, setIsBlinking] = useState(false);
+  const [earTwitchSide, setEarTwitchSide] = useState<'left' | 'right' | null>(null);
+  const [isPurring, setIsPurring] = useState(false);
+
+  // Natural Feline Blinking Timer (Random intervals with occasional cute double-blinks)
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let cancelCurrentBlink: (() => void) | null = null;
+
+    const scheduleNextBlink = () => {
+      // Blink every 3.2s to 5.8s
+      const delay = Math.floor(Math.random() * 2600) + 3200;
+      timeoutId = setTimeout(() => {
+        const isDoubleBlink = Math.random() < 0.25;
+        if (isDoubleBlink) {
+          setIsBlinking(true);
+          const t1 = setTimeout(() => {
+            setIsBlinking(false);
+            const t2 = setTimeout(() => {
+              setIsBlinking(true);
+              const t3 = setTimeout(() => {
+                setIsBlinking(false);
+                scheduleNextBlink();
+              }, 130);
+              cancelCurrentBlink = () => clearTimeout(t3);
+            }, 80);
+            cancelCurrentBlink = () => clearTimeout(t2);
+          }, 130);
+          cancelCurrentBlink = () => clearTimeout(t1);
+        } else {
+          setIsBlinking(true);
+          const t = setTimeout(() => {
+            setIsBlinking(false);
+            scheduleNextBlink();
+          }, 150);
+          cancelCurrentBlink = () => clearTimeout(t);
+        }
+      }, delay);
+    };
+
+    scheduleNextBlink();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (cancelCurrentBlink) cancelCurrentBlink();
+    };
+  }, []);
+
+  // Natural Ear Twitching Timer (Random intermittent twitch left or right)
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let resetId: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleNextTwitch = () => {
+      // Twitch every 4.5s to 8.5s
+      const delay = Math.floor(Math.random() * 4000) + 4500;
+      timeoutId = setTimeout(() => {
+        const side = Math.random() < 0.5 ? 'left' : 'right';
+        setEarTwitchSide(side);
+        resetId = setTimeout(() => {
+          setEarTwitchSide(null);
+          scheduleNextTwitch();
+        }, 450);
+      }, delay);
+    };
+
+    scheduleNextTwitch();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (resetId) clearTimeout(resetId);
+    };
+  }, []);
+
   // When a chat message is selected, scroll smoothly into view
   useEffect(() => {
     if (selectedFaq && chatBottomRef.current) {
@@ -224,6 +298,12 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
   const handleCatClick = () => {
     setIsOpen(prev => !prev);
     setSpeechBubbleDismissed(true);
+
+    // Sweet purr reaction and slow loving cat-blink
+    setIsPurring(true);
+    setIsBlinking(true);
+    setTimeout(() => setIsPurring(false), 550);
+    setTimeout(() => setIsBlinking(false), 420);
   };
 
   return (
@@ -248,6 +328,14 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
                   src={`${import.meta.env.BASE_URL}images/sage-helper.png`}
                   alt="Sage the cat"
                   className="h-10 w-10 object-contain drop-shadow-xs"
+                />
+                <img
+                  src={`${import.meta.env.BASE_URL}images/sage-helper-blink.png`}
+                  alt=""
+                  aria-hidden="true"
+                  className={`absolute inset-0 h-10 w-10 object-contain pointer-events-none transition-opacity duration-75 ${
+                    isBlinking ? 'opacity-100' : 'opacity-0'
+                  }`}
                 />
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
               </div>
@@ -408,6 +496,12 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
         <button
           type="button"
           onClick={handleCatClick}
+          onMouseEnter={() => {
+            if (!earTwitchSide && !isPurring) {
+              setEarTwitchSide(Math.random() < 0.5 ? 'left' : 'right');
+              setTimeout(() => setEarTwitchSide(null), 450);
+            }
+          }}
           aria-expanded={isOpen}
           aria-label="Ask Sage for help"
           className="group relative flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95 focus:outline-none"
@@ -415,13 +509,40 @@ export const SageHelperCat: React.FC<SageHelperCatProps> = ({ onNavigate }) => {
           {/* Subtle warm glow behind Sage */}
           <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#e4aeb5]/40 to-[#f5d0c6]/50 blur-sm opacity-70 group-hover:opacity-100 transition-opacity" />
 
-          {/* Sage Cartoon Sticker */}
+          {/* Sage Cartoon Sticker with Breathing & Ear-twitching */}
           <div className="relative h-20 w-20 sm:h-28 sm:w-28 drop-shadow-[0_10px_20px_rgba(0,0,0,0.16)] transition-transform group-hover:-translate-y-1">
-            <img
-              src={`${import.meta.env.BASE_URL}images/sage-helper.png`}
-              alt="Sage the helper cat"
-              className="h-full w-full object-contain pointer-events-none"
-            />
+            {/* Gentle feline breathing rhythm */}
+            <div className="h-full w-full animate-cat-breathe">
+              {/* Natural ear twitches & happy purr wiggle */}
+              <div
+                className={`relative h-full w-full ${
+                  isPurring
+                    ? 'animate-cat-purr'
+                    : earTwitchSide === 'left'
+                      ? 'animate-cat-twitch-left'
+                      : earTwitchSide === 'right'
+                        ? 'animate-cat-twitch-right'
+                        : ''
+                }`}
+              >
+                {/* Base open-eyed Sage */}
+                <img
+                  src={`${import.meta.env.BASE_URL}images/sage-helper.png`}
+                  alt="Sage the helper cat"
+                  className="h-full w-full object-contain pointer-events-none"
+                />
+
+                {/* Closed-eye blink overlay */}
+                <img
+                  src={`${import.meta.env.BASE_URL}images/sage-helper-blink.png`}
+                  alt=""
+                  aria-hidden="true"
+                  className={`absolute inset-0 h-full w-full object-contain pointer-events-none transition-opacity duration-75 ${
+                    isBlinking ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+              </div>
+            </div>
 
             {/* Notification Badge / Online Dot */}
             <span className="absolute bottom-1 right-2 sm:bottom-2 sm:right-3 flex h-3.5 w-3.5 sm:h-4 sm:w-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white shadow-xs">
