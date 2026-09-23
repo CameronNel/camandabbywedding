@@ -107,7 +107,6 @@ export function PastelTulip({
     }
     return false;
   });
-  const [wiggling, setWiggling] = useState(false);
   const [sparkles, setSparkles] = useState<SparkleParticle[]>([]);
 
   useEffect(() => {
@@ -135,11 +134,7 @@ export function PastelTulip({
     // Remove focus outline if browser applies focus on click
     (e.currentTarget as HTMLElement)?.blur?.();
 
-    // Trigger wiggle animation
-    setWiggling(true);
-    window.setTimeout(() => setWiggling(false), 700);
-
-    // Emit 3 cute pastel sparkles
+    // Emit cute pastel sparkles on click
     const newSparkles: SparkleParticle[] = [
       { id: Date.now() + 1, dx: -18, rot: -15, emoji: SPARKLE_EMOJIS[Math.floor(Math.random() * SPARKLE_EMOJIS.length)] },
       { id: Date.now() + 2, dx: 0, rot: 5, emoji: SPARKLE_EMOJIS[Math.floor(Math.random() * SPARKLE_EMOJIS.length)] },
@@ -149,11 +144,7 @@ export function PastelTulip({
     window.setTimeout(() => setSparkles([]), 750);
   };
 
-  const animClass = wiggling
-    ? 'animate-tulip-wiggle'
-    : inView
-    ? 'animate-tulip-bloom'
-    : 'opacity-0 scale-0';
+  const animClass = inView ? 'animate-tulip-bloom' : 'opacity-0 scale-0';
 
   return (
     <span
@@ -178,8 +169,8 @@ export function PastelTulip({
         height={size * 1.4}
         className={`inline-block shrink-0 ${animClass} ${className}`}
         style={{
-          transform: tilt && !wiggling ? `rotate(${tilt}deg)` : undefined,
-          animationDelay: inView && !wiggling ? `${bloomDelay}ms` : undefined,
+          transform: tilt ? `rotate(${tilt}deg)` : undefined,
+          animationDelay: inView ? `${bloomDelay}ms` : undefined,
         }}
         aria-hidden="true"
       >
@@ -323,32 +314,35 @@ export function TulipDivider({ className = '' }: { className?: string }) {
   }, [inView]);
 
   return (
-    <div ref={dividerRef} className={`relative flex items-center justify-center py-6 select-none ${className}`} aria-hidden="true">
-      {/* Left leafy trailing line */}
+    <div ref={dividerRef} className={`relative flex items-center justify-center py-4 select-none ${className}`} aria-hidden="true">
+      {/* Left elegant hairline */}
       <div className="flex flex-1 items-center justify-end">
-        <div className={`h-px w-full max-w-[140px] bg-gradient-to-r from-transparent via-[#d6c4b2]/40 to-[#c5b09d] transition-all duration-700 origin-right ${
+        <div className={`h-[1px] w-full max-w-[120px] sm:max-w-[200px] bg-gradient-to-r from-transparent via-[#d6c4b2]/45 to-[#c5b09d] transition-all duration-700 origin-right ${
           inView ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'
         }`} />
-        <span className={`mx-2 h-1.5 w-1.5 rounded-full bg-[#e8c5b2] transition-transform duration-500 delay-150 ${
-          inView ? 'scale-100' : 'scale-0'
-        }`} />
-        <span className={`mr-3 h-2 w-2 rounded-full bg-[#fbcfe8] transition-transform duration-500 delay-300 ${
+        <span className={`mx-2.5 h-1 w-1 rounded-full bg-[#c5b09d]/70 transition-transform duration-500 delay-150 ${
           inView ? 'scale-100' : 'scale-0'
         }`} />
       </div>
 
-      {/* Center Tulip Bouquet */}
-      <TulipTrio size={28} className="mx-3 drop-shadow-sm" />
+      {/* Center Delicate Floral Flourish */}
+      <div className={`transition-all duration-700 delay-100 ${inView ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
+        <span className="flex items-center justify-center text-[#c97a8b]">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3C9.8 5.8 8.5 9 8.5 12c0 2.5 1.2 4.5 3.5 7 2.3-2.5 3.5-4.5 3.5-7 0-3-1.3-6.2-3.5-9z" fill="#fdf2f5" stroke="#c97a8b" />
+            <path d="M12 19v3" stroke="#9bbeab" />
+            <path d="M10.5 16c-1.5 0-2.5-.8-3-1.5" stroke="#9bbeab" />
+            <path d="M13.5 16c1.5 0 2.5-.8 3-1.5" stroke="#9bbeab" />
+          </svg>
+        </span>
+      </div>
 
-      {/* Right leafy trailing line */}
+      {/* Right elegant hairline */}
       <div className="flex flex-1 items-center justify-start">
-        <span className={`ml-3 h-2 w-2 rounded-full bg-[#e9d5ff] transition-transform duration-500 delay-300 ${
+        <span className={`mx-2.5 h-1 w-1 rounded-full bg-[#c5b09d]/70 transition-transform duration-500 delay-150 ${
           inView ? 'scale-100' : 'scale-0'
         }`} />
-        <span className={`mx-2 h-1.5 w-1.5 rounded-full bg-[#fed7aa] transition-transform duration-500 delay-150 ${
-          inView ? 'scale-100' : 'scale-0'
-        }`} />
-        <div className={`h-px w-full max-w-[140px] bg-gradient-to-r from-[#c5b09d] via-[#d6c4b2]/40 to-transparent transition-all duration-700 origin-left ${
+        <div className={`h-[1px] w-full max-w-[120px] sm:max-w-[200px] bg-gradient-to-r from-[#c5b09d] via-[#d6c4b2]/45 to-transparent transition-all duration-700 origin-left ${
           inView ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'
         }`} />
       </div>

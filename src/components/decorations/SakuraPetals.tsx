@@ -18,13 +18,10 @@ interface Petal {
 }
 
 const SAKURA_COLORS = [
-  'rgba(237, 201, 212, 0.85)', // 1. Dusty Rose (#EDC9D4)
-  'rgba(255, 211, 201, 0.82)', // 2. Soft Peach (#FFD3C9)
-  'rgba(255, 247, 207, 0.80)', // 3. Buttercream Yellow (#FFF7CF)
-  'rgba(228, 240, 201, 0.80)', // 4. Matcha Sage (#E4F0C9)
-  'rgba(199, 224, 255, 0.82)', // 5. Sky Blue (#C7E0FF)
-  'rgba(207, 207, 255, 0.82)', // 6. Lavender (#CFCFFF)
-  'rgba(186, 195, 255, 0.80)', // 7. Periwinkle (#BAC3FF)
+  'rgba(240, 206, 216, 0.65)', // 1. Soft blush
+  'rgba(248, 225, 220, 0.60)', // 2. Delicate champagne peach
+  'rgba(252, 246, 240, 0.65)', // 3. Warm ivory cream
+  'rgba(232, 190, 201, 0.55)', // 4. Dusty rose whisper
 ];
 
 export function SakuraPetals() {
@@ -128,18 +125,18 @@ export function SakuraPetals() {
 
         // Gradual scroll calculation:
         // - Hero (< 60px): 0 petals.
-        // - Starts gradually: 1..3 petals around 80-200px.
-        // - Scales to full density (max 26 on desktop, 14 on mobile) around 600px+.
+        // - Starts gradually: 1..2 petals around 80-200px.
+        // - Scales to serene whisper density (max 8 on desktop, 4 on mobile) around 600px+.
         let targetCount = 0;
         if (currentScroll >= 60) {
-          const maxPetals = width > 768 ? 26 : 14;
+          const maxPetals = width > 768 ? 8 : 4;
           const scrollProgress = Math.min(1, (currentScroll - 60) / 500);
           const curved = Math.pow(scrollProgress, 1.4); // gentle gradual curve
-          targetCount = Math.max(2, Math.round(curved * maxPetals));
+          targetCount = Math.max(1, Math.round(curved * maxPetals));
         }
 
         // Spawn new petals one-by-one from the top at spaced intervals
-        if (petals.length < targetCount && currentTime - lastSpawnTime > 260) {
+        if (petals.length < targetCount && currentTime - lastSpawnTime > 450) {
           lastSpawnTime = currentTime;
           petals.push(createPetal(-15 - Math.random() * 20));
         }

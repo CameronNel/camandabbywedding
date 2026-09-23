@@ -660,6 +660,76 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
           setAccommodations(bundle.accommodations);
           setServices(bundle.services);
           setRegistryItems(bundle.registryItems);
+
+          // Update households state so Admin and overview stats reflect this RSVP immediately
+          setHouseholds((current) => {
+            const exists = current.some((h) => h.id === bundle.household.id);
+            return exists
+              ? current.map((h) => (h.id === bundle.household.id ? bundle.household : h))
+              : [bundle.household, ...current];
+          });
+
+          // Update publicInvitations cache so subsequent lookups reflect the new response
+          const invitationsMap = buildPublicInvitationsMap([bundle.household]);
+          setConfig((prev) => ({
+            ...prev,
+            publicInvitations: {
+              ...(prev.publicInvitations || {}),
+              ...invitationsMap,
+            },
+          }));
+
+          // Backup in local storage cache
+          try {
+            const storedGuests = loadGuests();
+            const existsInStored = storedGuests.some(
+              (g) => g.id === bundle.household.id || g.inviteCode.toLowerCase() === bundle.household.inviteCode.toLowerCase(),
+            );
+            const guestRecord: Guest = {
+              id: bundle.household.id,
+              name: bundle.household.name,
+              inviteCode: bundle.household.inviteCode,
+              email: bundle.household.email,
+              phone: bundle.household.phone,
+              rsvpStatus: bundle.household.rsvpStatus,
+              partySize: bundle.household.partySize,
+              attendingCount: bundle.household.attendingCount,
+              dietaryRestrictions: bundle.household.dietaryRestrictions,
+              dietaryDetails: bundle.household.dietaryDetails,
+              mealSelection: bundle.household.mealSelection,
+              songRequest: bundle.household.songRequest,
+              tableNumber: bundle.household.tableNumber,
+              message: bundle.household.message,
+              checkedIn: bundle.household.checkedIn,
+              tags: bundle.household.tags,
+              isPlusOneAllowed: bundle.household.isPlusOneAllowed,
+              companionNames: bundle.household.companionNames,
+              respondedAt: bundle.household.respondedAt,
+              createdAt: bundle.household.createdAt,
+              updatedAt: bundle.household.updatedAt,
+            };
+            const updatedStored = existsInStored
+              ? storedGuests.map((g) =>
+                  g.id === bundle.household.id || g.inviteCode.toLowerCase() === bundle.household.inviteCode.toLowerCase()
+                    ? guestRecord
+                    : g,
+                )
+              : [guestRecord, ...storedGuests];
+            saveGuests(updatedStored);
+          } catch (e) {
+            console.error('Failed to update local storage', e);
+          }
+
+          if (input.message?.trim()) {
+            setWishes((current) => [{
+              id: crypto.randomUUID(),
+              name: bundle.household.name,
+              message: input.message!.trim(),
+              date: new Date().toISOString().slice(0, 10),
+              likes: 0,
+              approved: true,
+            }, ...current]);
+          }
           return true;
         } catch (error) {
           console.warn('Supabase submitHouseholdRsvp failed, falling back to local update:', error);
@@ -722,22 +792,53 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
 
       try {
         const storedGuests = loadGuests();
-        const updatedStored = storedGuests.map((g) =>
-          g.id === updated.id || g.inviteCode.toLowerCase() === updated.inviteCode.toLowerCase()
-            ? {
-                ...g,
-                email: updated.email || g.email,
-                phone: updated.phone || g.phone,
-                rsvpStatus: updated.rsvpStatus,
-                attendingCount: updated.attendingCount,
-                mealSelection: updated.mealSelection,
-                songRequest: updated.songRequest,
-                message: updated.message,
-                respondedAt: updated.respondedAt,
-              }
-            : g,
+        const existsInStored = storedGuests.some(
+          (g) => g.id === updated.id || g.inviteCode.toLowerCase() === updated.inviteCode.toLowerCase(),
         );
+        const guestRecord: Guest = {
+          id: updated.id,
+          name: updated.name,
+          inviteCode: updated.inviteCode,
+          email: updated.email,
+          phone: updated.phone,
+          rsvpStatus: updated.rsvpStatus,
+          partySize: updated.partySize,
+          attendingCount: updated.attendingCount,
+          dietaryRestrictions: updated.dietaryRestrictions,
+          dietaryDetails: updated.dietaryDetails,
+          mealSelection: updated.mealSelection,
+          songRequest: updated.songRequest,
+          tableNumber: updated.tableNumber,
+          message: updated.message,
+          checkedIn: updated.checkedIn,
+          tags: updated.tags,
+          isPlusOneAllowed: updated.isPlusOneAllowed,
+          companionNames: updated.companionNames,
+          respondedAt: updated.respondedAt,
+          createdAt: updated.createdAt,
+          updatedAt: updated.updatedAt,
+        };
+        const updatedStored = existsInStored
+          ? storedGuests.map((g) =>
+              g.id === updated.id || g.inviteCode.toLowerCase() === updated.inviteCode.toLowerCase()
+                ? guestRecord
+                : g,
+            )
+          : [guestRecord, ...storedGuests];
         saveGuests(updatedStored);
+
+        const invitationsMap = buildPublicInvitationsMap([updated]);
+        setConfig((prev) => {
+          const next = {
+            ...prev,
+            publicInvitations: {
+              ...(prev.publicInvitations || {}),
+              ...invitationsMap,
+            },
+          };
+          saveConfig(next);
+          return next;
+        });
       } catch (e) {
         console.error('Failed to update local storage', e);
       }

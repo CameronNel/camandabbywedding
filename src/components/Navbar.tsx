@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Beer, CalendarCheck, Gift, Home, Images, LockKeyhole, MapPinned, Menu, Sparkles, X } from 'lucide-react';
+import { Beer, Calendar, CalendarCheck, Gift, Home, Images, LockKeyhole, MapPinned, Menu, Sparkles, X } from 'lucide-react';
 import { useGuestExperience } from './guestExperience';
 import { formatWeddingDate } from '../utils/dates';
 
-export type SectionId = 'home' | 'rsvp' | 'details' | 'gallery' | 'gifts' | 'bachelor' | 'bachelorette';
+export type SectionId = 'home' | 'rsvp' | 'events' | 'details' | 'gallery' | 'gifts' | 'bachelor' | 'bachelorette';
 
 interface NavbarProps {
   activeSection: SectionId;
@@ -12,6 +12,7 @@ interface NavbarProps {
 
 const baseNavigation: Array<{ id: SectionId; label: string; icon: typeof Home }> = [
   { id: 'home', label: 'Home', icon: Home },
+  { id: 'events', label: 'Events', icon: Calendar },
   { id: 'rsvp', label: 'RSVP', icon: CalendarCheck },
   { id: 'details', label: 'Venue & stay', icon: MapPinned },
   { id: 'gallery', label: 'Gallery', icon: Images },
