@@ -3,7 +3,6 @@ import { ArrowDown, CalendarDays, LockKeyhole, MapPin } from 'lucide-react';
 import type { SectionId } from './Navbar';
 import { useGuestExperience } from './guestExperience';
 import { formatWeddingDate, parseWeddingDate } from '../utils/dates';
-import { PrintInvitationModal } from './PrintInvitationModal';
 
 interface HeroProps {
   onNavigate: (section: SectionId) => void;
@@ -13,7 +12,6 @@ export function Hero({ onNavigate }: HeroProps) {
   const { site, activeHousehold, lookupInvitation, isUnlocked } = useGuestExperience();
   const weddingDate = parseWeddingDate(site.weddingDate);
   const [pageLoadTime] = useState(() => Date.now());
-  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
 
   const daysRemaining = weddingDate && !site.dateIsTbc
     ? Math.max(0, Math.ceil((weddingDate.getTime() - pageLoadTime) / 86_400_000))
@@ -36,11 +34,7 @@ export function Hero({ onNavigate }: HeroProps) {
     const codeParam = params.get('code') || params.get('invite') || params.get('token');
     if (codeParam && !activeHousehold) {
       const clean = codeParam.trim();
-      void lookupInvitation(clean).then(found => {
-        if (found) {
-          setIsCardModalOpen(true);
-        }
-      });
+      void lookupInvitation(clean);
     }
   }, [activeHousehold, lookupInvitation]);
 
@@ -135,20 +129,7 @@ export function Hero({ onNavigate }: HeroProps) {
         )}
       </div>
 
-      {activeHousehold && (
-        <PrintInvitationModal
-          isOpen={isCardModalOpen}
-          onClose={() => setIsCardModalOpen(false)}
-          household={{
-            id: activeHousehold.id,
-            name: activeHousehold.name,
-            inviteCode: activeHousehold.inviteCode,
-            email: activeHousehold.email,
-            phone: activeHousehold.phone,
-          }}
-          invitationType="official"
-        />
-      )}
+
     </section>
   );
 }

@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { WeddingProvider } from './context/WeddingContext';
 import { Navbar, type SectionId } from './components/Navbar';
 import { Hero } from './components/Hero';
+import { UpcomingEvents } from './components/UpcomingEvents';
 import { RsvpSection } from './components/RsvpSection';
 import { VenueTravel } from './components/VenueTravel';
 import { PhotoGallery } from './components/PhotoGallery';
@@ -13,13 +14,13 @@ import { SageHelperCat } from './components/SageHelperCat';
 import { AnnePeekingCat } from './components/AnnePeekingCat';
 import { useGuestExperience } from './components/guestExperience';
 import { SakuraPetals } from './components/decorations/SakuraPetals';
-import { TulipDivider, PastelTulip } from './components/decorations/TulipAccents';
+import { TulipDivider } from './components/decorations/TulipAccents';
 
 const AdminDashboard = lazy(() =>
   import('./components/AdminDashboard').then(module => ({ default: module.AdminDashboard })),
 );
 
-const sectionIds: SectionId[] = ['home', 'rsvp', 'details', 'gallery', 'gifts', 'bachelor', 'bachelorette'];
+const sectionIds: SectionId[] = ['home', 'events', 'rsvp', 'details', 'gallery', 'gifts', 'bachelor', 'bachelorette'];
 
 function isSectionId(value: string): value is SectionId {
   return sectionIds.includes(value as SectionId);
@@ -94,7 +95,7 @@ export function AppContent() {
   useEffect(() => {
     if (isPartyView) return;
 
-    const mainSections: SectionId[] = ['home', 'rsvp', 'details', 'gallery', 'gifts'];
+    const mainSections: SectionId[] = ['home', 'events', 'rsvp', 'details', 'gallery', 'gifts'];
     let ticking = false;
 
     const updateActiveSectionOnScroll = () => {
@@ -168,7 +169,7 @@ export function AppContent() {
     if (isPartyView || adminOpen) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const sectionIds: SectionId[] = ['home', 'rsvp', 'details', 'gallery', 'gifts'];
+    const sectionIds: SectionId[] = ['home', 'events', 'rsvp', 'details', 'gallery', 'gifts'];
     let scrollEndTimer = 0;
     let rafId = 0;
 
@@ -303,18 +304,11 @@ export function AppContent() {
   return (
     <div className="relative min-h-screen w-full max-w-full overflow-x-hidden bg-[#faf8f5] text-[#2b2624]">
       <a className="skip-link" href="#main-content">Skip to content</a>
-      {/* Luminous Ambient Light Auras: Warm Sunlight, Soft Champagne & Eucalyptus Sage */}
+      {/* Soft Ambient Light: Warm Champagne & Gentle Alabaster Glow */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
-        {/* Warm Champagne Sunlight & Alabaster Top Auras */}
-        <div className="absolute -top-24 -left-20 h-[620px] w-[620px] rounded-full bg-[#f5ebd7]/24 blur-[140px]" />
-        <div className="absolute top-[14%] -right-32 h-[660px] w-[660px] rounded-full bg-[#f0eae1]/22 blur-[140px]" />
-        {/* Eucalyptus Sage (#9bbeab) & Soft Champagne Linen Middle Auras */}
-        <div className="absolute top-[36%] -left-28 h-[650px] w-[650px] rounded-full bg-[#9bbeab]/16 blur-[140px]" />
-        <div className="absolute top-[50%] -right-24 h-[670px] w-[670px] rounded-full bg-[#ede4d8]/20 blur-[140px]" />
-        {/* Warm Linen & Fynbos Sage Lower Auras */}
-        <div className="absolute top-[68%] -left-24 h-[670px] w-[670px] rounded-full bg-[#ece5dc]/25 blur-[140px]" />
-        <div className="absolute top-[80%] -right-20 h-[700px] w-[700px] rounded-full bg-[#9bbeab]/15 blur-[140px]" />
-        <div className="absolute -bottom-20 left-1/3 h-[620px] w-[620px] rounded-full bg-[#ede4d8]/22 blur-[140px]" />
+        <div className="absolute -top-32 -left-32 h-[520px] w-[520px] rounded-full bg-[#f8efe6]/50 blur-[130px]" />
+        <div className="absolute top-[28%] -right-28 h-[550px] w-[550px] rounded-full bg-[#fcf2ed]/45 blur-[130px]" />
+        <div className="absolute top-[65%] -left-20 h-[500px] w-[500px] rounded-full bg-[#f5ede5]/40 blur-[130px]" />
       </div>
 
       <SakuraPetals />
@@ -326,15 +320,9 @@ export function AppContent() {
           <BacheloretteParty onNavigate={navigate} />
         ) : (
           <>
-            {/* Floating subtle pastel tulips on wide screens along gutters */}
-            <aside aria-hidden="true" className="pointer-events-auto fixed left-4 top-1/3 z-20 hidden 2xl:block opacity-80 hover:opacity-100 transition-opacity">
-              <PastelTulip color="pink" size={38} tilt={-10} className="animate-gentle-sway drop-shadow-sm" />
-            </aside>
-            <aside aria-hidden="true" className="pointer-events-auto fixed right-4 top-2/3 z-20 hidden 2xl:block opacity-80 hover:opacity-100 transition-opacity">
-              <PastelTulip color="sage" size={36} tilt={12} className="animate-gentle-sway-delayed drop-shadow-sm" />
-            </aside>
-
             <Hero onNavigate={navigate} />
+            <TulipDivider className="py-4" />
+            <UpcomingEvents onNavigate={navigate} />
             <TulipDivider className="py-4" />
             <RsvpSection onNavigate={navigate} />
             <TulipDivider className="py-4" />
