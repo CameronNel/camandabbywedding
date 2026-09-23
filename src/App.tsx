@@ -40,7 +40,7 @@ export function AppContent() {
     isNavigatingRef.current = true;
     setActiveSection(section);
 
-    if (section === 'home' || section === 'bachelor' || section === 'bachelorette') {
+    if (section === 'home' || section === 'bachelor' || section === 'bachelorette' || section === 'events') {
       window.scrollTo({ top: 0, behavior });
     } else {
       const target = document.getElementById(section);
@@ -90,12 +90,12 @@ export function AppContent() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [navigate]);
 
-  const isPartyView = activeSection === 'bachelor' || activeSection === 'bachelorette';
+  const isStandaloneView = activeSection === 'bachelor' || activeSection === 'bachelorette' || activeSection === 'events';
 
   useEffect(() => {
-    if (isPartyView) return;
+    if (isStandaloneView) return;
 
-    const mainSections: SectionId[] = ['home', 'events', 'rsvp', 'details', 'gallery', 'gifts'];
+    const mainSections: SectionId[] = ['home', 'rsvp', 'details', 'gallery', 'gifts'];
     let ticking = false;
 
     const updateActiveSectionOnScroll = () => {
@@ -160,16 +160,16 @@ export function AppContent() {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, [isPartyView]);
+  }, [isStandaloneView]);
 
   // Soft center snap: after the user pauses mid-scroll past the halfway point,
   // glide the nearest section into the middle. Never holds/locks scrolling —
   // any new wheel, touch, key, or click cancels the glide immediately.
   useEffect(() => {
-    if (isPartyView || adminOpen) return;
+    if (isStandaloneView || adminOpen) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const sectionIds: SectionId[] = ['home', 'events', 'rsvp', 'details', 'gallery', 'gifts'];
+    const sectionIds: SectionId[] = ['home', 'rsvp', 'details', 'gallery', 'gifts'];
     let scrollEndTimer = 0;
     let rafId = 0;
 
@@ -299,7 +299,7 @@ export function AppContent() {
       window.removeEventListener('keydown', cancelOnUserInput);
       window.removeEventListener('mousedown', cancelOnUserInput);
     };
-  }, [isPartyView, adminOpen]);
+  }, [isStandaloneView, adminOpen]);
 
   return (
     <div className="relative min-h-screen w-full max-w-full overflow-x-hidden bg-[#faf8f5] text-[#2b2624]">
@@ -318,11 +318,11 @@ export function AppContent() {
           <BachelorParty onNavigate={navigate} />
         ) : activeSection === 'bachelorette' ? (
           <BacheloretteParty onNavigate={navigate} />
+        ) : activeSection === 'events' ? (
+          <UpcomingEvents onNavigate={navigate} />
         ) : (
           <>
             <Hero onNavigate={navigate} />
-            <TulipDivider className="py-4" />
-            <UpcomingEvents onNavigate={navigate} />
             <TulipDivider className="py-4" />
             <RsvpSection onNavigate={navigate} />
             <TulipDivider className="py-4" />

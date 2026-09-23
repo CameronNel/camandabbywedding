@@ -12,7 +12,6 @@ interface NavbarProps {
 
 const baseNavigation: Array<{ id: SectionId; label: string; icon: typeof Home }> = [
   { id: 'home', label: 'Home', icon: Home },
-  { id: 'events', label: 'Events', icon: Calendar },
   { id: 'rsvp', label: 'RSVP', icon: CalendarCheck },
   { id: 'details', label: 'Venue & stay', icon: MapPinned },
   { id: 'gallery', label: 'Gallery', icon: Images },
@@ -32,6 +31,9 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
 
   const navigation = useMemo(() => {
     const items = [...baseNavigation];
+    if (isUnlocked) {
+      items.splice(1, 0, { id: 'events', label: 'Events', icon: Calendar });
+    }
     if (isGroomsmenEligible) {
       items.push({ id: 'bachelor' as SectionId, label: "Groom's Crew", icon: Beer });
     }
@@ -39,7 +41,7 @@ export function Navbar({ activeSection, onNavigate }: NavbarProps) {
       items.push({ id: 'bachelorette' as SectionId, label: "Bridal Crew", icon: Sparkles });
     }
     return items;
-  }, [isGroomsmenEligible, isBridalPartyEligible]);
+  }, [isUnlocked, isGroomsmenEligible, isBridalPartyEligible]);
 
   useEffect(() => {
     if (!menuOpen) return;

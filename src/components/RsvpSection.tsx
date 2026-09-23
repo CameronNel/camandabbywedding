@@ -468,6 +468,13 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                 : `We’ll miss you, but we’re grateful you responded for ${household.name}.`}
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+              <button
+                type="button"
+                className="button-secondary min-h-11 px-6 text-[#b85b73] border-[#f5bdcd] hover:bg-[#fdf2f5] font-semibold"
+                onClick={() => onNavigate('events')}
+              >
+                <Sparkles className="h-4 w-4 text-[#b85b73]" /> View Upcoming Events
+              </button>
               {response === 'attending' && (
                 <button type="button" className="button-primary min-h-11 px-6" onClick={() => onNavigate('details')}>
                   View guest details <ArrowRight className="h-4 w-4" />
@@ -496,6 +503,14 @@ export function RsvpSection({ onNavigate }: RsvpSectionProps) {
                 </p>
               )}
               <div className="mt-6 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('events')}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#e4aeb5]/60 bg-gradient-to-r from-[#fdf2f5] to-[#fff7f8] px-4 py-2.5 text-xs font-bold text-[#b85b73] shadow-xs hover:border-[#b85b73] transition cursor-pointer"
+                >
+                  <Sparkles className="h-4 w-4 text-[#b85b73]" />
+                  <span>Upcoming Celebrations Page →</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setIsCardModalOpen(true)}
